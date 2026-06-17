@@ -5,6 +5,7 @@ import android.bluetooth.*
 import android.content.Intent
 import android.os.*
 import android.os.PowerManager.WakeLock
+import com.cooper.wheellog.ble.EucBleBridge
 import com.cooper.wheellog.utils.*
 import com.cooper.wheellog.utils.Constants.WHEEL_TYPE
 import com.cooper.wheellog.utils.SomeUtil.playSound
@@ -361,6 +362,8 @@ class BluetoothService: Service() {
         if (appConfig.useReconnect) {
             startReconnectTimer()
         }
+        // Initialize the EUC BLE Bridge for gradual migration
+        EucBleBridge.getInstance().initialize(applicationContext)
         Timber.i("BluetoothService is started.")
         return mBinder
     }
@@ -370,6 +373,8 @@ class BluetoothService: Service() {
         fileUtilRawData?.close()
         stopBeepTimer()
         stopReconnectTimer()
+        // Cleanup the EUC BLE Bridge
+        EucBleBridge.resetInstance()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         }

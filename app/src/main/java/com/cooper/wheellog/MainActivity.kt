@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.*
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.coroutineScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.viewpager2.widget.ViewPager2
@@ -39,10 +38,7 @@ import com.cooper.wheellog.BluetoothService.LocalBinder
 import com.cooper.wheellog.DialogHelper.checkAndShowPrivatePolicyDialog
 import com.cooper.wheellog.DialogHelper.checkBatteryOptimizationsAndShowAlert
 import com.cooper.wheellog.DialogHelper.checkPWMIsSetAndShowAlert
-import com.cooper.wheellog.companion.WearOs
 import com.cooper.wheellog.compose.MainScreen
-import com.cooper.wheellog.data.TripDatabase.Companion.getDataBase
-import com.cooper.wheellog.data.TripParser
 import com.cooper.wheellog.databinding.ActivityMainBinding
 import com.cooper.wheellog.settings.mainScreen
 import com.cooper.wheellog.ui.theme.AppTheme
@@ -67,8 +63,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import timber.log.Timber
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit

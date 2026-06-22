@@ -1,48 +1,42 @@
 package com.cooper.wheellog.ble
 
+import android.Manifest
+import android.bluetooth.BluetoothGattService
 import android.content.Context
-import io.github.tritbool.euc.ble.core.BLEManager
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
+import io.github.tritbool.euc.ble.EucBleClient
 import io.github.tritbool.euc.ble.core.ConnectionCallback
 import io.github.tritbool.euc.ble.core.DataCallback
 import io.github.tritbool.euc.ble.core.ErrorCallback
-import io.github.tritbool.euc.ble.core.ScanCallback
-import io.github.tritbool.euc.ble.models.BLEException
+import io.github.tritbool.euc.ble.exceptions.BLEException
 import io.github.tritbool.euc.ble.models.EUCData
 import io.github.tritbool.euc.ble.models.EUCDevice
 import io.github.tritbool.euc.ble.protocols.CommandType
-import io.github.tritbool.euc.ble.protocols.GotwayProtocol
-import io.github.tritbool.euc.ble.protocols.InMotionProtocol
-import io.github.tritbool.euc.ble.protocols.KingsongProtocol
-import io.github.tritbool.euc.ble.protocols.LeaperkimProtocol
-import io.github.tritbool.euc.ble.protocols.NinebotProtocol
-import io.github.tritbool.euc.ble.protocols.NinebotZProtocol
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 
 /**
- * Wrapper Koin singleton autour de BLEManager.
+ * Wrapper Koin singleton autour de EucBleClient.
  * Expose des StateFlow consommables depuis les ViewModels et Activities.
+ *
+ * Note threading : les callbacks de EucBleClient arrivent sur un thread background
+ * (Dispatchers.IO). Les MutableStateFlow sont thread-safe, mais toute mise à jour
+ * de vue Android doit passer par Dispatchers.Main côté collecteur.
  */
 class EucBleManager(context: Context) {
 
-    val bleManager: BLEManager = BLEManager(context).also { mgr ->
-        mgr.initialize()
-        mgr.registerProtocol(KingsongProtocol())
-        mgr.registerProtocol(GotwayProtocol())
-        mgr.registerProtocol(InMotionProtocol())
-        mgr.registerProtocol(NinebotProtocol())
-        mgr.registerProtocol(NinebotZProtocol())
-        mgr.registerProtocol(LeaperkimProtocol())
-    }
+    val client: EucBleClient = EucBleClient(context).also { it.initialize() }
 
     // -------------------------------------------------------------------------
     // État observable
     // -------------------------------------------------------------------------
 
     private val _isConnected = MutableStateFlow(false)
-    /** true dès que la connexion GATT est établie. */
+    /** true dès que la connexion GATT est établie et les services découverts. */
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
     private val _eucData = MutableStateFlow<EUCData?>(null)
@@ -62,14 +56,15 @@ class EucBleManager(context: Context) {
     // -------------------------------------------------------------------------
 
     init {
-        bleManager.setScanCallback(object : ScanCallback {
+        // ConnectionCallback étend ScanCallback : un seul objet couvre scan + connexion.
+        client.setConnectionCallback(object : ConnectionCallback() {
             override fun onScanStarted() {
                 Timber.d("[EUC] Scan started")
                 _discoveredDevices.value = emptyList()
             }
 
             override fun onDeviceDiscovered(device: EUCDevice) {
-                Timber.d("[EUC] Discovered: ${device.name} (${device.address})")
+                Timber.d("[EUC] Discovered: %s (%s)", device.name, device.address)
                 val current = _discoveredDevices.value
                 if (current.none { it.address == device.address }) {
                     _discoveredDevices.value = current + device
@@ -77,17 +72,13 @@ class EucBleManager(context: Context) {
             }
 
             override fun onScanCompleted(devices: List<EUCDevice>) {
-                Timber.d("[EUC] Scan completed, ${devices.size} devices")
+                Timber.d("[EUC] Scan completed: %d devices", devices.size)
             }
-        })
 
-        bleManager.setConnectionCallback(object : ConnectionCallback {
             override fun onConnected() {
                 Timber.d("[EUC] Connected")
                 _isConnected.value = true
-                // BLEManager n'expose pas getConnectedDevice() dans le README ;
-                // on récupère le device depuis la dernière trame découverte sélectionnée.
-                // Si BLEManager expose cette méthode, remplace la ligne ci-dessous.
+                _connectedDevice.value = client.getConnectedDevice()
             }
 
             override fun onDisconnected() {
@@ -96,20 +87,28 @@ class EucBleManager(context: Context) {
                 _connectedDevice.value = null
             }
 
-            override fun onServicesDiscovered(services: List<android.bluetooth.BluetoothGattService>) {
-                Timber.d("[EUC] Services discovered: ${services.size}")
+            override fun onConnectionFailed(error: BLEException) {
+                Timber.e("[EUC] Connection failed: %s", error.message)
+            }
+
+            override fun onServicesDiscovered(services: List<BluetoothGattService>) {
+                Timber.d("[EUC] Services discovered: %d", services.size)
+            }
+
+            override fun onMtuChanged(mtu: Int) {
+                Timber.d("[EUC] MTU changed: %d", mtu)
             }
         })
 
-        bleManager.setDataCallback(object : DataCallback {
+        client.setDataCallback(object : DataCallback {
             override fun onDataReceived(data: EUCData) {
                 _eucData.value = data
             }
         })
 
-        bleManager.setErrorCallback(object : ErrorCallback {
+        client.setErrorCallback(object : ErrorCallback {
             override fun onError(error: BLEException) {
-                Timber.e("[EUC] BLE error [${error.errorType}]: ${error.message}")
+                Timber.e("[EUC] BLE error: %s", error.message)
             }
         })
     }
@@ -118,40 +117,27 @@ class EucBleManager(context: Context) {
     // API publique
     // -------------------------------------------------------------------------
 
-    @androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
-    fun startScan() = bleManager.startScan()
+    @RequiresApi(Build.VERSION_CODES.M)
+    @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
+    fun startScan() = client.startScan()
 
-    @androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
-    fun stopScan() = bleManager.startScan() // TODO: remplacer par bleManager.stopScan() quand exposé
+    @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
+    fun stopScan() = client.stopScan()
 
-    @androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    fun connect(device: EUCDevice) {
-        _connectedDevice.value = device
-        bleManager.connect(device)
-    }
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun connect(device: EUCDevice) = client.connect(device)
 
-    @androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    fun disconnect() = bleManager.disconnect()
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun disconnect() = client.disconnect()
 
-    /**
-     * Envoie une commande au wheel connecté.
-     * @param commandType Le type de commande (ex. CommandType.LIGHT_ON).
-     * @param value Paramètre optionnel de la commande. Utilise Unit si aucun paramètre.
-     */
-    fun sendCommand(commandType: CommandType, value: Any = Unit) {
-        val device = _connectedDevice.value
-        if (device == null) {
-            Timber.w("[EUC] sendCommand called but no device connected")
-            return
-        }
-        val command = bleManager.createCommand(commandType, value)
-        bleManager.sendCommand(command, device.getDataCharacteristicUUID())
-    }
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun sendCommand(commandType: CommandType, value: Any = Unit) =
+        client.sendCommand(commandType, value)
 
-    fun getCommandSupport(commandType: CommandType) =
-        bleManager.getCommandSupport(commandType)
+    fun getCommandSupport(commandType: CommandType) = client.getCommandSupport(commandType)
 
-    fun setScanTimeout(ms: Long) = bleManager.setScanTimeout(ms)
-    fun setAutoReconnect(enabled: Boolean) = bleManager.setAutoReconnect(enabled)
-    fun setMaxRetries(count: Int) = bleManager.setMaxRetries(count)
+    fun getConnectionState() = client.getConnectionState()
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun cleanup() = client.cleanup()
 }

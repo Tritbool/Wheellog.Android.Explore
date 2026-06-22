@@ -1,0 +1,78 @@
+GRADLE MIGRATION — Version Catalogs
+=====================================
+
+AVANT (legacy Groovy multi-bloc)
+---------------------------------
+
+  build.gradle (racine)
+  |-- buildscript { ext.kotlin_version = ...
+  |                 ext.compose_version = ...
+  |                 ext.* (8 variables)
+  |                 repositories { mavenCentral, google } }  <-- repos PLUGINS
+  |-- plugins { ksp, compose } apply false
+  `-- allprojects { repositories { mavenCentral, jitpack, google } }  <-- repos DEPS
+
+  settings.gradle
+  `-- include ':wearos', ':app', ':shared'  (pas de dependencyResolutionManagement)
+
+  app/build.gradle
+  |-- repositories { mavenCentral, google }  <-- TROISIEME declaration repos
+  `-- dependencies { "$compose_version", "$lifecycle_version" ... }  <-- interp. ext.*
+
+  shared/build.gradle
+  `-- dependencies { "$core_ktx_version" ... }  <-- interp. ext.*
+
+  Problemes
+  - repos declares 3 fois (buildscript + allprojects + app/)
+  - versions dispersees dans ext.* du build.gradle racine
+  - classpath android-apt:1.8 mort depuis 2016 (remplace par ksp)
+  - ':wearos' toujours dans settings.gradle malgre suppression du module
+  - javaCompileOptions annotationProcessorOptions redondant avec ksp{}
+
+
+APRES (Version Catalogs AGP 7.4+)
+-----------------------------------
+
+  gradle/libs.versions.toml          <-- NOUVELLE SOURCE DE VERITE
+  |-- [versions]  toutes les versions
+  |-- [libraries] toutes les deps -> alias libs.compose.ui etc.
+  `-- [plugins]   tous les plugins -> alias libs.plugins.ksp etc.
+
+  settings.gradle
+  |-- pluginManagement { repositories }              <-- repos plugins (1x)
+  |-- dependencyResolutionManagement
+  |   |-- FAIL_ON_PROJECT_REPOS                      <-- interdit repos dans modules
+  |   `-- repositories { google, mavenCentral, jitpack }  <-- repos deps (1x)
+  `-- include ':app', ':shared'  (wearos retire)
+
+  build.gradle (racine)
+  `-- plugins { alias(libs.plugins.*) } apply false  (plus de buildscript ni allprojects)
+
+  app/build.gradle
+  `-- dependencies { libs.compose.ui, libs.room.runtime ... }  (plus de "$version")
+
+  shared/build.gradle
+  `-- dependencies { libs.core.ktx ... }
+
+
+FLUX DE RESOLUTION
+--------------------
+
+  libs.versions.toml
+       |
+       v
+  settings.gradle  (charge le catalog automatiquement, Gradle 7.4+)
+       |
+       +---> app/build.gradle    (consomme libs.*)
+       `---> shared/build.gradle (consomme libs.*)
+
+
+SUPPRESSIONS
+-------------
+  ext.*                                   -> toml [versions]
+  buildscript {}                          -> pluginManagement dans settings.gradle
+  allprojects {}                          -> dependencyResolutionManagement dans settings.gradle
+  repositories {} dans app/build.gradle   -> supprime (interdit par FAIL_ON_PROJECT_REPOS)
+  classpath android-apt:1.8               -> supprime (mort, ksp deja present)
+  include ':wearos'                       -> supprime (module supprime)
+  javaCompileOptions annotationProcessor  -> supprime (redondant avec ksp{})

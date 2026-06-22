@@ -5,13 +5,10 @@ import android.content.SharedPreferences
 import android.net.Uri
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_UNSPECIFIED
 import androidx.preference.PreferenceManager
-import com.cooper.wheellog.utils.MiBandEnum
 import com.cooper.wheellog.utils.NotificationUtil
 import com.cooper.wheellog.utils.ThemeEnum
 import com.cooper.wheellog.utils.VolumeKeyController
 import com.wheellog.shared.Constants
-import com.wheellog.shared.WearPage
-import com.wheellog.shared.WearPages
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 // import com.yandex.metrica.YandexMetrica
@@ -183,10 +180,6 @@ class AppConfig(var context: Context): KoinComponent {
         get() = getValue("custom_beep_time_limit", 2.0f)
         set(value) = setValue("custom_beep_time_limit", value)
 
-    var mibandMode: MiBandEnum
-        get() = MiBandEnum.fromInt(getValue(R.string.miband_mode, MiBandEnum.Min.value))
-        set(value) = setValue(R.string.miband_mode, value.value)
-
     var useReconnect: Boolean
         get() = getValue(R.string.use_reconnect, false)
         set(value) {
@@ -269,14 +262,6 @@ class AppConfig(var context: Context): KoinComponent {
         get() = getValue(R.string.horn_mode, 0)
         set(value) = setValue(R.string.horn_mode, value)
 
-    var garminConnectIqEnable: Boolean
-        get() = getValue(R.string.garmin_connectiq_enable, false)
-        set(value) = setValue(R.string.garmin_connectiq_enable, value)
-
-    var useGarminBetaCompanion: Boolean
-        get() = getValue(R.string.garmin_connectiq_use_beta, false)
-        set(value) = setValue(R.string.garmin_connectiq_use_beta, value)
-
     var mainMenuButtons: Array<String>
         get() = getValue<String?>("main_menu_buttons", null)?.split(separator)?.toTypedArray()
             ?: arrayOf("watch")
@@ -286,18 +271,6 @@ class AppConfig(var context: Context): KoinComponent {
         get() = getValue("show_clock", true)
         set(value) = setValue("show_clock", value)
 
-    var mibandFixRs: Boolean
-        get() = getValue(R.string.miband_fixrs_enable, false)
-        set(value) {
-            setValue(R.string.miband_fixrs_enable, value)
-            notifications.updateKostilTimer()
-        }
-
-    var wearOsPages: WearPages
-        get() = WearPage.deserialize(
-            getValue(Constants.wearPages,
-                WearPage.serialize(WearPage.Main and WearPage.Voltage)))
-        set(value) = setValue(Constants.wearPages, WearPage.serialize(value))
     //endregion
 
     var lastMac: String

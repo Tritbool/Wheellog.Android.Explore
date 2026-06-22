@@ -7,14 +7,10 @@ object Constants {
     const val ACTION_WHEEL_TYPE_CHANGED = "com.cooper.wheellog.wheelTypeChanged"
     const val ACTION_WHEEL_DATA_AVAILABLE = "com.cooper.wheellog.wheelDataAvailable"
     const val ACTION_WHEEL_NEWS_AVAILABLE = "com.cooper.wheellog.wheelNews"
-    const val ACTION_PEBBLE_SERVICE_TOGGLED = "com.cooper.wheellog.pebbleServiceToggled"
     const val ACTION_LOGGING_SERVICE_TOGGLED = "com.cooper.wheellog.loggingServiceToggled"
     const val ACTION_RAW_LOGGING_TOGGLED = "com.cooper.wheellog.rawLoggingToggled"
     const val ACTION_PREFERENCE_RESET = "com.cooper.wheellog.preferenceReset"
-    const val ACTION_PEBBLE_AFFECTING_PREFERENCE_CHANGED = "com.cooper.wheellog.pebblePreferenceChanged"
     const val ACTION_ALARM_TRIGGERED = "com.cooper.wheellog.alarmTriggered"
-    const val ACTION_PEBBLE_APP_READY = "com.cooper.wheellog.pebbleAppReady"
-    const val ACTION_PEBBLE_APP_SCREEN = "com.cooper.wheellog.pebbleAppScreen"
     const val ACTION_WHEEL_TYPE_RECOGNIZED = "com.cooper.wheellog.wheelTypeRecognized"
     const val ACTION_WHEEL_MODEL_CHANGED = "com.cooper.wheellog.wheelModelChanged"
 
@@ -27,7 +23,6 @@ object Constants {
     const val NOTIFICATION_BUTTON_WATCH = "com.cooper.wheellog.notificationWatchButton"
     const val NOTIFICATION_BUTTON_BEEP = "com.cooper.wheellog.notificationBeepButton"
     const val NOTIFICATION_BUTTON_LIGHT = "com.cooper.wheellog.notificationLightButton"
-    const val NOTIFICATION_BUTTON_MIBAND = "com.cooper.wheellog.notificationMiBandButton"
     const val NOTIFICATION_CHANNEL_ID_NOTIFICATION = "com.cooper.wheellog.Channel_Notification"
     const val notificationChannelName = "Notify"
     const val notificationChannelDescription = "Default Notify"
@@ -70,16 +65,6 @@ object Constants {
     val NINEBOT_READ_CHARACTER_UUID = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb")
     @JvmField
     val NINEBOT_DESCRIPTER_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
-    @JvmField
-    val PEBBLE_APP_UUID = UUID.fromString("185c8ae9-7e72-451a-a1c7-8f1e81df9a3d")
-    const val PEBBLE_KEY_READY = 11
-    const val PEBBLE_KEY_LAUNCH_APP = 10012
-    const val PEBBLE_KEY_PLAY_HORN = 10013
-    const val PEBBLE_KEY_DISPLAYED_SCREEN = 10014
-    const val PEBBLE_APP_VERSION = 104
-    const val INTENT_EXTRA_LAUNCHED_FROM_PEBBLE = "launched_from_pebble"
-    const val INTENT_EXTRA_PEBBLE_APP_VERSION = "pebble_app_version"
-    const val INTENT_EXTRA_PEBBLE_DISPLAYED_SCREEN = "pebble_displayed_Screen"
     const val INTENT_EXTRA_BLE_AUTO_CONNECT = "ble_auto_connect"
     const val INTENT_EXTRA_LOGGING_FILE_LOCATION = "logging_file_location"
     const val INTENT_EXTRA_IS_RUNNING = "is_running"

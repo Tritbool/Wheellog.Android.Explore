@@ -87,7 +87,9 @@ class MainActivity : AppCompatActivity() {
     private var miWheel: MenuItem? = null
     private var miLogging: MenuItem? = null
     private var mBluetoothAdapter: BluetoothAdapter? = null
-    // mSelectedDevice : EUCDevice choisi via ScanActivity. Null tant qu'aucun device n'a été sélectionné.
+    // mSelectedDevice : EUCDevice choisi via ScanActivity. Contient toujours un bluetoothDevice
+    // non-null quand il vient du scan. null tant qu'aucun device n'a été sélectionné depuis
+    // le scan dans cette session (même si lastMac est connu : on utilise connectByAddress).
     private var mSelectedDevice: EUCDevice? = null
     private var mConnectionState = BLEConstants.ConnectionState.DISCONNECTED
     private var isWheelSearch = false
@@ -173,17 +175,18 @@ class MainActivity : AppCompatActivity() {
         when (connectionState) {
             BLEConstants.ConnectionState.CONNECTED -> {
                 pagerAdapter.configureSecondDisplay()
-                mSelectedDevice?.let { device ->
-                    appConfig.lastMac = device.address
+                val mac = mSelectedDevice?.address ?: appConfig.lastMac
+                if (mac.isNotEmpty()) {
+                    appConfig.lastMac = mac
                     if (appConfig.autoUploadEc && appConfig.ecToken != null) {
                         ElectroClub.instance.getAndSelectGarageByMacOrShowChooseDialog(
-                            device.address,
+                            mac,
                             this
                         ) { }
                     }
-                    if (appConfig.useBeepOnVolumeUp) {
-                        volumeKeyController.setActive(true)
-                    }
+                }
+                if (appConfig.useBeepOnVolumeUp) {
+                    volumeKeyController.setActive(true)
                 }
                 hideSnackBar()
                 if (!LoggingService.isInstanceCreated() &&
@@ -204,7 +207,6 @@ class MainActivity : AppCompatActivity() {
             BLEConstants.ConnectionState.DISCONNECTED -> {
                 if (mConnectionState == BLEConstants.ConnectionState.CONNECTED ||
                     mConnectionState == BLEConstants.ConnectionState.CONNECTING) {
-                    // Perte de connexion inattendue (was connected or searching)
                     val disconnectMsg = timeFormatter.format(Date()) + getString(R.string.connection_lost_at)
                     showSnackBar(disconnectMsg, Snackbar.LENGTH_INDEFINITE)
                 }
@@ -213,7 +215,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 isWheelSearch = false
                 notifications.notificationMessageId = R.string.disconnected
-                // Réinitialiser les adapters protocole (comportement original à la déconnexion)
                 when (WheelData.getInstance().wheelType) {
                     WHEEL_TYPE.INMOTION -> {
                         InMotionAdapter.newInstance()
@@ -244,9 +245,6 @@ class MainActivity : AppCompatActivity() {
         notifications.update()
     }
 
-    /**
-     * Broadcast receiver pour l'UI principale. N'accepte les intents que si l'Activity est active.
-     */
     private val mMainViewBroadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (isPaused) return
@@ -291,9 +289,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Broadcast receiver pour le mode Picture-in-Picture.
-     */
     private val mPiPBroadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
@@ -309,10 +304,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Broadcast receiver permanent (survit aux pauses de l'Activity).
-     * Ne doit PAS faire de mises à jour de vues Android directement.
-     */
     private val mCoreBroadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
@@ -457,17 +448,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.textClock.typeface = ThemeManager.getTypeface(applicationContext)
 
-        // Restaurer le dernier device connu depuis les prefs (address only — pas de BluetoothDevice)
-        val lastMac = appConfig.lastMac
-        if (lastMac.isNotEmpty()) {
-            mSelectedDevice = EUCDevice(
-                bluetoothDevice = null,
-                name = "",
-                address = lastMac,
-                manufacturerId = 0,
-                rssi = 0
-            )
-        }
+        // NE PAS stocker de EUCDevice reconstruit depuis lastMac ici.
+        // mSelectedDevice reste null jusqu'à un vrai scan.
+        // La connexion depuis lastMac passe par eucBleManager.connectByAddress().
 
         val toolbar = binding.toolbar
         setSupportActionBar(toolbar)
@@ -477,7 +460,6 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show()
         }
 
-        // Vérifier que le Bluetooth est activé. EucBleManager est déjà initialisé par Koin.
         val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         mBluetoothAdapter = bluetoothManager.adapter
         if (mBluetoothAdapter == null) {
@@ -487,7 +469,6 @@ class MainActivity : AppCompatActivity() {
                 enableBleLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
             }
         }
-        // Pas de bindService ici — EucBleManager est un singleton Koin, déjà prêt.
 
         try {
             unregisterReceiver(mCoreBroadcastReceiver)
@@ -521,8 +502,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         isPaused = false
 
-        // Collecter l'état de connexion BLE depuis EucBleManager.
-        // Le job est annulé dans onPause pour ne pas consommer de ressources en background.
         bleStateJob = eucBleManager.isConnected
             .onEach { connected ->
                 val state = if (connected) BLEConstants.ConnectionState.CONNECTED
@@ -596,11 +575,8 @@ class MainActivity : AppCompatActivity() {
         val stateOrdinal = savedInstanceState.getInt(BLEConstants.ConnectionState::class.simpleName, BLEConstants.ConnectionState.DISCONNECTED.ordinal)
         mConnectionState = BLEConstants.ConnectionState.entries[stateOrdinal]
         isWheelSearch = savedInstanceState.getBoolean(isWheelSearch::class.simpleName, false)
-        savedInstanceState.getString("selectedDeviceAddress")?.let { mac ->
-            if (mac.isNotEmpty()) {
-                mSelectedDevice = EUCDevice(bluetoothDevice = null, name = "", address = mac, manufacturerId = 0, rssi = 0)
-            }
-        }
+        // On ne restaure PAS mSelectedDevice depuis le bundle : après une rotation par exemple,
+        // si on était connecté le StateFlow le signalera ; si déconnecté on attendra le scan.
         setConnectionState(mConnectionState)
         setMenuIconStates()
     }
@@ -617,7 +593,6 @@ class MainActivity : AppCompatActivity() {
         stopLoggingService()
         WheelData.getInstance().full_reset()
 
-        // Nettoyage BLE via EucBleManager (plus de unbindService)
         @Suppress("MissingPermission")
         eucBleManager.cleanup()
 
@@ -823,14 +798,27 @@ class MainActivity : AppCompatActivity() {
                 eucBleManager.disconnect()
             }
             else -> {
+                // Priorité 1 : device avec BluetoothDevice complet issu du scan (cette session)
                 val device = mSelectedDevice
-                if (device != null) {
+                if (device != null && device.bluetoothDevice != null) {
                     @Suppress("MissingPermission")
                     eucBleManager.connect(device)
-                } else {
-                    // Pas de device connu, lancer le scan
-                    startScanActivity()
+                    return
                 }
+                // Priorité 2 : lastMac connu → connectByAddress() retrouve le BluetoothDevice
+                // via l'adapter Android (fonctionne même sans pairing)
+                val lastMac = appConfig.lastMac
+                if (lastMac.isNotEmpty()) {
+                    @Suppress("MissingPermission")
+                    val connected = eucBleManager.connectByAddress(
+                        address        = lastMac,
+                        name           = WheelData.getInstance().btName ?: "",
+                        manufacturerId = 0
+                    )
+                    if (connected) return
+                }
+                // Priorité 3 : aucune info → lancer le scan
+                startScanActivity()
             }
         }
     }
@@ -850,11 +838,12 @@ class MainActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == RESULT_REQUEST_PERMISSIONS_BT) {
-            // Bluetooth vient d'être accordé — si on a un device, on peut se connecter directement
-            val device = mSelectedDevice
-            if (device != null) {
-                @Suppress("MissingPermission")
-                eucBleManager.connect(device)
+            // Permissions BLE viennent d'être accordées.
+            // On ne tente pas de connexion directe ici : on lance le scan pour que
+            // l'utilisateur confirme le device, ou toggleConnectToWheel() gérera
+            // connectByAddress si lastMac est disponible.
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                toggleConnectToWheel()
             }
         } else if (requestCode == RESULT_REQUEST_PERMISSIONS_IO) {
             toggleLoggingService()
@@ -862,8 +851,6 @@ class MainActivity : AppCompatActivity() {
     }
     // endregion
 
-    // ScanActivity retourne MAC + NAME + MANUFACTURER_ID + RSSI via Intent extras.
-    // On reconstruit un EUCDevice minimal (bluetoothDevice=null — la lib le retrouvera via le MAC).
     private val scanLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             val mac  = result.data?.getStringExtra("MAC")  ?: return@registerForActivityResult
@@ -871,8 +858,11 @@ class MainActivity : AppCompatActivity() {
             val mfid = result.data?.getIntExtra("MANUFACTURER_ID", 0) ?: 0
             val rssi = result.data?.getIntExtra("RSSI", 0) ?: 0
             Timber.i("Device selected = %s (%s)", mac, name)
-            mSelectedDevice = EUCDevice(
-                bluetoothDevice  = null,
+            // On cherche le EUCDevice complet (avec bluetoothDevice) dans la liste des devices
+            // découverts par EucBleManager — il contient le vrai BluetoothDevice issu du scan.
+            val discovered = eucBleManager.discoveredDevices.value.find { it.address == mac }
+            mSelectedDevice = discovered ?: EUCDevice(
+                bluetoothDevice  = null,  // fallback : sera résolu par connectByAddress
                 name             = name,
                 address          = mac,
                 manufacturerId   = mfid,
@@ -894,12 +884,9 @@ class MainActivity : AppCompatActivity() {
 
     private val enableBleLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK && mBluetoothAdapter!!.isEnabled) {
-            // BT activé — si on a un device mémorisé, on peut tenter la connexion directement
-            val device = mSelectedDevice
-            if (device != null) {
-                @Suppress("MissingPermission")
-                eucBleManager.connect(device)
-            }
+            // BT vient d'être activé. On tente la connexion via lastMac si disponible.
+            // Si lastMac est vide, toggleConnectToWheel lancera le scan.
+            toggleConnectToWheel()
         } else {
             Toast.makeText(this, R.string.bluetooth_required, Toast.LENGTH_LONG).show()
             finish()
@@ -954,8 +941,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun makeCoreIntentFilter(): IntentFilter {
-        // ACTION_BLUETOOTH_CONNECTION_STATE supprimé : l'état BLE vient désormais
-        // du StateFlow EucBleManager.isConnected, collecté dans onResume/onPause.
         return IntentFilter().apply {
             addAction(Constants.ACTION_WHEEL_DATA_AVAILABLE)
             addAction(Constants.ACTION_LOGGING_SERVICE_TOGGLED)

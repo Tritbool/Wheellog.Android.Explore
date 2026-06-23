@@ -2,6 +2,7 @@ package com.cooper.wheellog.ble
 
 import android.Manifest
 import android.bluetooth.BluetoothGattService
+import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -27,7 +28,7 @@ import timber.log.Timber
  * (Dispatchers.IO). Les MutableStateFlow sont thread-safe, mais toute mise à jour
  * de vue Android doit passer par Dispatchers.Main côté collecteur.
  */
-class EucBleManager(context: Context) {
+class EucBleManager(private val context: Context) {
 
     val client: EucBleClient = EucBleClient(context).also { it.initialize() }
 
@@ -124,8 +125,57 @@ class EucBleManager(context: Context) {
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     fun stopScan() = client.stopScan()
 
+    /**
+     * Connexion directe à partir d'un EUCDevice complet (bluetoothDevice != null).
+     * N'appelle jamais cette méthode avec un EUCDevice reconstruit depuis un MAC sauvegardé
+     * (i.e. bluetoothDevice == null) : BLEManager ferait un !! et planterait.
+     * Utilise [connectByAddress] dans ce cas.
+     */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-    fun connect(device: EUCDevice) = client.connect(device)
+    fun connect(device: EUCDevice) {
+        require(device.bluetoothDevice != null) {
+            "EucBleManager.connect() called with bluetoothDevice=null. Use connectByAddress() instead."
+        }
+        client.connect(device)
+    }
+
+    /**
+     * Connexion à partir d'une adresse MAC seule (cas typique : lastMac sauvegardé en prefs).
+     *
+     * Retrouve le BluetoothDevice via BluetoothAdapter.getRemoteDevice().
+     * Cette méthode fonctionne même si le device n'est pas pairé,
+     * tant que l'adresse MAC est valide — Android crée un objet BluetoothDevice synthétique.
+     *
+     * Retourne false (et ne tente pas la connexion) si :
+     * - l'adresse est vide
+     * - l'adapter Bluetooth est null ou désactivé
+     *
+     * En cas de succès retourne true ; le résultat réel (connecté / échec timeout)
+     * arrivera via le StateFlow [isConnected] ou le callback onConnectionFailed.
+     */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun connectByAddress(address: String, name: String = "", manufacturerId: Int = 0): Boolean {
+        if (address.isBlank()) return false
+        val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)
+            ?.adapter ?: return false
+        if (!adapter.isEnabled) return false
+        @Suppress("MissingPermission")
+        val bluetoothDevice = try {
+            adapter.getRemoteDevice(address)
+        } catch (e: IllegalArgumentException) {
+            Timber.e("[EUC] Invalid MAC address: %s", address)
+            return false
+        }
+        val device = EUCDevice(
+            bluetoothDevice  = bluetoothDevice,
+            name             = name,
+            address          = address,
+            manufacturerId   = manufacturerId,
+            rssi             = 0
+        )
+        client.connect(device)
+        return true
+    }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun disconnect() = client.disconnect()

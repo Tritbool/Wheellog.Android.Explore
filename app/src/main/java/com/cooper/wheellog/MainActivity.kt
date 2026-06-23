@@ -54,11 +54,10 @@ import com.cooper.wheellog.utils.SomeUtil.getSerializable
 import com.cooper.wheellog.utils.SomeUtil.playBeep
 import com.cooper.wheellog.views.PiPView
 import com.google.android.material.snackbar.Snackbar
-import com.welie.blessed.ConnectionState
+import io.github.tritbool.euc.ble.core.BLEConstants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-// import com.yandex.metrica.YandexMetrica
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
@@ -84,17 +83,14 @@ class MainActivity : AppCompatActivity() {
     var mMenu: Menu? = null
     private var miSearch: MenuItem? = null
     private var miWheel: MenuItem? = null
-    private var miWatch: MenuItem? = null
-    private var miBand: MenuItem? = null
     private var miLogging: MenuItem? = null
     private var mBluetoothAdapter: BluetoothAdapter? = null
     private var mDeviceAddress: String = ""
-    private var mConnectionState = ConnectionState.DISCONNECTED
+    private var mConnectionState = BLEConstants.ConnectionState.DISCONNECTED
     private var isWheelSearch = false
     private var doubleBackToExitPressedOnce = false
     private var snackbar: Snackbar? = null
     private val timeFormatter = SimpleDateFormat("HH:mm:ss ", Locale.US)
-    private var wearOs: WearOs? = null
     private val speedModel: PiPView.SpeedModel by lazy { PiPView.SpeedModel() }
     private var settingsNavHostController: NavHostController? = null
     private val bluetoothService: BluetoothService?
@@ -106,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                 BluetoothService::class.java.name -> {
                     val bluetoothService = (service as LocalBinder).getService()
                     WheelData.getInstance().bluetoothService = bluetoothService
-                    if (bluetoothService.connectionState == ConnectionState.DISCONNECTED && mDeviceAddress.isNotEmpty()) {
+                    if (bluetoothService.connectionState == BLEConstants.ConnectionState.DISCONNECTED && mDeviceAddress.isNotEmpty()) {
                         bluetoothService.wheelAddress = mDeviceAddress
                         toggleConnectToWheel()
                     }
@@ -206,9 +202,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setConnectionState(connectionState: ConnectionState, wheelSearch: Boolean) {
+    private fun setConnectionState(connectionState: BLEConstants.ConnectionState, wheelSearch: Boolean) {
         when (connectionState) {
-            ConnectionState.CONNECTED -> {
+            BLEConstants.ConnectionState.CONNECTED -> {
                 pagerAdapter.configureSecondDisplay()
                 if (mDeviceAddress.isNotEmpty()) {
                     appConfig.lastMac = mDeviceAddress
@@ -224,8 +220,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 hideSnackBar()
             }
-            ConnectionState.DISCONNECTED -> if (wheelSearch) {
-                if (mConnectionState != ConnectionState.DISCONNECTED && bluetoothService?.getDisconnectTime() != null) {
+            BLEConstants.ConnectionState.DISCONNECTED -> if (wheelSearch) {
+                if (mConnectionState != BLEConstants.ConnectionState.DISCONNECTED && bluetoothService?.getDisconnectTime() != null) {
                     val text = bluetoothService?.getDisconnectTime()
                         ?.let { timeFormatter.format(it) } +
                             getString(R.string.connection_lost_at)
@@ -348,10 +344,10 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 Constants.ACTION_BLUETOOTH_CONNECTION_STATE -> {
-                    val connectionState = ConnectionState.fromValue(
+                    val connectionState = BLEConstants.ConnectionState.fromValue(
                         intent.getIntExtra(
                             Constants.INTENT_EXTRA_CONNECTION_STATE,
-                            ConnectionState.DISCONNECTED.value
+                            BLEConstants.ConnectionState.DISCONNECTED.value
                         )
                     )
                     loggingService?.updateConnectionState(connectionState)
@@ -364,14 +360,14 @@ class MainActivity : AppCompatActivity() {
                         connectionState,
                         isWheelSearch
                     )
-                    if (connectionState == ConnectionState.DISCONNECTED && isWheelSearch && isDirectConnectionFailed) {
+                    if (connectionState == BLEConstants.ConnectionState.DISCONNECTED && isWheelSearch && isDirectConnectionFailed) {
                         showSnackBar(R.string.bluetooth_direct_connect_failed)
                     }
                     setConnectionState(connectionState, isWheelSearch)
                     WheelData.getInstance().isConnected =
-                        connectionState == ConnectionState.CONNECTED
+                        connectionState == BLEConstants.ConnectionState.CONNECTED
                     when (connectionState) {
-                        ConnectionState.CONNECTED -> {
+                        BLEConstants.ConnectionState.CONNECTED -> {
                             if (!LoggingService.isInstanceCreated() &&
                                 appConfig.autoLog &&
                                 appConfig.startAutoLoggingWhenIsMovingMore == 0f
@@ -381,12 +377,10 @@ class MainActivity : AppCompatActivity() {
                             if (WheelData.getInstance().wheelType == WHEEL_TYPE.KINGSONG) {
                                 KingsongAdapter.getInstance().requestNameData()
                             }
-                            if (appConfig.autoWatch && wearOs == null) {
-                                toggleWatch()
-                            }
+
                             notifications.notificationMessageId = R.string.connected
                         }
-                        ConnectionState.DISCONNECTING, ConnectionState.DISCONNECTED -> if (isWheelSearch) {
+                        BLEConstants.ConnectionState.DISCONNECTING, BLEConstants.ConnectionState.DISCONNECTED -> if (isWheelSearch) {
                             if (intent.hasExtra(Constants.INTENT_EXTRA_BLE_AUTO_CONNECT)) {
                                 notifications.notificationMessageId = R.string.searching
                             } else {
@@ -424,12 +418,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 Constants.ACTION_WHEEL_DATA_AVAILABLE -> {
                     loggingService?.updateFile()
-                    if (wearOs != null) {
-                        wearOs!!.sendUpdateData()
-                    }
-                    if (appConfig.mibandMode !== MiBandEnum.Alarm) {
-                        notifications.update()
-                    }
                     if (!LoggingService.isInstanceCreated() &&
                         appConfig.startAutoLoggingWhenIsMovingMore != 0f &&
                         appConfig.autoLog &&
@@ -444,10 +432,7 @@ class MainActivity : AppCompatActivity() {
                         )
                     }
                 }
-                Constants.ACTION_PEBBLE_SERVICE_TOGGLED -> {
-                    setMenuIconStates()
-                    notifications.update()
-                }
+
                 Constants.ACTION_LOGGING_SERVICE_TOGGLED -> {
                     val running = intent.getBooleanExtra(Constants.INTENT_EXTRA_IS_RUNNING, false)
                     if (intent.hasExtra(Constants.INTENT_EXTRA_LOGGING_FILE_LOCATION)) {
@@ -508,25 +493,15 @@ class MainActivity : AppCompatActivity() {
                     toggleLogging()
                     notifications.update()
                 }
-                Constants.NOTIFICATION_BUTTON_WATCH -> {
-                    toggleWatch()
-                    notifications.update()
-                }
+
                 Constants.NOTIFICATION_BUTTON_BEEP -> playBeep()
                 Constants.NOTIFICATION_BUTTON_LIGHT -> if (WheelData.getInstance().adapter != null) {
                     WheelData.getInstance().adapter.switchFlashlight()
                 }
-                Constants.NOTIFICATION_BUTTON_MIBAND -> toggleSwitchMiBand()
             }
         }
     }
 
-    private fun toggleWatch() {
-        togglePebbleService()
-        // TODO: Fix garmin for API 34
-        // if (appConfig.garminConnectIqEnable) toggleGarminConnectIQ() else stopGarminConnectIQ()
-        toggleWearOs()
-    }
 
     private fun toggleLogging() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -538,68 +513,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun setMenuIconStates() {
         if (mMenu == null) return
-        if (mDeviceAddress.isEmpty()) {
-            miWheel!!.isEnabled = false
-            miWheel!!.icon!!.alpha = 64
-        } else {
-            miWheel!!.isEnabled = true
-            miWheel!!.icon!!.alpha = 255
-        }
-        when (appConfig.mibandMode) {
-            MiBandEnum.Alarm -> miBand!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuMiBandAlarm))
-            MiBandEnum.Min -> miBand!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuMiBandMin))
-            MiBandEnum.Medium -> miBand!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuMiBandMed))
-            MiBandEnum.Max -> miBand!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuMiBandMax))
-        }
-
-        miBand?.isVisible = appConfig.mainMenuButtons.contains("miband")
-        miWatch?.isVisible = appConfig.mainMenuButtons.contains("watch")
-        mMenu?.findItem(R.id.miReset)?.isVisible = appConfig.mainMenuButtons.contains("reset")
-
-        if (PebbleService.isInstanceCreated()) {
-            miWatch!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuWatchOn))
-        } else {
-            miWatch!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuWatchOff))
-        }
-        if (LoggingService.isInstanceCreated()) {
-            miLogging!!.setTitle(R.string.stop_data_service)
-            miLogging!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuLogOn))
-        } else {
-            miLogging!!.setTitle(R.string.start_data_service)
-            miLogging!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuLogOff))
-        }
-        when (mConnectionState) {
-            ConnectionState.CONNECTED -> {
-                miWheel!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuWheelOn))
-                miWheel!!.setTitle(R.string.disconnect_from_wheel)
-                miSearch!!.isEnabled = false
-                miSearch!!.icon!!.alpha = 64
-                miLogging!!.isEnabled = true
-                miLogging!!.icon!!.alpha = 255
-            }
-            ConnectionState.DISCONNECTED -> {
-                if (isWheelSearch) {
-                    miWheel!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuWheelSearch))
-                    miWheel!!.setTitle(R.string.disconnect_from_wheel)
-                    (miWheel!!.icon as AnimationDrawable?)!!.start()
-                    miSearch!!.isEnabled = false
-                    miSearch!!.icon!!.alpha = 64
-                } else {
-                    miWheel!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuWheelOff))
-                    miWheel!!.setTitle(R.string.connect_to_wheel)
-                    miSearch!!.isEnabled = true
-                    miSearch!!.icon!!.alpha = 255
-                }
-                if (LoggingService.isInstanceCreated()) {
-                    miLogging!!.isEnabled = true
-                    miLogging!!.icon!!.alpha = 255
-                } else {
-                    miLogging!!.isEnabled = false
-                    miLogging!!.icon!!.alpha = 64
-                }
-            }
-            else -> {}
-        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -809,13 +722,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(ConnectionState::class.simpleName, mConnectionState.value)
+        outState.putInt(BLEConstants.ConnectionState::class.simpleName, mConnectionState.value)
         outState.putBoolean(isWheelSearch::class.simpleName, isWheelSearch)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        mConnectionState = ConnectionState.fromValue(savedInstanceState.getInt(ConnectionState::class.simpleName, ConnectionState.DISCONNECTED.value))
+        mConnectionState = BLEConstants.ConnectionState.fromValue(savedInstanceState.getInt(BLEConstants.ConnectionState::class.simpleName, BLEConstants.ConnectionState.DISCONNECTED.value))
         isWheelSearch = savedInstanceState.getBoolean(isWheelSearch::class.simpleName, false)
         setConnectionState(mConnectionState, isWheelSearch)
         setMenuIconStates()
@@ -830,11 +743,7 @@ class MainActivity : AppCompatActivity() {
         // Real finish.
         Timber.wtf("-=[ finish ]=-")
         onDestroyProcess = true
-        if (wearOs != null) {
-            wearOs!!.stop()
-        }
-        stopPebbleService()
-        stopGarminConnectIQ()
+
         stopLoggingService()
         WheelData.getInstance().full_reset()
         if (bluetoothService != null) {
@@ -894,8 +803,6 @@ class MainActivity : AppCompatActivity() {
         mMenu = menu.apply {
             miSearch = findItem(R.id.miSearch)
             miWheel = findItem(R.id.miWheel)
-            miWatch = findItem(R.id.miWatch)
-            miBand = findItem(R.id.miBand)
             miLogging = findItem(R.id.miLogging)
         }
 
@@ -963,14 +870,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 true
             }
-            R.id.miWatch -> {
-                toggleWatch()
-                true
-            }
-            R.id.miBand -> {
-                toggleSwitchMiBand()
-                true
-            }
+
             R.id.miReset -> {
                 WheelData.getInstance().resetExtremumValues()
                 showSnackBar(getString(R.string.reset_extremum_values_title))
@@ -1080,55 +980,9 @@ class MainActivity : AppCompatActivity() {
                     pagerAdapter.updatePageOfTrips()
                 }
             }
-        } else if (mConnectionState == ConnectionState.CONNECTED) {
+        } else if (mConnectionState == BLEConstants.ConnectionState.CONNECTED) {
             bindService(dataLoggerServiceIntent, mLoggingServiceConnection, BIND_AUTO_CREATE)
         }
-    }
-
-    private fun stopPebbleService() {
-        if (PebbleService.isInstanceCreated()) togglePebbleService()
-    }
-
-    private fun togglePebbleService() {
-        val pebbleServiceIntent = Intent(applicationContext, PebbleService::class.java)
-        if (PebbleService.isInstanceCreated()) stopService(pebbleServiceIntent) else ContextCompat.startForegroundService(
-            this,
-            pebbleServiceIntent
-        )
-    }
-
-    private fun toggleWearOs() {
-        wearOs = if (wearOs == null) {
-            WearOs(this)
-        } else {
-            wearOs!!.stop()
-            null
-        }
-    }
-
-    private fun stopGarminConnectIQ() {
-        if (GarminConnectIQ.isInstanceCreated) toggleGarminConnectIQ()
-    }
-
-    private fun toggleGarminConnectIQ() {
-        val garminConnectIQIntent = Intent(applicationContext, GarminConnectIQ::class.java)
-        if (GarminConnectIQ.isInstanceCreated) stopService(garminConnectIQIntent) else ContextCompat.startForegroundService(
-            this,
-            garminConnectIQIntent
-        )
-    }
-
-    private fun toggleSwitchMiBand() {
-        val buttonMiBand = appConfig.mibandMode.next()
-        appConfig.mibandMode = buttonMiBand
-        notifications.update()
-        when (buttonMiBand) {
-            MiBandEnum.Alarm -> showSnackBar(R.string.alarmmiband)
-            MiBandEnum.Min -> showSnackBar(R.string.minmiband)
-            MiBandEnum.Medium -> showSnackBar(R.string.medmiband)
-            MiBandEnum.Max -> showSnackBar(R.string.maxmiband)
-        }
-        setMenuIconStates()
     }
 
     private fun startBluetoothService() {
@@ -1137,7 +991,6 @@ class MainActivity : AppCompatActivity() {
         ) {
             val bluetoothServiceIntent = Intent(applicationContext, BluetoothService::class.java)
             bindService(bluetoothServiceIntent, mBLEServiceConnection, BIND_AUTO_CREATE)
-//            YandexMetrica.reportEvent("BluetoothService is starting.")
         } else if (isMaxBleReq) {
             showSnackBar(R.string.bluetooth_required)
         }
@@ -1247,7 +1100,6 @@ class MainActivity : AppCompatActivity() {
         intentFilter.addAction(Constants.ACTION_WHEEL_DATA_AVAILABLE)
         intentFilter.addAction(Constants.ACTION_LOGGING_SERVICE_TOGGLED)
         intentFilter.addAction(Constants.ACTION_RAW_LOGGING_TOGGLED)
-        intentFilter.addAction(Constants.ACTION_PEBBLE_SERVICE_TOGGLED)
         intentFilter.addAction(Constants.ACTION_WHEEL_TYPE_RECOGNIZED)
         intentFilter.addAction(Constants.ACTION_WHEEL_MODEL_CHANGED)
         intentFilter.addAction(Constants.ACTION_ALARM_TRIGGERED)
@@ -1263,14 +1115,11 @@ class MainActivity : AppCompatActivity() {
         intentFilter.addAction(Constants.ACTION_WHEEL_DATA_AVAILABLE)
         intentFilter.addAction(Constants.ACTION_LOGGING_SERVICE_TOGGLED)
         intentFilter.addAction(Constants.ACTION_RAW_LOGGING_TOGGLED)
-        intentFilter.addAction(Constants.ACTION_PEBBLE_SERVICE_TOGGLED)
         intentFilter.addAction(Constants.ACTION_PREFERENCE_RESET)
         intentFilter.addAction(Constants.NOTIFICATION_BUTTON_CONNECTION)
-        intentFilter.addAction(Constants.NOTIFICATION_BUTTON_WATCH)
         intentFilter.addAction(Constants.NOTIFICATION_BUTTON_LOGGING)
         intentFilter.addAction(Constants.NOTIFICATION_BUTTON_BEEP)
         intentFilter.addAction(Constants.NOTIFICATION_BUTTON_LIGHT)
-        intentFilter.addAction(Constants.NOTIFICATION_BUTTON_MIBAND)
         return intentFilter
     }
 

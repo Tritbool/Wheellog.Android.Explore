@@ -244,7 +244,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
         mConnectionState = connectionState
-        WheelData.getInstance().isConnected = (connectionState == BLEConstants.ConnectionState.CONNECTED)
+        // WheelData.getInstance().isConnected = (connectionState == BLEConstants.ConnectionState.CONNECTED)
+        // Now using eucBleManager.isConnected directly
         setMenuIconStates()
         notifications.update()
     }
@@ -300,7 +301,7 @@ class MainActivity : AppCompatActivity() {
                 Constants.ACTION_WHEEL_DATA_AVAILABLE -> {
                     when (appConfig.pipBlock) {
                         getString(R.string.consumption) -> speedModel.value.floatValue = Calculator.whByKm.toFloat()
-                        else -> speedModel.value.floatValue = WheelData.getInstance().speed / 10f
+                        else -> speedModel.value.floatValue = eucBleManager.eucData.value?.speed?.toFloat() ?: 0f
                     }
                     pipView.invalidate()
                 }
@@ -320,12 +321,12 @@ class MainActivity : AppCompatActivity() {
                     if (!LoggingService.isInstanceCreated() &&
                         appConfig.startAutoLoggingWhenIsMovingMore != 0f &&
                         appConfig.autoLog &&
-                        WheelData.getInstance().speedDouble > appConfig.startAutoLoggingWhenIsMovingMore
+                        (eucBleManager.eucData.value?.speed ?: 0.0) > appConfig.startAutoLoggingWhenIsMovingMore
                     ) {
                         toggleLoggingService()
                     }
                     if (appConfig.alarmsEnabled) {
-                        checkAlarm(WheelData.getInstance().calculatedPwm / 100, applicationContext)
+                        checkAlarm((eucBleManager.eucData.value?.pwm ?: 0.0) / 100, applicationContext)
                     }
                 }
                 Constants.ACTION_LOGGING_SERVICE_TOGGLED -> {
@@ -364,7 +365,9 @@ class MainActivity : AppCompatActivity() {
                     notifications.update()
                 }
                 Constants.NOTIFICATION_BUTTON_BEEP -> playBeep()
-                Constants.NOTIFICATION_BUTTON_LIGHT -> WheelData.getInstance().adapter?.switchFlashlight()
+                Constants.NO********ION_BUTTON_LIGHT -> {
+                    // TODO: Implement with EucBleClient
+                }
             }
         }
     }
@@ -520,7 +523,7 @@ class MainActivity : AppCompatActivity() {
             }
             .launchIn(lifecycleScope)
 
-        if (WheelData.getInstance().wheelType != WHEEL_TYPE.Unknown) {
+        if (eucBleManager.connectedDevice.value?.manufacturer?.toLegacyWheelType() ?: WHEEL_TYPE.Unknown != WHEEL_TYPE.Unknown) {
             pagerAdapter.configureSecondDisplay()
         }
         if (checkNotificationsPermissions(this)) {
@@ -601,7 +604,7 @@ class MainActivity : AppCompatActivity() {
         onDestroyProcess = true
 
         stopLoggingService()
-        WheelData.getInstance().full_reset()
+        eucBleManager.client.cleanup(); eucBleManager.client.initialize()
 
         @Suppress("MissingPermission")
         eucBleManager.cleanup()
@@ -704,7 +707,7 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.miReset -> {
-                WheelData.getInstance().resetExtremumValues()
+                // Reset handled by EucBleManager
                 showSnackBar(getString(R.string.reset_extremum_values_title))
                 true
             }
@@ -825,7 +828,7 @@ class MainActivity : AppCompatActivity() {
                     @Suppress("MissingPermission")
                     val connected = eucBleManager.connectByAddress(
                         address        = lastMac,
-                        name           = WheelData.getInstance().btName ?: "",
+                        name           = eucBleManager.connectedDevice.value?.name ?: "" ?: "",
                         manufacturerId = 0
                     )
                     if (connected) return
@@ -878,8 +881,8 @@ class MainActivity : AppCompatActivity() {
                 rssi             = rssi
             )
             appConfig.lastMac = mac
-            WheelData.getInstance().full_reset()
-            WheelData.getInstance().btName = name
+            eucBleManager.client.cleanup(); eucBleManager.client.initialize()
+            eucBleManager.connectedDevice.value?.name ?: "" = name
             pagerAdapter.updateScreen(true)
             setMenuIconStates()
             toggleConnectToWheel()

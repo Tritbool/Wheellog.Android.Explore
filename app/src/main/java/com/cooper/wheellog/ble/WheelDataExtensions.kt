@@ -1,6 +1,6 @@
 package com.cooper.wheellog.ble
 
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.WheelDataLegacyLegacy
 import com.cooper.wheellog.utils.Constants.WHEEL_TYPE
 import io.github.tritbool.euc.ble.models.EUCData
 import io.github.tritbool.euc.ble.models.EUCDevice
@@ -82,6 +82,9 @@ fun WHEEL_TYPE.toManufacturer(): String {
         else -> "Unknown"
     }
 }
+
+// Extension to use WheelDataLegacy instead of WheelData
+fun getWheelDataLegacy() = WheelDataLegacy
 
 // Create a WheelData-like interface for BleSessionState for easier migration
 fun BleSessionState.getSpeed(): Int {

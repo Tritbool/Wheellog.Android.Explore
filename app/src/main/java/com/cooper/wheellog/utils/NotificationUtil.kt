@@ -73,7 +73,7 @@ class NotificationUtil(private val context: Context): KoinComponent {
             notificationView.setOnClickPendingIntent(it.first,
                     PendingIntent.getBroadcast(context, 0, Intent(it.third), intentFlag))
         }
-        val wd = WheelData.getInstance() ?: return builder.build()
+        val wd = WheelDataLegacy ?: return builder.build()
         val connectionState = wd.bluetoothService?.connectionState
                 ?: ConnectionState.DISCONNECTED
         val batteryLevel = wd.batteryLevel
@@ -81,7 +81,7 @@ class NotificationUtil(private val context: Context): KoinComponent {
         val distance = wd.distanceDouble
         val speed = wd.speedDouble
         val title = customText.ifEmpty { context.getString(notificationMessageId) }
-        val titleRide = WheelData.getInstance().rideTimeString
+        val titleRide = WheelDataLegacy.rideTimeString
         notificationView.setTextViewText(R.id.text_title, context.getString(R.string.app_name))
         notificationView.setTextViewText(R.id.ib_actions_text, context.getString(R.string.notifications_actions_text))
         if (connectionState == ConnectionState.CONNECTED || distance + temperature + batteryLevel + speed > 0) {
@@ -192,7 +192,7 @@ class NotificationUtil(private val context: Context): KoinComponent {
             kostilTimer = Timer().apply {
                 scheduleAtFixedRate(object : TimerTask() {
                     override fun run() {
-                        val wd = WheelData.getInstance()
+                        val wd = WheelDataLegacy
                         if (wd == null) {
                             kostilTimer?.cancel()
                             kostilTimer = null
@@ -217,7 +217,7 @@ class NotificationUtil(private val context: Context): KoinComponent {
 // for test
 //        Timer().scheduleAtFixedRate(object : TimerTask() {
 //            override fun run() {
-//                val wd = WheelData.getInstance() ?: return
+//                val wd = WheelDataLegacy ?: return
 //                wd.batteryLevel = ((Math.random() * 100).toInt())
 //                wd.temperature = (Math.random() * 10000).toInt()
 //                wd.totalDistance = (Math.random() * 10000).toLong()

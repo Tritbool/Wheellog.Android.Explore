@@ -156,7 +156,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         if (position == -1 || position >= pages.size) {
             return
         }
-        val data = WheelData.getInstance()
+        val data = WheelDataLegacy
         when (pages[position]) {
             R.layout.main_view_main -> {
                 data.bmsView = false
@@ -189,64 +189,64 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
             }
             R.layout.main_view_params_list -> {
                 if (appConfig.useMph) {
-                    updateFieldForSecondPage(R.string.speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(WheelData.getInstance().speedDouble)))
-                    updateFieldForSecondPage(R.string.top_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(WheelData.getInstance().topSpeedDouble)))
-                    updateFieldForSecondPage(R.string.average_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(WheelData.getInstance().averageSpeedDouble)))
-                    updateFieldForSecondPage(R.string.average_riding_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(WheelData.getInstance().averageRidingSpeedDouble)))
-                    updateFieldForSecondPage(R.string.dynamic_speed_limit, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(WheelData.getInstance().speedLimit)))
-                    updateFieldForSecondPage(R.string.distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(WheelData.getInstance().distanceDouble)))
-                    updateFieldForSecondPage(R.string.wheel_distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(WheelData.getInstance().wheelDistanceDouble)))
-                    updateFieldForSecondPage(R.string.user_distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(WheelData.getInstance().userDistanceDouble)))
-                    updateFieldForSecondPage(R.string.total_distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(WheelData.getInstance().totalDistanceDouble)))
+                    updateFieldForSecondPage(R.string.speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(WheelDataLegacy.speedDouble)))
+                    updateFieldForSecondPage(R.string.top_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(WheelDataLegacy.topSpeedDouble)))
+                    updateFieldForSecondPage(R.string.average_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(WheelDataLegacy.averageSpeedDouble)))
+                    updateFieldForSecondPage(R.string.average_riding_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(WheelDataLegacy.averageRidingSpeedDouble)))
+                    updateFieldForSecondPage(R.string.dynamic_speed_limit, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(WheelDataLegacy.speedLimit)))
+                    updateFieldForSecondPage(R.string.distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(WheelDataLegacy.distanceDouble)))
+                    updateFieldForSecondPage(R.string.wheel_distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(WheelDataLegacy.wheelDistanceDouble)))
+                    updateFieldForSecondPage(R.string.user_distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(WheelDataLegacy.userDistanceDouble)))
+                    updateFieldForSecondPage(R.string.total_distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(WheelDataLegacy.totalDistanceDouble)))
                 } else {
-                    updateFieldForSecondPage(R.string.speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), WheelData.getInstance().speedDouble))
-                    updateFieldForSecondPage(R.string.top_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), WheelData.getInstance().topSpeedDouble))
-                    updateFieldForSecondPage(R.string.average_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), WheelData.getInstance().averageSpeedDouble))
-                    updateFieldForSecondPage(R.string.average_riding_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), WheelData.getInstance().averageRidingSpeedDouble))
-                    updateFieldForSecondPage(R.string.dynamic_speed_limit, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), WheelData.getInstance().speedLimit))
-                    updateFieldForSecondPage(R.string.distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), WheelData.getInstance().distanceDouble))
-                    updateFieldForSecondPage(R.string.wheel_distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), WheelData.getInstance().wheelDistanceDouble))
-                    updateFieldForSecondPage(R.string.user_distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), WheelData.getInstance().userDistanceDouble))
-                    updateFieldForSecondPage(R.string.total_distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), WheelData.getInstance().totalDistanceDouble))
+                    updateFieldForSecondPage(R.string.speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), WheelDataLegacy.speedDouble))
+                    updateFieldForSecondPage(R.string.top_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), WheelDataLegacy.topSpeedDouble))
+                    updateFieldForSecondPage(R.string.average_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), WheelDataLegacy.averageSpeedDouble))
+                    updateFieldForSecondPage(R.string.average_riding_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), WheelDataLegacy.averageRidingSpeedDouble))
+                    updateFieldForSecondPage(R.string.dynamic_speed_limit, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), WheelDataLegacy.speedLimit))
+                    updateFieldForSecondPage(R.string.distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), WheelDataLegacy.distanceDouble))
+                    updateFieldForSecondPage(R.string.wheel_distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), WheelDataLegacy.wheelDistanceDouble))
+                    updateFieldForSecondPage(R.string.user_distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), WheelDataLegacy.userDistanceDouble))
+                    updateFieldForSecondPage(R.string.total_distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), WheelDataLegacy.totalDistanceDouble))
                 }
-                updateFieldForSecondPage(R.string.voltage, String.format(Locale.US, "%.2f " + activity.getString(R.string.volt), WheelData.getInstance().voltageDouble))
-                updateFieldForSecondPage(R.string.voltage_sag, String.format(Locale.US, "%.2f " + activity.getString(R.string.volt), WheelData.getInstance().voltageSagDouble))
+                updateFieldForSecondPage(R.string.voltage, String.format(Locale.US, "%.2f " + activity.getString(R.string.volt), WheelDataLegacy.voltageDouble))
+                updateFieldForSecondPage(R.string.voltage_sag, String.format(Locale.US, "%.2f " + activity.getString(R.string.volt), WheelDataLegacy.voltageSagDouble))
 
-                updateFieldForSecondPage(R.string.temperature, WheelData.getInstance().temperature.toTempString())
-                updateFieldForSecondPage(R.string.temperature2, WheelData.getInstance().temperature2.toTempString())
-                updateFieldForSecondPage(R.string.cpu_temp, WheelData.getInstance().cpuTemp.toTempString())
-                updateFieldForSecondPage(R.string.imu_temp, WheelData.getInstance().imuTemp.toTempString())
+                updateFieldForSecondPage(R.string.temperature, WheelDataLegacy.temperature.toTempString())
+                updateFieldForSecondPage(R.string.temperature2, WheelDataLegacy.temperature2.toTempString())
+                updateFieldForSecondPage(R.string.cpu_temp, WheelDataLegacy.cpuTemp.toTempString())
+                updateFieldForSecondPage(R.string.imu_temp, WheelDataLegacy.imuTemp.toTempString())
 
-                updateFieldForSecondPage(R.string.angle, String.format(Locale.US, "%.2f°", WheelData.getInstance().angle))
-                updateFieldForSecondPage(R.string.roll, String.format(Locale.US, "%.2f°", WheelData.getInstance().roll))
-                updateFieldForSecondPage(R.string.current, String.format(Locale.US, "%.2f " + activity.getString(R.string.amp), WheelData.getInstance().currentDouble))
-                updateFieldForSecondPage(R.string.phase_current, String.format(Locale.US, "%.2f " + activity.getString(R.string.amp), WheelData.getInstance().phaseCurrentDouble))
-                updateFieldForSecondPage(R.string.dynamic_current_limit, String.format(Locale.US, "%.2f " + activity.getString(R.string.amp), WheelData.getInstance().currentLimit))
-                updateFieldForSecondPage(R.string.torque, String.format(Locale.US, "%.2f " + activity.getString(R.string.newton), WheelData.getInstance().torque))
-                updateFieldForSecondPage(R.string.power, String.format(Locale.US, "%.2f " + activity.getString(R.string.watt), WheelData.getInstance().powerDouble))
-                updateFieldForSecondPage(R.string.motor_power, String.format(Locale.US, "%.2f " + activity.getString(R.string.watt), WheelData.getInstance().motorPower))
-                updateFieldForSecondPage(R.string.battery, String.format(Locale.US, "%d%%", WheelData.getInstance().batteryLevel))
-                updateFieldForSecondPage(R.string.fan_status, if (WheelData.getInstance().fanStatus == 0) activity.getString(R.string.off) else activity.getString(R.string.on))
-                updateFieldForSecondPage(R.string.charging_status, if (WheelData.getInstance().chargingStatus == 0) activity.getString(R.string.discharging) else activity.getString(R.string.charging))
-                updateFieldForSecondPage(R.string.version, String.format(Locale.US, "%s", WheelData.getInstance().version))
-                updateFieldForSecondPage(R.string.error, String.format(Locale.US, "%s", WheelData.getInstance().error))
-                updateFieldForSecondPage(R.string.output, String.format(Locale.US, "%d%%", WheelData.getInstance().output))
-                updateFieldForSecondPage(R.string.cpuload, String.format(Locale.US, "%d%%", WheelData.getInstance().cpuLoad))
-                updateFieldForSecondPage(R.string.name, WheelData.getInstance().name)
-                updateFieldForSecondPage(R.string.model, WheelData.getInstance().model)
-                updateFieldForSecondPage(R.string.serial_number, WheelData.getInstance().serial)
-                updateFieldForSecondPage(R.string.ride_time, WheelData.getInstance().rideTimeString)
-                updateFieldForSecondPage(R.string.sleep_timer, WheelData.getInstance().sleepTimerString)
-                updateFieldForSecondPage(R.string.riding_time, WheelData.getInstance().ridingTimeString)
-                updateFieldForSecondPage(R.string.mode, WheelData.getInstance().modeStr)
-                updateFieldForSecondPage(R.string.charging, WheelData.getInstance().chargeTime)
+                updateFieldForSecondPage(R.string.angle, String.format(Locale.US, "%.2f°", WheelDataLegacy.angle))
+                updateFieldForSecondPage(R.string.roll, String.format(Locale.US, "%.2f°", WheelDataLegacy.roll))
+                updateFieldForSecondPage(R.string.current, String.format(Locale.US, "%.2f " + activity.getString(R.string.amp), WheelDataLegacy.currentDouble))
+                updateFieldForSecondPage(R.string.phase_current, String.format(Locale.US, "%.2f " + activity.getString(R.string.amp), WheelDataLegacy.phaseCurrentDouble))
+                updateFieldForSecondPage(R.string.dynamic_current_limit, String.format(Locale.US, "%.2f " + activity.getString(R.string.amp), WheelDataLegacy.currentLimit))
+                updateFieldForSecondPage(R.string.torque, String.format(Locale.US, "%.2f " + activity.getString(R.string.newton), WheelDataLegacy.torque))
+                updateFieldForSecondPage(R.string.power, String.format(Locale.US, "%.2f " + activity.getString(R.string.watt), WheelDataLegacy.powerDouble))
+                updateFieldForSecondPage(R.string.motor_power, String.format(Locale.US, "%.2f " + activity.getString(R.string.watt), WheelDataLegacy.motorPower))
+                updateFieldForSecondPage(R.string.battery, String.format(Locale.US, "%d%%", WheelDataLegacy.batteryLevel))
+                updateFieldForSecondPage(R.string.fan_status, if (WheelDataLegacy.fanStatus == 0) activity.getString(R.string.off) else activity.getString(R.string.on))
+                updateFieldForSecondPage(R.string.charging_status, if (WheelDataLegacy.chargingStatus == 0) activity.getString(R.string.discharging) else activity.getString(R.string.charging))
+                updateFieldForSecondPage(R.string.version, String.format(Locale.US, "%s", WheelDataLegacy.version))
+                updateFieldForSecondPage(R.string.error, String.format(Locale.US, "%s", WheelDataLegacy.error))
+                updateFieldForSecondPage(R.string.output, String.format(Locale.US, "%d%%", WheelDataLegacy.output))
+                updateFieldForSecondPage(R.string.cpuload, String.format(Locale.US, "%d%%", WheelDataLegacy.cpuLoad))
+                updateFieldForSecondPage(R.string.name, WheelDataLegacy.name)
+                updateFieldForSecondPage(R.string.model, WheelDataLegacy.model)
+                updateFieldForSecondPage(R.string.serial_number, WheelDataLegacy.serial)
+                updateFieldForSecondPage(R.string.ride_time, WheelDataLegacy.rideTimeString)
+                updateFieldForSecondPage(R.string.sleep_timer, WheelDataLegacy.sleepTimerString)
+                updateFieldForSecondPage(R.string.riding_time, WheelDataLegacy.ridingTimeString)
+                updateFieldForSecondPage(R.string.mode, WheelDataLegacy.modeStr)
+                updateFieldForSecondPage(R.string.charging, WheelDataLegacy.chargeTime)
                 updateSecondPage()
             }
             R.layout.main_view_graph -> {
                 if (!updateGraph || chart1 == null) {
                     return
                 }
-                xAxisLabels = WheelData.getInstance().xAxis
+                xAxisLabels = WheelDataLegacy.xAxis
                 if (xAxisLabels.size > 0) {
                     val dataSetSpeed: LineDataSet
                     val dataSetCurrent: LineDataSet
@@ -281,8 +281,8 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     dataSetSpeed.clear()
                     dataSetCurrent.clear()
 
-                    val currentAxis = ArrayList(WheelData.getInstance().currentAxis)
-                    val speedAxis = ArrayList(WheelData.getInstance().speedAxis)
+                    val currentAxis = ArrayList(WheelDataLegacy.currentAxis)
+                    val speedAxis = ArrayList(WheelDataLegacy.speedAxis)
                     for (d in currentAxis) {
                         var value = 0f
                         if (d != null) value = d
@@ -471,7 +471,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
 
     fun configureSecondDisplay() {
         secondPageValues.clear()
-        when (WheelData.getInstance().wheelType) {
+        when (WheelDataLegacy.wheelType) {
             WHEEL_TYPE.KINGSONG -> {
                 setupFieldForSecondPage(R.string.speed)
                 setupFieldForSecondPage(R.string.dynamic_speed_limit)
@@ -738,9 +738,9 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         smartBms1PageValues.clear()
         smartBms2PageValues.clear()
         //removePage(R.layout.main_view_smart_bms)
-        when (WheelData.getInstance().wheelType) {
+        when (WheelDataLegacy.wheelType) {
             WHEEL_TYPE.KINGSONG -> {
-                if (inArray(WheelData.getInstance().model, arrayOf("KS-S20", "KS-S22", "KS-S19", "KS-S16", "KS-S16P", "KS-F22P", "KS-F18P", "KS-14SP"))) {
+                if (inArray(WheelDataLegacy.model, arrayOf("KS-S20", "KS-S22", "KS-S19", "KS-S16", "KS-S16P", "KS-F22P", "KS-F18P", "KS-14SP"))) {
                     addPage(R.layout.main_view_smart_bms, 2)
                     setupFieldForSmartBmsPage(R.string.bmsSn)
                     setupFieldForSmartBmsPage(R.string.bmsFw)
@@ -753,23 +753,23 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     setupFieldForSmartBmsPage(R.string.bmsVoltage)
                     setupFieldForSmartBmsPage(R.string.bmsTemp1)
                     setupFieldForSmartBmsPage(R.string.bmsTemp2)
-                    if (!inArray(WheelData.getInstance().model, arrayOf("KS-14SP"))) {
+                    if (!inArray(WheelDataLegacy.model, arrayOf("KS-14SP"))) {
                         setupFieldForSmartBmsPage(R.string.bmsTemp3)
                         setupFieldForSmartBmsPage(R.string.bmsTemp4)
-                        if (inArray(WheelData.getInstance().model,arrayOf("KS-S20", "KS-S22", "KS-F22P", "KS-F18P"))) {
+                        if (inArray(WheelDataLegacy.model,arrayOf("KS-S20", "KS-S22", "KS-F22P", "KS-F18P"))) {
                             setupFieldForSmartBmsPage(R.string.bmsTemp5)
                         }
-                        if (inArray(WheelData.getInstance().model,arrayOf("KS-S20", "KS-S22", "KS-F22P"))) {
+                        if (inArray(WheelDataLegacy.model,arrayOf("KS-S20", "KS-S22", "KS-F22P"))) {
                             setupFieldForSmartBmsPage(R.string.bmsTemp6)
                         }
                     }
                     setupFieldForSmartBmsPage(R.string.bmsTempMos)
-                    if (!inArray(WheelData.getInstance().model, arrayOf("KS-F18P"))) {
+                    if (!inArray(WheelDataLegacy.model, arrayOf("KS-F18P"))) {
                         setupFieldForSmartBmsPage(R.string.bmsTempMosEnv)
                     }
                     setupFieldForSmartBmsPage(R.string.bmsTemp1Env)
                     setupFieldForSmartBmsPage(R.string.bmsHumidity1Env)
-                    if (inArray(WheelData.getInstance().model, arrayOf("KS-F18P"))) {
+                    if (inArray(WheelDataLegacy.model, arrayOf("KS-F18P"))) {
                         setupFieldForSmartBmsPage(R.string.bmsTemp2Env)
                         setupFieldForSmartBmsPage(R.string.bmsHumidity2Env)
                     }
@@ -793,19 +793,19 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     setupFieldForSmartBmsPage(R.string.bmsCell14)
                     setupFieldForSmartBmsPage(R.string.bmsCell15)
                     setupFieldForSmartBmsPage(R.string.bmsCell16)
-                    if (inArray(WheelData.getInstance().model, arrayOf("KS-S16", "KS-S16P", "KS-S20", "KS-S22", "KS-S19", "KS-F22P", "KS-F18P"))) {
+                    if (inArray(WheelDataLegacy.model, arrayOf("KS-S16", "KS-S16P", "KS-S20", "KS-S22", "KS-S19", "KS-F22P", "KS-F18P"))) {
                         setupFieldForSmartBmsPage(R.string.bmsCell17)
                         setupFieldForSmartBmsPage(R.string.bmsCell18)
                         setupFieldForSmartBmsPage(R.string.bmsCell19)
                         setupFieldForSmartBmsPage(R.string.bmsCell20)
                     }
-                    if (inArray(WheelData.getInstance().model, arrayOf("KS-S20", "KS-S22", "KS-S19", "KS-F22P", "KS-F18P"))) {
+                    if (inArray(WheelDataLegacy.model, arrayOf("KS-S20", "KS-S22", "KS-S19", "KS-F22P", "KS-F18P"))) {
                         setupFieldForSmartBmsPage(R.string.bmsCell21)
                         setupFieldForSmartBmsPage(R.string.bmsCell22)
                         setupFieldForSmartBmsPage(R.string.bmsCell23)
                         setupFieldForSmartBmsPage(R.string.bmsCell24)
                     }
-                    if (inArray(WheelData.getInstance().model, arrayOf("KS-S20", "KS-S22", "KS-F22P", "KS-F18P"))) {
+                    if (inArray(WheelDataLegacy.model, arrayOf("KS-S20", "KS-S22", "KS-F22P", "KS-F18P"))) {
                         setupFieldForSmartBmsPage(R.string.bmsCell25)
                         setupFieldForSmartBmsPage(R.string.bmsCell26)
                         setupFieldForSmartBmsPage(R.string.bmsCell27)
@@ -813,7 +813,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                         setupFieldForSmartBmsPage(R.string.bmsCell29)
                         setupFieldForSmartBmsPage(R.string.bmsCell30)
                     }
-                    if (inArray(WheelData.getInstance().model, arrayOf("KS-F22P", "KS-F18P"))) {
+                    if (inArray(WheelDataLegacy.model, arrayOf("KS-F22P", "KS-F18P"))) {
                         setupFieldForSmartBmsPage(R.string.bmsCell31)
                         setupFieldForSmartBmsPage(R.string.bmsCell32)
                         setupFieldForSmartBmsPage(R.string.bmsCell33)
@@ -821,7 +821,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                         setupFieldForSmartBmsPage(R.string.bmsCell35)
                         setupFieldForSmartBmsPage(R.string.bmsCell36)
                     }
-                    if (inArray(WheelData.getInstance().model, arrayOf("KS-F22P"))) {
+                    if (inArray(WheelDataLegacy.model, arrayOf("KS-F22P"))) {
                         setupFieldForSmartBmsPage(R.string.bmsCell37)
                         setupFieldForSmartBmsPage(R.string.bmsCell38)
                         setupFieldForSmartBmsPage(R.string.bmsCell39)
@@ -835,7 +835,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                 }
             }
             WHEEL_TYPE.VETERAN -> {
-                if (inArray(WheelData.getInstance().model, arrayOf("Lynx", "Lynx S", "Sherman L", "Nosfet Apex", "Nosfet Aeon", "Patton S", "Nosfet Aero", "Oryx"))) {
+                if (inArray(WheelDataLegacy.model, arrayOf("Lynx", "Lynx S", "Sherman L", "Nosfet Apex", "Nosfet Aeon", "Patton S", "Nosfet Aero", "Oryx"))) {
                     addPage(R.layout.main_view_smart_bms, 2)
                     setupFieldForSmartBmsPage(R.string.bmsCurrent)
                     setupFieldForSmartBmsPage(R.string.bmsVoltage)
@@ -879,7 +879,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     setupFieldForSmartBmsPage(R.string.bmsCell28)
                     setupFieldForSmartBmsPage(R.string.bmsCell29)
                     setupFieldForSmartBmsPage(R.string.bmsCell30)
-                    if (inArray(WheelData.getInstance().model, arrayOf("Lynx", "Lynx S", "Sherman L", "Nosfet Apex", "Nosfet Aeon", "Oryx"))) {
+                    if (inArray(WheelDataLegacy.model, arrayOf("Lynx", "Lynx S", "Sherman L", "Nosfet Apex", "Nosfet Aeon", "Oryx"))) {
                             setupFieldForSmartBmsPage(R.string.bmsCell31)
                             setupFieldForSmartBmsPage(R.string.bmsCell32)
                             setupFieldForSmartBmsPage(R.string.bmsCell33)
@@ -887,7 +887,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                             setupFieldForSmartBmsPage(R.string.bmsCell35)
                             setupFieldForSmartBmsPage(R.string.bmsCell36)
                         }
-                    if (inArray(WheelData.getInstance().model, arrayOf("Oryx"))) {
+                    if (inArray(WheelDataLegacy.model, arrayOf("Oryx"))) {
                         setupFieldForSmartBmsPage(R.string.bmsCell37)
                         setupFieldForSmartBmsPage(R.string.bmsCell38)
                         setupFieldForSmartBmsPage(R.string.bmsCell39)
@@ -901,7 +901,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                 }
             }
             WHEEL_TYPE.GOTWAY -> {
-                val data = WheelData.getInstance()
+                val data = WheelDataLegacy
                 if (data.bms1.cellNum > 0) {
                     addPage(R.layout.main_view_smart_bms, 2)
                     setupFieldForSmartBmsPage(R.string.bmsCurrent)
@@ -984,7 +984,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                 }
             }
             WHEEL_TYPE.NINEBOT_Z -> {
-                if (WheelData.getInstance().protoVer == "") { //hide page for S2
+                if (WheelDataLegacy.protoVer == "") { //hide page for S2
                     addPage(R.layout.main_view_smart_bms, 2)
                     setupFieldForSmartBmsPage(R.string.bmsSn)
                     setupFieldForSmartBmsPage(R.string.bmsFw)
@@ -1019,10 +1019,10 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     setupFieldForSmartBmsPage(R.string.bmsCell12)
                     setupFieldForSmartBmsPage(R.string.bmsCell13)
                     setupFieldForSmartBmsPage(R.string.bmsCell14)
-                    if (WheelData.getInstance().bms1.cellNum > 14) {
+                    if (WheelDataLegacy.bms1.cellNum > 14) {
                         setupFieldForSmartBmsPage(R.string.bmsCell15)
                     }
-                    if (WheelData.getInstance().bms1.cellNum > 15) {
+                    if (WheelDataLegacy.bms1.cellNum > 15) {
                         setupFieldForSmartBmsPage(R.string.bmsCell16)
                     }
                 } else {

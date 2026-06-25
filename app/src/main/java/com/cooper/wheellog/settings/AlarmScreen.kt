@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.WheelDataLegacy
 import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.MathsUtil
 import org.koin.compose.koinInject
@@ -24,10 +24,10 @@ fun alarmScreen(appConfig: AppConfig = koinInject()) {
         var alarmsEnabled by remember { mutableStateOf(appConfig.alarmsEnabled) }
         var pwmBasedAlarms by remember { mutableStateOf(appConfig.pwmBasedAlarms) }
         val ksAlteredAlarms =
-            WheelData.getInstance().wheelType == Constants.WHEEL_TYPE.KINGSONG
-                    && WheelData.getInstance().model.compareTo("KS-18A") != 0
+            WheelDataLegacy.wheelType == Constants.WHEEL_TYPE.KINGSONG
+                    && WheelDataLegacy.model.compareTo("KS-18A") != 0
         val wheelAlarm =
-                WheelData.getInstance().wheelType == Constants.WHEEL_TYPE.GOTWAY
+                WheelDataLegacy.wheelType == Constants.WHEEL_TYPE.GOTWAY
 
         switchPref(
             name = stringResource(R.string.enable_alarms_title),

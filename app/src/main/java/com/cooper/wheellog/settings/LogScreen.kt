@@ -24,7 +24,7 @@ import com.cooper.wheellog.BuildConfig
 import com.cooper.wheellog.ElectroClub
 import com.cooper.wheellog.MainActivity
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.WheelDataLegacy
 import com.cooper.wheellog.utils.FileUtil
 import com.cooper.wheellog.utils.PermissionsUtil
 import com.cooper.wheellog.utils.ThemeIconEnum
@@ -196,7 +196,7 @@ fun logScreen(appConfig: AppConfig = koinInject())
                     }
                 }
 
-                if (autoUploadDependency.value && WheelData.getInstance().isConnected) {
+                if (autoUploadDependency.value && WheelDataLegacy.isConnected) {
                     val activity = LocalContext.current as Activity
                     clickablePref(
                         name = stringResource(R.string.select_garage_ec_title),
@@ -226,7 +226,7 @@ fun logScreen(appConfig: AppConfig = koinInject())
                                 val errorMessage = ElectroClub.instance.lastError ?: ""
                                 if (success) {
                                     ElectroClub.instance.getAndSelectGarageByMacOrShowChooseDialog(
-                                        WheelData.getInstance().mac,
+                                        WheelDataLegacy.mac,
                                         context as Activity
                                     ) { }
                                 }

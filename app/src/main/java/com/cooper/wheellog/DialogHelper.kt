@@ -70,7 +70,7 @@ object DialogHelper : KoinComponent {
     }
 
     fun checkPWMIsSetAndShowAlert(context: Context) {
-        val wd = WheelData.getInstance()
+        val wd = WheelDataLegacy
         if (!wd.isWheelIsReady || wd.isHardwarePWM || appConfig.hwPwm || appConfig.rotationIsSet) {
             return
         }
@@ -81,12 +81,12 @@ object DialogHelper : KoinComponent {
         val inflater: LayoutInflater = LayoutInflater.from(context)
         val binding = UpdatePwmSettingsBinding.inflate(inflater, null, false)
         binding.modelName.text =
-            if (WheelData.getInstance().model.isNullOrEmpty())
+            if (WheelDataLegacy.model.isNullOrEmpty())
                 "Unknown model"
-            else WheelData.getInstance().model
+            else WheelDataLegacy.model
         val svLayout: LinearLayout = binding.setSpeedVoltageLayout
         val templatesBox: Spinner = binding.spinnerTemplates
-        val templates = when (WheelData.getInstance().wheelType) {
+        val templates = when (WheelDataLegacy.wheelType) {
             Constants.WHEEL_TYPE.GOTWAY ->
                 mutableMapOf(
                         "Begode MTen 67v" to Pair(440, 672), // first - speed, second - voltage

@@ -11,7 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.WheelDataLegacy
 import com.cooper.wheellog.utils.*
 import com.cooper.wheellog.utils.StringUtil.inArray
 import org.koin.compose.koinInject
@@ -23,7 +23,7 @@ fun wheelScreen(appConfig: AppConfig = koinInject())
         modifier = Modifier
             .verticalScroll(rememberScrollState())
     ) {
-        when (WheelData.getInstance().wheelType) {
+        when (WheelDataLegacy.wheelType) {
             Constants.WHEEL_TYPE.NINEBOT_Z -> ninebotZ()
             Constants.WHEEL_TYPE.INMOTION -> inmotion()
             Constants.WHEEL_TYPE.INMOTION_V2 -> inmotionV2()
@@ -34,7 +34,7 @@ fun wheelScreen(appConfig: AppConfig = koinInject())
                 name = stringResource(R.string.unknown_device),
             )
         }
-        if (WheelData.getInstance().wheelType != Constants.WHEEL_TYPE.Unknown) {
+        if (WheelDataLegacy.wheelType != Constants.WHEEL_TYPE.Unknown) {
             forAllWheel()
         }
     }
@@ -301,7 +301,7 @@ private fun ninebotZ(appConfig: AppConfig = koinInject()) {
         name = stringResource(R.string.wheel_calibration),
         themeIcon = ThemeIconEnum.SettingsCalibration,
     ) {
-        if (WheelData.getInstance().speed < 1) {
+        if (WheelDataLegacy.speed < 1) {
             showDialogCalibration = true
         }
     }
@@ -392,7 +392,7 @@ private fun inmotion(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.power_off),
         alertDesc = stringResource(R.string.power_off_message),
         themeIcon = ThemeIconEnum.SettingsPowerOff,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { WheelDataLegacy.speed < 1 },
         onConfirm = { adapter.powerOff() },
     )
     clickableAndAlert(
@@ -400,7 +400,7 @@ private fun inmotion(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.wheel_calibration),
         alertDesc = stringResource(R.string.wheel_calibration_message_inmo),
         themeIcon = ThemeIconEnum.SettingsCalibration,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { WheelDataLegacy.speed < 1 },
         onConfirm = { adapter.wheelCalibration() },
     )
 }
@@ -753,7 +753,7 @@ private fun inmotionV2(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.power_off),
         alertDesc = stringResource(R.string.power_off_message),
         themeIcon = ThemeIconEnum.SettingsPowerOff,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { WheelDataLegacy.speed < 1 },
         onConfirm = { adapter.powerOff() },
     )
 
@@ -762,7 +762,7 @@ private fun inmotionV2(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.wheel_calibration),
         alertDesc = stringResource(R.string.wheel_calibration_message_inmo),
         themeIcon = ThemeIconEnum.SettingsCalibration,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { WheelDataLegacy.speed < 1 },
         onConfirm = { adapter.wheelCalibration() },
     )
 
@@ -771,7 +771,7 @@ private fun inmotionV2(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.wheel_calibration_balance),
         alertDesc = stringResource(R.string.wheel_calibration_balance_message_inmo),
         themeIcon = ThemeIconEnum.SettingsCalibration,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { WheelDataLegacy.speed < 1 },
         onConfirm = { adapter.wheelCalibrationBalance() },
     )
 
@@ -884,7 +884,7 @@ private fun kingsong(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.power_off),
         alertDesc = stringResource(R.string.power_off_message),
         themeIcon = ThemeIconEnum.SettingsPowerOff,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { WheelDataLegacy.speed < 1 },
         onConfirm = { adapter.powerOff() },
     )
     clickableAndAlert(
@@ -892,7 +892,7 @@ private fun kingsong(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.wheel_calibration),
         alertDesc = stringResource(R.string.wheel_calibration_message_inmo),
         themeIcon = ThemeIconEnum.SettingsCalibration,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { WheelDataLegacy.speed < 1 },
         onConfirm = { adapter.wheelCalibration() },
     )
 }
@@ -1026,7 +1026,7 @@ private fun begode(appConfig: AppConfig = koinInject()) {
             confirmButtonText = stringResource(R.string.wheel_calibration),
             alertDesc = stringResource(R.string.wheel_calibration_message_inmo),
             themeIcon = ThemeIconEnum.SettingsCalibration,
-            condition = { WheelData.getInstance().speed < 1 },
+            condition = { WheelDataLegacy.speed < 1 },
             onConfirm = { adapter.wheelCalibration() },
         )
         switchPref(
@@ -1298,7 +1298,7 @@ private fun veteran(appConfig: AppConfig = koinInject()) {
         appConfig.lightEnabled = it
         adapter.setLightState(it)
     }
-    if (!inArray(WheelData.getInstance().model, arrayOf("Nosfet Apex", "Nosfet Aero"))) {
+    if (!inArray(WheelDataLegacy.model, arrayOf("Nosfet Apex", "Nosfet Aero"))) {
         list(
             name = stringResource(R.string.pedals_mode_title),
             desc = stringResource(R.string.soft_medium_hard),

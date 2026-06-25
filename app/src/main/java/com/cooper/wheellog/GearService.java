@@ -130,33 +130,33 @@ LocationListener locationListener = new LocationListener() {
             @Override
             public void run() {
                 String message;
-                if (WheelData.getInstance()!=null) {
+                if (WheelDataLegacy!=null) {
                     message = String.format(Locale.ROOT, "{ \"speed\":%.2f," +
                                     "\"voltage\":%.2f,\"current\":%.2f,\"power\":%.2f," +
                                     "\"batteryLevel\":%d,\"distance\":%d,\"totalDistance\":%d,\"temperature\":%d," +
                                     "\"temperature2\":%d," +
                                     "\"angle\":%.2f,\"roll\":%.2f,\"isAlarmExecuting\":%d",
 //                        "\"mode\":%s,\"alert\":%s"+
-                            WheelData.getInstance().getSpeedDouble(),
-                            WheelData.getInstance().getVoltageDouble(),
-                            WheelData.getInstance().getCurrentDouble(),
-                            WheelData.getInstance().getPowerDouble(),
-                            WheelData.getInstance().getBatteryLevel(),
-                            WheelData.getInstance().getDistance(),
-                            WheelData.getInstance().getTotalDistance(),
-                            WheelData.getInstance().getTemperature(),
-                            WheelData.getInstance().getTemperature2(),
-                            WheelData.getInstance().getAngle(),
-                            WheelData.getInstance().getRoll(),
+                            WheelDataLegacy.getSpeedDouble(),
+                            WheelDataLegacy.getVoltageDouble(),
+                            WheelDataLegacy.getCurrentDouble(),
+                            WheelDataLegacy.getPowerDouble(),
+                            WheelDataLegacy.getBatteryLevel(),
+                            WheelDataLegacy.getDistance(),
+                            WheelDataLegacy.getTotalDistance(),
+                            WheelDataLegacy.getTemperature(),
+                            WheelDataLegacy.getTemperature2(),
+                            WheelDataLegacy.getAngle(),
+                            WheelDataLegacy.getRoll(),
                             Alarms.INSTANCE.getAlarm()
-//                        WheelData.getInstance().getModeStr(),
-//                        WheelData.getInstance().getAlert()
+//                        WheelDataLegacy.getModeStr(),
+//                        WheelDataLegacy.getAlert()
                     );
                 } else {
                     message = "{";
                 }
                 if(locationListener!=null) {
-                    if (WheelData.getInstance()!=null) {
+                    if (WheelDataLegacy!=null) {
                     message = message + "," + getLocationMessage();
                     } else{
                     message = getLocationMessage();

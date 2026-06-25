@@ -6,11 +6,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.WheelDataLegacy
 
 @Composable
 fun SmartBmsScreen() {
-    val data = remember { WheelData.getInstance() }
+    val data = remember { WheelDataLegacy }
 
     val bms1 = data.bms1
     val bms2 = data.bms2

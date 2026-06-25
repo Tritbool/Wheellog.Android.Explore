@@ -17,7 +17,7 @@ import androidx.fragment.app.Fragment
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.MainActivity
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.WheelDataLegacy
 import com.cooper.wheellog.WheelLog
 import kotlinx.coroutines.*
 import org.koin.core.component.KoinComponent
@@ -71,12 +71,12 @@ object SomeUtil: KoinComponent {
     @Suppress("DEPRECATION")
     @JvmStatic
     fun playBeep(onlyByWheel: Boolean, onlyDefault: Boolean) {
-        if (WheelData.getInstance() == null) {
+        if (WheelDataLegacy == null) {
             return
         }
 
         if (appConfig.beepByWheel || onlyByWheel) {
-            WheelData.getInstance().wheelBeep()
+            WheelDataLegacy.wheelBeep()
             return
         }
 

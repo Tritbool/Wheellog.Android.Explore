@@ -6,7 +6,7 @@ import android.media.AudioManager
 import android.media.AudioTrack
 import android.os.Build
 import com.cooper.wheellog.AppConfig
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.WheelDataLegacy
 import com.cooper.wheellog.utils.Constants.ALARM_TYPE
 import kotlinx.coroutines.*
 import org.koin.core.component.KoinComponent
@@ -80,7 +80,7 @@ object AudioUtil: KoinComponent {
     var toneDuration = 0
 
     suspend fun playAlarm(alarmType: ALARM_TYPE) {
-        if (appConfig.useWheelBeepForAlarm && WheelData.getInstance() != null) {
+        if (appConfig.useWheelBeepForAlarm && WheelDataLegacy != null) {
             SomeUtil.playBeep(onlyByWheel = true, onlyDefault = false)
             return
         }

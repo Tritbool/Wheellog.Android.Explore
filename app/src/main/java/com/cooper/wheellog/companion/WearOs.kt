@@ -6,7 +6,7 @@ import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.WheelDataLegacy
 import com.cooper.wheellog.utils.Alarms
 import com.cooper.wheellog.utils.SomeUtil
 import com.google.android.gms.wearable.MessageClient
@@ -34,7 +34,7 @@ class WearOs(var context: Context): MessageClient.OnMessageReceivedListener, Sha
             sendMessage(Constants.wearOsPingMessage)
             return
         }
-        val wd = WheelData.getInstance()
+        val wd = WheelDataLegacy
         val dataRequest = PutDataMapRequest.create(Constants.wearOsDataItemPath)
         dataRequest.dataMap.apply {
             putDouble(Constants.wearOsSpeedData, wd.speedDouble)
@@ -91,7 +91,7 @@ class WearOs(var context: Context): MessageClient.OnMessageReceivedListener, Sha
                     sendPingJob.cancel()
                 }
                 Constants.wearOsHornMessage -> SomeUtil.playBeep()
-                Constants.wearOsLightMessage -> WheelData.getInstance().adapter?.switchFlashlight()
+                Constants.wearOsLightMessage -> WheelDataLegacy.adapter?.switchFlashlight()
                 else -> Timber.wtf("Unknown message from wear")
             }
         }

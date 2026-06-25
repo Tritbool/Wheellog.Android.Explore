@@ -246,7 +246,7 @@ class ElectroClub: KoinComponent {
         activity: Activity,
         success: (String?) -> Unit
     ) {
-        if (!WheelData.getInstance().isConnected || appConfig.ecGarage != null)
+        if (!WheelDataLegacy.isConnected || appConfig.ecGarage != null)
             return // not connected or already selected
 
         getGarage { transportList ->

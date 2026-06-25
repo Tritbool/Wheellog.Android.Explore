@@ -91,7 +91,7 @@ public class PebbleService extends Service {
                 outgoingDictionary.addInt32(KEY_MAX_SPEED, appConfig.getMaxSpeed());
             }
 
-            WheelData data = WheelData.getInstance();
+            WheelData data = WheelDataLegacy;
             if (data == null) {
                 return;
             }

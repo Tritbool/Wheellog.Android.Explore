@@ -17,7 +17,7 @@ import com.cooper.wheellog.data.TripDao
 import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.FileUtil
 import com.cooper.wheellog.utils.NotificationUtil
-import com.cooper.wheellog.utils.ParserLogToWheelData
+// import com.cooper.wheellog.utils.ParserLogToWheelData - REMOVED: Use EUCData parser
 import com.cooper.wheellog.utils.PermissionsUtil.checkExternalFilePermission
 import com.cooper.wheellog.utils.PermissionsUtil.checkLocationPermission
 import com.welie.blessed.ConnectionState
@@ -71,10 +71,11 @@ class LoggingService : Service() {
     private val mBinder: IBinder = LocalBinder()
 
     override fun onBind(intent: Intent): IBinder? {
-        if (WheelData.getInstance() == null) {
-            stopSelf()
-            return null
-        }
+        // WheelDataLegacy is always available now
+        // if (WheelDataLegacy == null) {
+        //     stopSelf()
+        //     return null
+        // }
         instance = this
         fileUtil = FileUtil(applicationContext)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -96,7 +97,7 @@ class LoggingService : Service() {
         }
         sdf = SimpleDateFormat("yyyy-MM-dd,HH:mm:ss.SSS", Locale.US)
         var writeToLastLog = false
-        val mac = WheelData.getInstance().mac
+        val mac = WheelDataLegacy.mac
         if (appConfig.continueThisDayLog &&
             appConfig.continueThisDayLogMacException != mac
         ) {
@@ -104,9 +105,9 @@ class LoggingService : Service() {
             if (lastFileUtil?.file?.path?.contains(mac.replace(':', '_')) == true
             ) {
                 fileUtil = lastFileUtil
-                // parse prev log for filling wheeldata values
-                val parser = ParserLogToWheelData()
-                parser.parseFile(fileUtil)
+                // parse prev log for filling session state - TODO: Implement EUCData parser
+                // val parser = ParserLogToWheelData()
+                // parser.parseFile(fileUtil)
                 fileUtil.prepareStream()
                 writeToLastLog = true
                 // reset trip duration for recalculation in trip list
@@ -121,7 +122,7 @@ class LoggingService : Service() {
         if (!writeToLastLog) {
             val sdFormatter = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US)
             val filename = sdFormatter.format(Date()) + ".csv"
-            if (!fileUtil.prepareFile(filename, WheelData.getInstance().mac)) {
+            if (!fileUtil.prepareFile(filename, WheelDataLegacy.mac)) {
                 stopSelf()
                 return mBinder
             }
@@ -281,11 +282,11 @@ class LoggingService : Service() {
                 mLocationDistance
             )
         }
-        val wd = WheelData.getInstance()
+        val wd = WheelDataLegacy
         fileUtil.writeLine(
             String.format(
                 Locale.US, "%s,%s%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%d,%d,%d,%.2f,%.2f,%s,%s",
-                sdf!!.format(WheelData.getInstance().timeStamp),
+                sdf!!.format(WheelDataLegacy.timeStamp),
                 LocationDataString,
                 wd.speedDouble,
                 wd.voltageDouble,

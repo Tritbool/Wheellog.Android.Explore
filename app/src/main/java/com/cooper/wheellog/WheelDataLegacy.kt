@@ -154,10 +154,30 @@ object WheelDataLegacy {
     // They should be replaced with proper BleSessionViewModel usage
     
     @Deprecated("Use BleSessionViewModel.getEucBleClient()")
-    val bluetoothService: Any? = null // BluetoothService is removed
+    var bluetoothService: Any? = null // BluetoothService is removed, use EucBleClient
+    
+    @Deprecated("Adapters are removed, use EucBleClient commands")
+    val adapter: Any? = null // All brand adapters are removed
     
     @Deprecated("Use BleSessionViewModel directly")
     fun getInstance(): WheelDataLegacy = this
+    
+    // Additional properties for MainActivity compatibility
+    var btName: String = ""
+        get() = viewModel.getName()
+        set(value) { field = value }
+    
+    val timeStamp: Long
+        get() = viewModel.sessionState.value.lastDataTimestamp ?: System.currentTimeMillis()
+    
+    val phaseCurrentDouble: Double
+        get() = viewModel.sessionState.value.lastData?.phaseCurrent ?: 0.0
+    
+    val calculatedPwm: Double
+        get() = viewModel.sessionState.value.lastData?.pwm ?: 0.0
+    
+    val maxCurrentDouble: Double
+        get() = viewModel.sessionState.value.sessionMaxCurrent ?: 0.0
     
     @Deprecated("Use BleSessionViewModel")
     fun initiate() {

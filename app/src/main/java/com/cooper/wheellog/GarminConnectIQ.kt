@@ -256,9 +256,9 @@ internal class GarminConnectIQWebServer(context: Context) : NanoHTTPD("127.0.0.1
     private val speedStr
         get() = run {
             val speed = if (!appConfig.useMph) {
-                WheelData.getInstance().speedDouble
+                WheelDataLegacy.speedDouble
             } else {
-                MathsUtil.kmToMiles(WheelData.getInstance().speedDouble)
+                MathsUtil.kmToMiles(WheelDataLegacy.speedDouble)
             }
             if (speed.toString().length > 3) {
                 ((speed * 10).toInt().toFloat() / 10).toString()
@@ -267,34 +267,34 @@ internal class GarminConnectIQWebServer(context: Context) : NanoHTTPD("127.0.0.1
 
     private val topSpeed
         get() = if (!appConfig.useMph) {
-            WheelData.getInstance().topSpeed
+            WheelDataLegacy.topSpeed
         } else {
-            MathsUtil.kmToMiles(WheelData.getInstance().topSpeed.toDouble()).toInt()
+            MathsUtil.kmToMiles(WheelDataLegacy.topSpeed.toDouble()).toInt()
         }
 
     private val temperature
         get() = if (!appConfig.useMph) {
-            WheelData.getInstance().temperature
+            WheelDataLegacy.temperature
         } else {
-            MathsUtil.celsiusToFahrenheit(WheelData.getInstance().temperature.toDouble()).toInt()
+            MathsUtil.celsiusToFahrenheit(WheelDataLegacy.temperature.toDouble()).toInt()
         }
 
     private val avgSpeed
         get() = if (!appConfig.useMph) {
-            WheelData.getInstance().averageSpeedDouble.toInt()
+            WheelDataLegacy.averageSpeedDouble.toInt()
         } else {
-            MathsUtil.kmToMiles(WheelData.getInstance().averageSpeedDouble).toInt()
+            MathsUtil.kmToMiles(WheelDataLegacy.averageSpeedDouble).toInt()
         }
 
     private val avgRidingSpeed
         get() = if (!appConfig.useMph) {
-            WheelData.getInstance().averageRidingSpeedDouble.toInt()
+            WheelDataLegacy.averageRidingSpeedDouble.toInt()
         } else {
-            MathsUtil.kmToMiles(WheelData.getInstance().averageRidingSpeedDouble).toInt()
+            MathsUtil.kmToMiles(WheelDataLegacy.averageRidingSpeedDouble).toInt()
         }
 
     override fun serve(session: IHTTPSession): Response {
-        val wd = WheelData.getInstance()
+        val wd = WheelDataLegacy
         val ac = appConfig
       
         return when (session.method) {

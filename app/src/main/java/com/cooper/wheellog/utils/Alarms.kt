@@ -8,7 +8,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.WheelDataLegacy
 import com.cooper.wheellog.WheelLog
 import com.cooper.wheellog.utils.AudioUtil.playAlarm
 import com.cooper.wheellog.utils.Constants.ALARM_TYPE
@@ -40,7 +40,7 @@ object Alarms: KoinComponent {
     private fun newTimerTask(): TimerTask {
         return object : TimerTask() {
             override fun run() {
-                val wd = WheelData.getInstance() ?: return
+                val wd = WheelDataLegacy ?: return
                 val mContext: Context = get()
                 if (!reCheckAlarm(wd.calculatedPwm / 100, mContext)) {
                     stop()
@@ -131,7 +131,7 @@ object Alarms: KoinComponent {
                 playSound(mContext, R.raw.warning_pwm)
             } else {
                 val warningSpeed = appConfig.warningSpeed
-                if (warningSpeed != 0 && warningSpeedPeriod != 0 && WheelData.getInstance().speedDouble >= warningSpeed && System.currentTimeMillis() - lastPlayWarningSpeedTime > warningSpeedPeriod) {
+                if (warningSpeed != 0 && warningSpeedPeriod != 0 && WheelDataLegacy.speedDouble >= warningSpeed && System.currentTimeMillis() - lastPlayWarningSpeedTime > warningSpeedPeriod) {
                     lastPlayWarningSpeedTime = System.currentTimeMillis()
                     playSound(mContext, R.raw.sound_warning_speed)
                 }
@@ -143,7 +143,7 @@ object Alarms: KoinComponent {
     private fun oldAlarms(mContext: Context): Boolean {
         if (checkOldAlarmSpeed(appConfig.alarm1Speed, appConfig.alarm1Battery)) {
             AudioUtil.toneDuration = 50
-            raiseAlarm(ALARM_TYPE.SPEED1, WheelData.getInstance().speedDouble, mContext)
+            raiseAlarm(ALARM_TYPE.SPEED1, WheelDataLegacy.speedDouble, mContext)
             return true
         } else if (checkOldAlarmSpeed(
                 appConfig.alarm2Speed,
@@ -151,7 +151,7 @@ object Alarms: KoinComponent {
             )
         ) {
             AudioUtil.toneDuration = 100
-            raiseAlarm(ALARM_TYPE.SPEED2, WheelData.getInstance().speedDouble, mContext)
+            raiseAlarm(ALARM_TYPE.SPEED2, WheelDataLegacy.speedDouble, mContext)
             return true
         } else if (checkOldAlarmSpeed(
                 appConfig.alarm3Speed,
@@ -159,7 +159,7 @@ object Alarms: KoinComponent {
             )
         ) {
             AudioUtil.toneDuration = 180
-            raiseAlarm(ALARM_TYPE.SPEED3, WheelData.getInstance().speedDouble, mContext)
+            raiseAlarm(ALARM_TYPE.SPEED3, WheelDataLegacy.speedDouble, mContext)
             return true
         } else {
             // check if speed alarm executing and stop it
@@ -171,8 +171,8 @@ object Alarms: KoinComponent {
     private fun checkOldAlarmSpeed(alarmSpeed: Int, alarmBattery: Int): Boolean {
         return alarmSpeed > 0
             && alarmBattery > 0
-            && WheelData.getInstance().batteryLevel <= alarmBattery
-            && WheelData.getInstance().speedDouble >= alarmSpeed
+            && WheelDataLegacy.batteryLevel <= alarmBattery
+            && WheelDataLegacy.speedDouble >= alarmSpeed
     }
 
     private fun temperatureAlarms(mContext: Context): Boolean {
@@ -181,17 +181,17 @@ object Alarms: KoinComponent {
         }
         val alarmTemperature = appConfig.alarmTemperature
         val alarmMotorTemperature = appConfig.alarmMotorTemperature
-        if (alarmTemperature > 0 && WheelData.getInstance().temperature >= alarmTemperature) {
+        if (alarmTemperature > 0 && WheelDataLegacy.temperature >= alarmTemperature) {
             raiseAlarm(
                 ALARM_TYPE.TEMPERATURE,
-                WheelData.getInstance().temperature.toDouble(),
+                WheelDataLegacy.temperature.toDouble(),
                 mContext
             )
             temperatureAlarmExecuting.value = true
-        } else if (alarmMotorTemperature > 0 && WheelData.getInstance().temperature2 >= alarmMotorTemperature) {
+        } else if (alarmMotorTemperature > 0 && WheelDataLegacy.temperature2 >= alarmMotorTemperature) {
             raiseAlarm(
                 ALARM_TYPE.TEMPERATURE,
-                WheelData.getInstance().temperature2.toDouble(),
+                WheelDataLegacy.temperature2.toDouble(),
                 mContext
             )
             temperatureAlarmExecuting.value = true
@@ -205,17 +205,17 @@ object Alarms: KoinComponent {
         }
         val alarmCurrent = appConfig.alarmCurrent * 100
         val alarmPhaseCurrent = appConfig.alarmPhaseCurrent * 100
-        if (alarmCurrent > 0 && abs(WheelData.getInstance().current) >= alarmCurrent) {
+        if (alarmCurrent > 0 && abs(WheelDataLegacy.current) >= alarmCurrent) {
             raiseAlarm(
                 ALARM_TYPE.CURRENT,
-                WheelData.getInstance().currentDouble,
+                WheelDataLegacy.currentDouble,
                 mContext
             )
             currentAlarmExecuting.value = true
-        } else if (alarmPhaseCurrent > 0 && abs(WheelData.getInstance().phaseCurrent) >= alarmPhaseCurrent) {
+        } else if (alarmPhaseCurrent > 0 && abs(WheelDataLegacy.phaseCurrent) >= alarmPhaseCurrent) {
             raiseAlarm(
                 ALARM_TYPE.CURRENT,
-                WheelData.getInstance().phaseCurrentDouble,
+                WheelDataLegacy.phaseCurrentDouble,
                 mContext
             )
             currentAlarmExecuting.value = true
@@ -228,10 +228,10 @@ object Alarms: KoinComponent {
             return true
         }
         val alarmBattery = appConfig.alarmBattery
-        if (alarmBattery > 0 && WheelData.getInstance().batteryLevel <= alarmBattery) {
+        if (alarmBattery > 0 && WheelDataLegacy.batteryLevel <= alarmBattery) {
             raiseAlarm(
                     ALARM_TYPE.BATTERY,
-                    WheelData.getInstance().batteryLevel.toDouble(),
+                    WheelDataLegacy.batteryLevel.toDouble(),
                     mContext
             )
             batteryAlarmExecuting.value = true
@@ -244,10 +244,10 @@ object Alarms: KoinComponent {
             return true
         }
         val alarmWheel = appConfig.alarmWheel
-        if (alarmWheel && WheelData.getInstance().wheelAlarm) {
+        if (alarmWheel && WheelDataLegacy.wheelAlarm) {
             raiseAlarm(
                     ALARM_TYPE.WHEEL,
-                    WheelData.getInstance().calculatedPwm,
+                    WheelDataLegacy.calculatedPwm,
                     mContext
                 )
                 wheelAlarmExecuting.value = true
@@ -291,25 +291,25 @@ object Alarms: KoinComponent {
                     String.format(
                         Locale.US,
                         mContext.getString(R.string.alarm_text_speed_v),
-                        WheelData.getInstance().speedDouble
+                        WheelDataLegacy.speedDouble
                     )
                 ALARM_TYPE.CURRENT ->
                     String.format(
                         Locale.US,
                         mContext.getString(R.string.alarm_text_current_v),
-                        WheelData.getInstance().currentDouble
+                        WheelDataLegacy.currentDouble
                     )
                 ALARM_TYPE.TEMPERATURE ->
                     String.format(
                         Locale.US,
                         mContext.getString(R.string.alarm_text_temperature_v),
-                        WheelData.getInstance().temperature
+                        WheelDataLegacy.temperature
                     )
                 ALARM_TYPE.BATTERY ->
                     String.format(
                         Locale.US,
                         mContext.getString(R.string.alarm_text_battery_v),
-                        WheelData.getInstance().batteryLevel
+                        WheelDataLegacy.batteryLevel
                     )
                 ALARM_TYPE.WHEEL ->
                     String.format(

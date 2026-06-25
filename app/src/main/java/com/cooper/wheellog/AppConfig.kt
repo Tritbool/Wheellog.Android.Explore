@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_UNSPECIFIED
 import androidx.preference.PreferenceManager
+import com.cooper.wheellog.ble.EucBleManager
 import com.cooper.wheellog.utils.NotificationUtil
 import com.cooper.wheellog.utils.ThemeEnum
 import com.cooper.wheellog.utils.VolumeKeyController
@@ -20,7 +21,7 @@ class AppConfig(var context: Context): KoinComponent {
     private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
     private var specificPrefix: String = ""
     private val separator = ";"
-    private val wd by lazy { WheelData.getInstance() }
+    private val eucBleManager: EucBleManager by inject()
 
     init {
         // Clear all preferences if they are incompatible
@@ -161,7 +162,7 @@ class AppConfig(var context: Context): KoinComponent {
         get() = getValue(R.string.beep_on_volume_up, false)
         set(value) {
             setValue(R.string.beep_on_volume_up, value)
-            volumeKeyController.setActive(wd.isConnected && value)
+            volumeKeyController.setActive(eucBleManager.isConnected.value && value)
         }
 
     var beepByWheel: Boolean
@@ -184,10 +185,11 @@ class AppConfig(var context: Context): KoinComponent {
         get() = getValue(R.string.use_reconnect, false)
         set(value) {
             setValue(R.string.use_reconnect, value)
-            if (value)
-                wd.bluetoothService?.startReconnectTimer()
-            else
-                wd.bluetoothService?.stopReconnectTimer()
+            // Reconnect timer is now handled by EucBleClient automatically
+            // if (value)
+            //     wd.bluetoothService?.startReconnectTimer()
+            // else
+            //     wd.bluetoothService?.stopReconnectTimer()
         }
 
     var detectBatteryOptimization: Boolean

@@ -19,8 +19,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.ArrayList
+import java.util.Calendar
+import java.util.Timer
+import java.util.TimerTask
 
 /**
  * ViewModel that manages the BLE session state and provides a reactive interface
@@ -28,6 +31,8 @@ import timber.log.Timber
  * 
  * This ViewModel encapsulates the EucBleClient and transforms its callbacks into
  * StateFlow streams that can be safely consumed by the UI on the main thread.
+ * 
+ * REPLACES: WheelData.java (legacy singleton)
  */
 class BleSessionViewModel(application: Application) : AndroidViewModel(application) {
     
@@ -42,15 +47,38 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
     
-    // Session statistics that we track locally
+    // ========== SESSION STATISTICS ==========
     private var sessionTopSpeed: Double = 0.0
     private var sessionMaxPower: Double = 0.0
     private var sessionMaxCurrent: Double = 0.0
+    private var sessionMaxPhaseCurrent: Double = 0.0
+    private var sessionMaxPwm: Double = 0.0
     private var sessionStartTime: Long = 0
     private var sessionStartDistance: Double = 0.0
+    private var sessionStartTotalDistance: Double = 0.0
+    private var rideStartTime: Long = 0
+    private var ridingTime: Int = 0
+    private var lastRideTime: Int = 0
+    private var batteryStart: Int = -1
+    private var batteryLowest: Int = 101
+    private var voltageSag: Int = 20000
+    private var wheelIsReady: Boolean = false
+    private var wheelAlarm: Boolean = false
+    
+    // ========== GRAPH DATA (for charts) ==========
+    private val graphUpdateInterval = 1000L // milliseconds
+    private var graphLastUpdateTime: Long = 0
+    private val xAxis = ArrayList<String>()
+    val currentAxis = ArrayList<Float>()
+    val speedAxis = ArrayList<Float>()
+    
+    // ========== RIDING TIMER ==========
+    private var ridingTimerControl: Timer? = null
+    private val ridingSpeedThreshold = 200 // 2km/h in legacy format
     
     init {
-        Timber.i("BleSessionViewModel initialized")
+        Timber.i("BleSessionViewModel initialized - REPLACES WheelData")
+        startRidingTimerControl()
     }
     
     private fun setupCallbacks() {
@@ -97,18 +125,30 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         })
     }
     
+    private fun startRidingTimerControl() {
+        ridingTimerControl?.cancel()
+        
+        val timerTask = TimerTask {
+            if (_sessionState.value.isConnected && (getLegacySpeed() > ridingSpeedThreshold)) {
+                ridingTime++
+            }
+        }
+        
+        ridingTimerControl = Timer()
+        ridingTimerControl?.scheduleAtFixedRate(timerTask, 0, 1000)
+    }
+    
     private suspend fun updateConnectionState(state: BLEConstants.ConnectionState) {
         _sessionState.value = _sessionState.value.copy(
             connectionState = state,
             lastError = if (state == BLEConstants.ConnectionState.DISCONNECTED) {
-                // Keep the last error if we were connected before
                 if (_sessionState.value.connectionState == BLEConstants.ConnectionState.CONNECTED) {
                     _sessionState.value.lastError
                 } else {
                     null
                 }
             } else {
-                null // Clear error on successful connection
+                null
             }
         )
         
@@ -116,12 +156,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
     
     private suspend fun updateConnectedDevice(device: EUCDevice) {
-        // Reset session statistics when a new device connects
-        sessionTopSpeed = 0.0
-        sessionMaxPower = 0.0
-        sessionMaxCurrent = 0.0
-        sessionStartTime = System.currentTimeMillis()
-        sessionStartDistance = 0.0
+        // Reset session statistics
+        resetSessionStatistics()
         
         _sessionState.value = _sessionState.value.copy(
             connectionState = BLEConstants.ConnectionState.CONNECTED,
@@ -134,6 +170,9 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
     
     private suspend fun updateDisconnectedDevice(device: EUCDevice) {
+        wheelIsReady = false
+        wheelAlarm = false
+        
         _sessionState.value = _sessionState.value.copy(
             connectionState = BLEConstants.ConnectionState.DISCONNECTED,
             selectedDevice = null,
@@ -163,10 +202,36 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
         
-        // Calculate session distance if we have total distance
+        data.phaseCurrent?.let { phaseCurrent ->
+            if (phaseCurrent > sessionMaxPhaseCurrent) {
+                sessionMaxPhaseCurrent = phaseCurrent
+            }
+        }
+        
+        data.pwm?.let { pwm ->
+            if (pwm > sessionMaxPwm) {
+                sessionMaxPwm = pwm
+            }
+        }
+        
+        // Update battery statistics
+        val batteryLevel = data.batteryLevel
+        if (batteryStart == -1) {
+            batteryStart = batteryLevel
+        }
+        batteryLowest = Math.min(batteryLowest, batteryLevel)
+        
+        // Update voltage sag
+        val voltage = data.voltage
+        if (voltage < voltageSag && voltage > 0) {
+            voltageSag = voltage.toInt()
+        }
+        
+        // Calculate session distance
         val sessionDistance = data.totalDistance?.let { total ->
             if (sessionStartDistance == 0.0) {
                 sessionStartDistance = total
+                sessionStartTotalDistance = total
             }
             total - sessionStartDistance
         }
@@ -177,6 +242,30 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         } else {
             null
         }
+        
+        // Update graph data
+        val currentTime = Calendar.getInstance().timeInMillis
+        if (graphLastUpdateTime + graphUpdateInterval < currentTime) {
+            graphLastUpdateTime = currentTime
+            currentAxis.add(data.current?.toFloat() ?: 0f)
+            speedAxis.add(data.speed?.toFloat() ?: 0f)
+            xAxis.add(java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(Calendar.getInstance().time))
+            
+            // Limit graph data size
+            if (speedAxis.size > (3600000 / graphUpdateInterval)) {
+                speedAxis.removeAt(0)
+                currentAxis.removeAt(0)
+                xAxis.removeAt(0)
+            }
+        }
+        
+        // Check if wheel is ready
+        if (!wheelIsReady && data.manufacturer.isNotEmpty()) {
+            wheelIsReady = true
+        }
+        
+        // Update wheel alarm based on data
+        wheelAlarm = data.wheelAlarm ?: false
         
         _sessionState.value = _sessionState.value.copy(
             lastData = data,
@@ -200,7 +289,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         Timber.e("BLE error: %s", error)
     }
     
-    // Public API for BLE operations
+    // ========== PUBLIC API ==========
     
     @RequiresApi(Build.VERSION_CODES.M)
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
@@ -259,7 +348,6 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
     
-    // Function to update scan results (called from scan callback)
     fun updateScanResults(devices: List<EUCDevice>) {
         viewModelScope.launch {
             _sessionState.value = _sessionState.value.copy(
@@ -268,7 +356,6 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
     
-    // Function to add a single device to scan results
     fun addScanResult(device: EUCDevice) {
         viewModelScope.launch {
             val currentResults = _sessionState.value.scanResults
@@ -280,7 +367,6 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
     
-    // Function to clear scan results
     fun clearScanResults() {
         viewModelScope.launch {
             _sessionState.value = _sessionState.value.copy(
@@ -289,17 +375,124 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
     
-    // Get the current EucBleClient for advanced operations
     fun getEucBleClient(): EucBleClient = eucBleClient
     
-    // Reset session statistics
+    // ========== WHEEL DATA COMPATIBILITY ==========
+    
+    // These functions provide compatibility with the legacy WheelData API
+    // They will be used during migration and can be removed later
+    
+    fun getLegacySpeed(): Int {
+        return (_sessionState.value.currentSpeed * 100).toInt()
+    }
+    
+    fun getLegacyVoltage(): Int {
+        return (_sessionState.value.currentVoltage * 100).toInt()
+    }
+    
+    fun getLegacyCurrent(): Int {
+        return (_sessionState.value.currentCurrent * 100).toInt()
+    }
+    
+    fun getLegacyTemperature(): Int {
+        return (_sessionState.value.currentTemperature * 100).toInt()
+    }
+    
+    fun getLegacyPower(): Int {
+        return (_sessionState.value.currentPower * 100).toInt()
+    }
+    
+    fun getLegacyPhaseCurrent(): Int {
+        return (_sessionState.value.lastData?.phaseCurrent ?: 0.0 * 100).toInt()
+    }
+    
+    fun getLegacyBatteryLevel(): Int {
+        return _sessionState.value.batteryLevel
+    }
+    
+    fun getLegacyDistance(): Int {
+        return (_sessionState.value.wheelDistance ?: 0.0 * 1000).toInt()
+    }
+    
+    fun getLegacyTotalDistance(): Long {
+        return (_sessionState.value.totalDistance ?: 0.0 * 1000).toLong()
+    }
+    
+    fun getLegacyRideTime(): Int {
+        return _sessionState.value.rideTime?.toInt() ?: 0
+    }
+    
+    fun getLegacyTopSpeed(): Int {
+        return (sessionTopSpeed * 100).toInt()
+    }
+    
+    fun getLegacyVoltageSag(): Int {
+        return voltageSag
+    }
+    
+    fun getLegacyBatteryLowest(): Int {
+        return batteryLowest
+    }
+    
+    fun isWheelReady(): Boolean {
+        return wheelIsReady
+    }
+    
+    fun getWheelAlarm(): Boolean {
+        return wheelAlarm
+    }
+    
+    fun isConnected(): Boolean {
+        return _sessionState.value.isConnected
+    }
+    
+    fun getMac(): String {
+        return _sessionState.value.deviceAddress
+    }
+    
+    fun getName(): String {
+        return _sessionState.value.deviceName
+    }
+    
+    fun getModel(): String {
+        return _sessionState.value.deviceModel
+    }
+    
+    fun getVersion(): String {
+        return _sessionState.value.firmwareVersion ?: "Unknown"
+    }
+    
+    fun getSerial(): String {
+        return _sessionState.value.serialNumber ?: "Unknown"
+    }
+    
+    fun getManufacturer(): String {
+        return _sessionState.value.deviceManufacturer
+    }
+    
+    // ========== GRAPH DATA ACCESS ==========
+    
+    fun getXAxis(): ArrayList<String> = xAxis
+    fun getCurrentAxis(): ArrayList<Float> = currentAxis
+    fun getSpeedAxis(): ArrayList<Float> = speedAxis
+    
+    // ========== SESSION MANAGEMENT ==========
+    
     fun resetSessionStatistics() {
         viewModelScope.launch {
             sessionTopSpeed = 0.0
             sessionMaxPower = 0.0
             sessionMaxCurrent = 0.0
+            sessionMaxPhaseCurrent = 0.0
+            sessionMaxPwm = 0.0
             sessionStartTime = System.currentTimeMillis()
             sessionStartDistance = 0.0
+            sessionStartTotalDistance = 0.0
+            batteryStart = -1
+            batteryLowest = 101
+            voltageSag = 20000
+            ridingTime = 0
+            lastRideTime = 0
             
             _sessionState.value = _sessionState.value.copy(
                 sessionTopSpeed = null,
@@ -311,9 +504,43 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
     
-    // Cleanup resources
+    fun resetMaxValues() {
+        sessionTopSpeed = 0.0
+        sessionMaxPower = 0.0
+        sessionMaxCurrent = 0.0
+        sessionMaxPhaseCurrent = 0.0
+        sessionMaxPwm = 0.0
+    }
+    
+    fun resetVoltageSag() {
+        voltageSag = 20000
+    }
+    
+    fun resetUserDistance() {
+        sessionStartDistance = 0.0
+        sessionStartTotalDistance = 0.0
+    }
+    
+    fun resetBmsData() {
+        // BMS data will be handled separately
+    }
+    
+    fun fullReset() {
+        resetSessionStatistics()
+        xAxis.clear()
+        currentAxis.clear()
+        speedAxis.clear()
+        wheelIsReady = false
+        wheelAlarm = false
+    }
+    
+    // ========== CLEANUP ==========
+    
     override fun onCleared() {
         super.onCleared()
+        ridingTimerControl?.cancel()
+        ridingTimerControl = null
+        
         viewModelScope.launch {
             try {
                 eucBleClient.cleanup()

@@ -17,7 +17,7 @@ class WheelLog : Application() {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree(), FileLoggingTree(applicationContext))
         }
-        WheelData.initiate()
+        // WheelData.initiate() - REMOVED: Migration to BleSessionViewModel
 
         // YandexMetrica.
 //        if (BuildConfig.metrica_api.isNotEmpty()) {

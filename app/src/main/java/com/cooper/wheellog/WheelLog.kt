@@ -12,7 +12,7 @@ class WheelLog : Application() {
         super.onCreate()
         startKoin {
             androidContext(this@WheelLog)
-            modules(listOf(settingModule, notificationsModule, volumeKeyModule, dbModule))
+            modules(listOf(settingModule, notificationsModule, volumeKeyModule, dbModule, bleModule))
         }
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree(), FileLoggingTree(applicationContext))

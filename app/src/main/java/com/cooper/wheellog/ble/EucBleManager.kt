@@ -4,10 +4,13 @@ import android.Manifest
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
+import com.cooper.wheellog.utils.Constants
 import io.github.tritbool.euc.ble.EucBleClient
+import io.github.tritbool.euc.ble.core.BLEConstants
 import io.github.tritbool.euc.ble.core.ConnectionCallback
 import io.github.tritbool.euc.ble.core.DataCallback
 import io.github.tritbool.euc.ble.core.ErrorCallback
@@ -24,9 +27,15 @@ import timber.log.Timber
  * Wrapper Koin singleton autour de EucBleClient.
  * Expose des StateFlow consommables depuis les ViewModels et Activities.
  *
- * Note threading : les callbacks de EucBleClient arrivent sur un thread background
- * (Dispatchers.IO). Les MutableStateFlow sont thread-safe, mais toute mise à jour
- * de vue Android doit passer par Dispatchers.Main côté collecteur.
+ * En plus des StateFlow, les événements de connexion / déconnexion sont
+ * relayés en broadcasts [Constants.ACTION_BLUETOOTH_CONNECTION_STATE] pour
+ * que les receivers legacy (notifications, logging service…) continuent
+ * de fonctionner sans modification.
+ *
+ * Note threading : les callbacks de EucBleClient arrivent sur un thread
+ * background (Dispatchers.IO).  Les MutableStateFlow sont thread-safe, mais
+ * toute mise à jour de vue Android doit passer par Dispatchers.Main côté
+ * collecteur.
  */
 class EucBleManager(private val context: Context) {
 
@@ -80,16 +89,21 @@ class EucBleManager(private val context: Context) {
                 Timber.d("[EUC] Connected")
                 _isConnected.value = true
                 _connectedDevice.value = client.getConnectedDevice()
+                broadcastConnectionState(BLEConstants.ConnectionState.CONNECTED)
             }
 
             override fun onDisconnected() {
                 Timber.d("[EUC] Disconnected")
                 _isConnected.value = false
                 _connectedDevice.value = null
+                broadcastConnectionState(BLEConstants.ConnectionState.DISCONNECTED)
             }
 
             override fun onConnectionFailed(error: BLEException) {
                 Timber.e("[EUC] Connection failed: %s", error.message)
+                _isConnected.value = false
+                _connectedDevice.value = null
+                broadcastConnectionState(BLEConstants.ConnectionState.DISCONNECTED)
             }
 
             override fun onServicesDiscovered(services: List<BluetoothGattService>) {
@@ -115,6 +129,30 @@ class EucBleManager(private val context: Context) {
     }
 
     // -------------------------------------------------------------------------
+    // Broadcast helper
+    // -------------------------------------------------------------------------
+
+    /**
+     * Émet un broadcast ACTION_BLUETOOTH_CONNECTION_STATE avec l'état fourni.
+     *
+     * Ce broadcast est consommé par :
+     *   - les BroadcastReceivers dans MainActivity (mCoreBroadcastReceiver)
+     *   - NotificationUtil
+     *   - LoggingService
+     * …sans qu'aucun d'eux n'ait besoin d'être modifié.
+     *
+     * La valeur envoyée dans INTENT_EXTRA_CONNECTION_STATE est l'ordinal de
+     * l'enum BLEConstants.ConnectionState (int), ce qui correspond exactement
+     * à ce que l'ancien BluetoothService envoyait.
+     */
+    private fun broadcastConnectionState(state: BLEConstants.ConnectionState) {
+        val intent = Intent(Constants.ACTION_BLUETOOTH_CONNECTION_STATE).apply {
+            putExtra(Constants.INTENT_EXTRA_CONNECTION_STATE, state.ordinal)
+        }
+        context.sendBroadcast(intent)
+    }
+
+    // -------------------------------------------------------------------------
     // API publique
     // -------------------------------------------------------------------------
 
@@ -136,6 +174,7 @@ class EucBleManager(private val context: Context) {
         require(device.bluetoothDevice != null) {
             "EucBleManager.connect() called with bluetoothDevice=null. Use connectByAddress() instead."
         }
+        broadcastConnectionState(BLEConstants.ConnectionState.CONNECTING)
         client.connect(device)
     }
 
@@ -173,6 +212,7 @@ class EucBleManager(private val context: Context) {
             manufacturerId   = manufacturerId,
             rssi             = 0
         )
+        broadcastConnectionState(BLEConstants.ConnectionState.CONNECTING)
         client.connect(device)
         return true
     }

@@ -38,6 +38,7 @@ import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.cooper.wheellog.DialogHelper.checkAndShowPrivatePolicyDialog
 import com.cooper.wheellog.DialogHelper.checkBatteryOptimizationsAndShowAlert
 import com.cooper.wheellog.DialogHelper.checkPWMIsSetAndShowAlert
+import com.cooper.wheellog.ble.BleService
 import com.cooper.wheellog.ble.EucBleManager
 import com.cooper.wheellog.compose.MainScreen
 import com.cooper.wheellog.databinding.ActivityMainBinding
@@ -101,6 +102,19 @@ class MainActivity : AppCompatActivity() {
     private var loggingService: LoggingService? = null
     // Job de collecte du StateFlow BLE — annulé dans onPause, relancé dans onResume.
     private var bleStateJob: Job? = null
+
+    // BleService binding
+    private var bleService: BleService? = null
+    private val mBleServiceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, service: IBinder) {
+            bleService = (service as BleService.LocalBinder).getService()
+            Timber.i("BleService connected")
+        }
+        override fun onServiceDisconnected(name: ComponentName) {
+            bleService = null
+            Timber.e("BleService disconnected")
+        }
+    }
 
     private val mLoggingServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
@@ -195,45 +209,35 @@ class MainActivity : AppCompatActivity() {
                 ) {
                     toggleLoggingService()
                 }
-                if (WheelData.getInstance().wheelType == WHEEL_TYPE.KINGSONG) {
-                    KingsongAdapter.getInstance().requestNameData()
-                }
+                // Protocol init (name/serial requests etc.) is handled internally
+                // by the euc_ble_library protocols — no adapter calls needed here.
+                bleService?.onWheelConnected()
                 notifications.notificationMessageId = R.string.connected
             }
             BLEConstants.ConnectionState.CONNECTING -> {
                 isWheelSearch = true
+                bleService?.onWheelConnecting()
                 notifications.notificationMessageId = R.string.connecting
             }
             BLEConstants.ConnectionState.DISCONNECTED -> {
-                if (mConnectionState == BLEConstants.ConnectionState.CONNECTED ||
-                    mConnectionState == BLEConstants.ConnectionState.CONNECTING) {
+                val wasConnectedOrConnecting =
+                    mConnectionState == BLEConstants.ConnectionState.CONNECTED ||
+                    mConnectionState == BLEConstants.ConnectionState.CONNECTING
+                if (wasConnectedOrConnecting) {
                     val disconnectMsg = timeFormatter.format(Date()) + getString(R.string.connection_lost_at)
                     showSnackBar(disconnectMsg, Snackbar.LENGTH_INDEFINITE)
+                    // unexpected disconnect → play disconnect sound + beep timer
+                    bleService?.onWheelDisconnected(unexpected = true)
+                } else {
+                    bleService?.onWheelDisconnected(unexpected = false)
                 }
                 if (appConfig.useBeepOnVolumeUp) {
                     volumeKeyController.setActive(false)
                 }
                 isWheelSearch = false
+                // Protocol state reset is handled internally by euc_ble_library.
+                // No legacy adapter calls (InMotionAdapter.newInstance etc.) needed.
                 notifications.notificationMessageId = R.string.disconnected
-                when (WheelData.getInstance().wheelType) {
-                    WHEEL_TYPE.INMOTION -> {
-                        InMotionAdapter.newInstance()
-                        InmotionAdapterV2.newInstance()
-                        NinebotZAdapter.newInstance()
-                        NinebotAdapter.newInstance()
-                    }
-                    WHEEL_TYPE.INMOTION_V2 -> {
-                        InmotionAdapterV2.newInstance()
-                        NinebotZAdapter.newInstance()
-                        NinebotAdapter.newInstance()
-                    }
-                    WHEEL_TYPE.NINEBOT_Z -> {
-                        NinebotZAdapter.newInstance()
-                        NinebotAdapter.newInstance()
-                    }
-                    WHEEL_TYPE.NINEBOT -> NinebotAdapter.newInstance()
-                    else -> {}
-                }
             }
             BLEConstants.ConnectionState.DISCONNECTING -> {
                 notifications.notificationMessageId = R.string.disconnected
@@ -407,6 +411,11 @@ class MainActivity : AppCompatActivity() {
         pagerAdapter.registerAdapterDataObserver(indicator.adapterDataObserver)
     }
 
+    private fun startBleService() {
+        val intent = Intent(this, BleService::class.java)
+        bindService(intent, mBleServiceConnection, BIND_AUTO_CREATE)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         if (onDestroyProcess) {
             Process.killProcess(Process.myPid())
@@ -490,6 +499,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        startBleService()
         checkBatteryOptimizationsAndShowAlert(this)
     }
 
@@ -596,6 +606,9 @@ class MainActivity : AppCompatActivity() {
         @Suppress("MissingPermission")
         eucBleManager.cleanup()
 
+        if (bleService != null) {
+            try { unbindService(mBleServiceConnection) } catch (_: Exception) {}
+        }
         if (loggingService != null) {
             try {
                 unbindService(mLoggingServiceConnection)
@@ -838,10 +851,6 @@ class MainActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == RESULT_REQUEST_PERMISSIONS_BT) {
-            // Permissions BLE viennent d'être accordées.
-            // On ne tente pas de connexion directe ici : on lance le scan pour que
-            // l'utilisateur confirme le device, ou toggleConnectToWheel() gérera
-            // connectByAddress si lastMac est disponible.
             if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 toggleConnectToWheel()
             }
@@ -884,8 +893,6 @@ class MainActivity : AppCompatActivity() {
 
     private val enableBleLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK && mBluetoothAdapter!!.isEnabled) {
-            // BT vient d'être activé. On tente la connexion via lastMac si disponible.
-            // Si lastMac est vide, toggleConnectToWheel lancera le scan.
             toggleConnectToWheel()
         } else {
             Toast.makeText(this, R.string.bluetooth_required, Toast.LENGTH_LONG).show()

@@ -8,7 +8,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.ble.EucBleManager
 import com.cooper.wheellog.WheelLog
 import com.cooper.wheellog.utils.AudioUtil.playAlarm
 import com.cooper.wheellog.utils.Constants.ALARM_TYPE
@@ -25,6 +25,7 @@ import kotlin.math.roundToInt
 object Alarms: KoinComponent {
     private val appConfig: AppConfig by inject()
     private val notifications: NotificationUtil by inject()
+    private val eucBleManager: EucBleManager by inject()
 
     private var speedAlarmExecuting = TempBoolean().apply { timeToResetToDefault = 170 }
     private var currentAlarmExecuting = TempBoolean().apply { timeToResetToDefault = 170 }
@@ -40,9 +41,10 @@ object Alarms: KoinComponent {
     private fun newTimerTask(): TimerTask {
         return object : TimerTask() {
             override fun run() {
-                val wd = WheelData.getInstance() ?: return
+                val eucData = eucBleManager.eucData.value ?: return
                 val mContext: Context = get()
-                if (!reCheckAlarm(wd.calculatedPwm / 100, mContext)) {
+                // calculatedPwm is now eucData.pwm (Double), divide by 100 to get percentage
+                if (!reCheckAlarm(eucData.pwm ?: 0.0, mContext)) {
                     stop()
                 }
             }
@@ -131,7 +133,7 @@ object Alarms: KoinComponent {
                 playSound(mContext, R.raw.warning_pwm)
             } else {
                 val warningSpeed = appConfig.warningSpeed
-                if (warningSpeed != 0 && warningSpeedPeriod != 0 && WheelData.getInstance().speedDouble >= warningSpeed && System.currentTimeMillis() - lastPlayWarningSpeedTime > warningSpeedPeriod) {
+                if (warningSpeed != 0 && warningSpeedPeriod != 0 && eucBleManager.eucData.value?.speed ?: 0.0 >= warningSpeed && System.currentTimeMillis() - lastPlayWarningSpeedTime > warningSpeedPeriod) {
                     lastPlayWarningSpeedTime = System.currentTimeMillis()
                     playSound(mContext, R.raw.sound_warning_speed)
                 }
@@ -143,7 +145,7 @@ object Alarms: KoinComponent {
     private fun oldAlarms(mContext: Context): Boolean {
         if (checkOldAlarmSpeed(appConfig.alarm1Speed, appConfig.alarm1Battery)) {
             AudioUtil.toneDuration = 50
-            raiseAlarm(ALARM_TYPE.SPEED1, WheelData.getInstance().speedDouble, mContext)
+            raiseAlarm(ALARM_TYPE.SPEED1, eucBleManager.eucData.value?.speed ?: 0.0, mContext)
             return true
         } else if (checkOldAlarmSpeed(
                 appConfig.alarm2Speed,
@@ -151,7 +153,7 @@ object Alarms: KoinComponent {
             )
         ) {
             AudioUtil.toneDuration = 100
-            raiseAlarm(ALARM_TYPE.SPEED2, WheelData.getInstance().speedDouble, mContext)
+            raiseAlarm(ALARM_TYPE.SPEED2, eucBleManager.eucData.value?.speed ?: 0.0, mContext)
             return true
         } else if (checkOldAlarmSpeed(
                 appConfig.alarm3Speed,
@@ -159,7 +161,7 @@ object Alarms: KoinComponent {
             )
         ) {
             AudioUtil.toneDuration = 180
-            raiseAlarm(ALARM_TYPE.SPEED3, WheelData.getInstance().speedDouble, mContext)
+            raiseAlarm(ALARM_TYPE.SPEED3, eucBleManager.eucData.value?.speed ?: 0.0, mContext)
             return true
         } else {
             // check if speed alarm executing and stop it
@@ -171,8 +173,8 @@ object Alarms: KoinComponent {
     private fun checkOldAlarmSpeed(alarmSpeed: Int, alarmBattery: Int): Boolean {
         return alarmSpeed > 0
             && alarmBattery > 0
-            && WheelData.getInstance().batteryLevel <= alarmBattery
-            && WheelData.getInstance().speedDouble >= alarmSpeed
+            && eucBleManager.eucData.value?.batteryLevel ?: 0 <= alarmBattery
+            && eucBleManager.eucData.value?.speed ?: 0.0 >= alarmSpeed
     }
 
     private fun temperatureAlarms(mContext: Context): Boolean {
@@ -181,17 +183,17 @@ object Alarms: KoinComponent {
         }
         val alarmTemperature = appConfig.alarmTemperature
         val alarmMotorTemperature = appConfig.alarmMotorTemperature
-        if (alarmTemperature > 0 && WheelData.getInstance().temperature >= alarmTemperature) {
+        if (alarmTemperature > 0 && eucBleManager.eucData.value?.temperature ?: 0.0 >= alarmTemperature) {
             raiseAlarm(
                 ALARM_TYPE.TEMPERATURE,
-                WheelData.getInstance().temperature.toDouble(),
+                eucBleManager.eucData.value?.temperature ?: 0.0.toDouble(),
                 mContext
             )
             temperatureAlarmExecuting.value = true
-        } else if (alarmMotorTemperature > 0 && WheelData.getInstance().temperature2 >= alarmMotorTemperature) {
+        } else if (alarmMotorTemperature > 0 && eucBleManager.eucData.value?.temperature ?: 0.02 >= alarmMotorTemperature) {
             raiseAlarm(
                 ALARM_TYPE.TEMPERATURE,
-                WheelData.getInstance().temperature2.toDouble(),
+                eucBleManager.eucData.value?.temperature ?: 0.02.toDouble(),
                 mContext
             )
             temperatureAlarmExecuting.value = true
@@ -205,17 +207,17 @@ object Alarms: KoinComponent {
         }
         val alarmCurrent = appConfig.alarmCurrent * 100
         val alarmPhaseCurrent = appConfig.alarmPhaseCurrent * 100
-        if (alarmCurrent > 0 && abs(WheelData.getInstance().current) >= alarmCurrent) {
+        if (alarmCurrent > 0 && abs(eucBleManager.eucData.value?.current ?: 0.0) >= alarmCurrent) {
             raiseAlarm(
                 ALARM_TYPE.CURRENT,
-                WheelData.getInstance().currentDouble,
+                eucBleManager.eucData.value?.current ?: 0.0Double,
                 mContext
             )
             currentAlarmExecuting.value = true
-        } else if (alarmPhaseCurrent > 0 && abs(WheelData.getInstance().phaseCurrent) >= alarmPhaseCurrent) {
+        } else if (alarmPhaseCurrent > 0 && abs(eucBleManager.eucData.value?.phaseCurrent ?: 0.0) >= alarmPhaseCurrent) {
             raiseAlarm(
                 ALARM_TYPE.CURRENT,
-                WheelData.getInstance().phaseCurrentDouble,
+                eucBleManager.eucData.value?.phaseCurrent ?: 0.0Double,
                 mContext
             )
             currentAlarmExecuting.value = true
@@ -228,10 +230,10 @@ object Alarms: KoinComponent {
             return true
         }
         val alarmBattery = appConfig.alarmBattery
-        if (alarmBattery > 0 && WheelData.getInstance().batteryLevel <= alarmBattery) {
+        if (alarmBattery > 0 && eucBleManager.eucData.value?.batteryLevel ?: 0 <= alarmBattery) {
             raiseAlarm(
                     ALARM_TYPE.BATTERY,
-                    WheelData.getInstance().batteryLevel.toDouble(),
+                    eucBleManager.eucData.value?.batteryLevel ?: 0.toDouble(),
                     mContext
             )
             batteryAlarmExecuting.value = true
@@ -244,10 +246,10 @@ object Alarms: KoinComponent {
             return true
         }
         val alarmWheel = appConfig.alarmWheel
-        if (alarmWheel && WheelData.getInstance().wheelAlarm) {
+        if (alarmWheel && eucBleManager.eucData.value?.wheelAlarm ?: false) {
             raiseAlarm(
                     ALARM_TYPE.WHEEL,
-                    WheelData.getInstance().calculatedPwm,
+                    eucBleManager.eucData.value?.pwm ?: 0.0,
                     mContext
                 )
                 wheelAlarmExecuting.value = true
@@ -291,25 +293,25 @@ object Alarms: KoinComponent {
                     String.format(
                         Locale.US,
                         mContext.getString(R.string.alarm_text_speed_v),
-                        WheelData.getInstance().speedDouble
+                        eucBleManager.eucData.value?.speed ?: 0.0
                     )
                 ALARM_TYPE.CURRENT ->
                     String.format(
                         Locale.US,
                         mContext.getString(R.string.alarm_text_current_v),
-                        WheelData.getInstance().currentDouble
+                        eucBleManager.eucData.value?.current ?: 0.0Double
                     )
                 ALARM_TYPE.TEMPERATURE ->
                     String.format(
                         Locale.US,
                         mContext.getString(R.string.alarm_text_temperature_v),
-                        WheelData.getInstance().temperature
+                        eucBleManager.eucData.value?.temperature ?: 0.0
                     )
                 ALARM_TYPE.BATTERY ->
                     String.format(
                         Locale.US,
                         mContext.getString(R.string.alarm_text_battery_v),
-                        WheelData.getInstance().batteryLevel
+                        eucBleManager.eucData.value?.batteryLevel ?: 0
                     )
                 ALARM_TYPE.WHEEL ->
                     String.format(

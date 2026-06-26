@@ -24,7 +24,7 @@ import com.cooper.wheellog.BuildConfig
 import com.cooper.wheellog.ElectroClub
 import com.cooper.wheellog.MainActivity
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.ble.EucBleManager
 import com.cooper.wheellog.utils.FileUtil
 import com.cooper.wheellog.utils.PermissionsUtil
 import com.cooper.wheellog.utils.ThemeIconEnum
@@ -39,6 +39,8 @@ import kotlin.coroutines.suspendCoroutine
 @Composable
 fun logScreen(appConfig: AppConfig = koinInject())
 {
+    val eucBleManager: EucBleManager = koinInject()
+    
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -196,7 +198,7 @@ fun logScreen(appConfig: AppConfig = koinInject())
                     }
                 }
 
-                if (autoUploadDependency.value && WheelData.getInstance().isConnected) {
+                if (autoUploadDependency.value && eucBleManager.isConnected.value) {
                     val activity = LocalContext.current as Activity
                     clickablePref(
                         name = stringResource(R.string.select_garage_ec_title),
@@ -226,7 +228,7 @@ fun logScreen(appConfig: AppConfig = koinInject())
                                 val errorMessage = ElectroClub.instance.lastError ?: ""
                                 if (success) {
                                     ElectroClub.instance.getAndSelectGarageByMacOrShowChooseDialog(
-                                        WheelData.getInstance().mac,
+                                        eucBleManager.connectedDevice.value?.address ?: "",
                                         context as Activity
                                     ) { }
                                 }

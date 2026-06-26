@@ -10,24 +10,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.ble.EucBleManager
 import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.MathsUtil
+import com.cooper.wheellog.utils.toLegacyWheelType
 import org.koin.compose.koinInject
 
 @Composable
 fun alarmScreen(appConfig: AppConfig = koinInject()) {
+    val eucBleManager: EucBleManager = koinInject()
+    
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
     ) {
         var alarmsEnabled by remember { mutableStateOf(appConfig.alarmsEnabled) }
         var pwmBasedAlarms by remember { mutableStateOf(appConfig.pwmBasedAlarms) }
+        val connectedDevice = eucBleManager.connectedDevice.value
         val ksAlteredAlarms =
-            WheelData.getInstance().wheelType == Constants.WHEEL_TYPE.KINGSONG
-                    && WheelData.getInstance().model.compareTo("KS-18A") != 0
+            connectedDevice?.manufacturer?.toLegacyWheelType() == Constants.WHEEL_TYPE.KINGSONG
+                    && (connectedDevice.model?.compareTo("KS-18A") != 0)
         val wheelAlarm =
-                WheelData.getInstance().wheelType == Constants.WHEEL_TYPE.GOTWAY
+                connectedDevice?.manufacturer?.toLegacyWheelType() == Constants.WHEEL_TYPE.GOTWAY
 
         switchPref(
             name = stringResource(R.string.enable_alarms_title),

@@ -11,19 +11,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.ble.EucBleManager
 import com.cooper.wheellog.utils.*
 import com.cooper.wheellog.utils.StringUtil.inArray
+import com.cooper.wheellog.utils.toLegacyWheelType
 import org.koin.compose.koinInject
 
 @Composable
 fun wheelScreen(appConfig: AppConfig = koinInject())
 {
+    val eucBleManager: EucBleManager = koinInject()
+    val wheelType = eucBleManager.connectedDevice.value?.manufacturer?.toLegacyWheelType() ?: Constants.WHEEL_TYPE.Unknown
+    
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
     ) {
-        when (WheelData.getInstance().wheelType) {
+        when (wheelType) {
             Constants.WHEEL_TYPE.NINEBOT_Z -> ninebotZ()
             Constants.WHEEL_TYPE.INMOTION -> inmotion()
             Constants.WHEEL_TYPE.INMOTION_V2 -> inmotionV2()
@@ -34,7 +38,7 @@ fun wheelScreen(appConfig: AppConfig = koinInject())
                 name = stringResource(R.string.unknown_device),
             )
         }
-        if (WheelData.getInstance().wheelType != Constants.WHEEL_TYPE.Unknown) {
+        if (wheelType != Constants.WHEEL_TYPE.Unknown) {
             forAllWheel()
         }
     }
@@ -42,6 +46,7 @@ fun wheelScreen(appConfig: AppConfig = koinInject())
 
 @Composable
 private fun ninebotZ(appConfig: AppConfig = koinInject()) {
+    val eucBleManager: EucBleManager = koinInject()
     val adapter by remember { mutableStateOf(NinebotZAdapter.getInstance()) }
     switchPref(
         name = stringResource(R.string.on_headlight_title),
@@ -301,7 +306,7 @@ private fun ninebotZ(appConfig: AppConfig = koinInject()) {
         name = stringResource(R.string.wheel_calibration),
         themeIcon = ThemeIconEnum.SettingsCalibration,
     ) {
-        if (WheelData.getInstance().speed < 1) {
+        if ((eucBleManager.eucData.value?.speed ?: 0.0) < 0.1) {
             showDialogCalibration = true
         }
     }
@@ -309,6 +314,7 @@ private fun ninebotZ(appConfig: AppConfig = koinInject()) {
 
 @Composable
 private fun inmotion(appConfig: AppConfig = koinInject()) {
+    val eucBleManager: EucBleManager = koinInject()
     val adapter by remember { mutableStateOf(InMotionAdapter.getInstance()) }
     var speedMultipier = 1.0f
     var speedUnit = R.string.kmh
@@ -392,7 +398,7 @@ private fun inmotion(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.power_off),
         alertDesc = stringResource(R.string.power_off_message),
         themeIcon = ThemeIconEnum.SettingsPowerOff,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { (eucBleManager.eucData.value?.speed ?: 0.0) < 0.1 },
         onConfirm = { adapter.powerOff() },
     )
     clickableAndAlert(
@@ -400,13 +406,14 @@ private fun inmotion(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.wheel_calibration),
         alertDesc = stringResource(R.string.wheel_calibration_message_inmo),
         themeIcon = ThemeIconEnum.SettingsCalibration,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { (eucBleManager.eucData.value?.speed ?: 0.0) < 0.1 },
         onConfirm = { adapter.wheelCalibration() },
     )
 }
 
 @Composable
 private fun inmotionV2(appConfig: AppConfig = koinInject()) {
+    val eucBleManager: EucBleManager = koinInject()
     val adapter by remember { mutableStateOf(InmotionAdapterV2.getInstance()) }
     var splitModeEnabled by remember { mutableStateOf(appConfig.splitMode) }
     var speedMultipier = 1.0f
@@ -753,7 +760,7 @@ private fun inmotionV2(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.power_off),
         alertDesc = stringResource(R.string.power_off_message),
         themeIcon = ThemeIconEnum.SettingsPowerOff,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { (eucBleManager.eucData.value?.speed ?: 0.0) < 0.1 },
         onConfirm = { adapter.powerOff() },
     )
 
@@ -762,7 +769,7 @@ private fun inmotionV2(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.wheel_calibration),
         alertDesc = stringResource(R.string.wheel_calibration_message_inmo),
         themeIcon = ThemeIconEnum.SettingsCalibration,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { (eucBleManager.eucData.value?.speed ?: 0.0) < 0.1 },
         onConfirm = { adapter.wheelCalibration() },
     )
 
@@ -771,7 +778,7 @@ private fun inmotionV2(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.wheel_calibration_balance),
         alertDesc = stringResource(R.string.wheel_calibration_balance_message_inmo),
         themeIcon = ThemeIconEnum.SettingsCalibration,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { (eucBleManager.eucData.value?.speed ?: 0.0) < 0.1 },
         onConfirm = { adapter.wheelCalibrationBalance() },
     )
 
@@ -779,6 +786,7 @@ private fun inmotionV2(appConfig: AppConfig = koinInject()) {
 
 @Composable
 private fun kingsong(appConfig: AppConfig = koinInject()) {
+    val eucBleManager: EucBleManager = koinInject()
     val adapter by remember { mutableStateOf(KingsongAdapter.getInstance()) }
     var speedMultipier = 1.0f
     var speedUnit = R.string.kmh
@@ -884,7 +892,7 @@ private fun kingsong(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.power_off),
         alertDesc = stringResource(R.string.power_off_message),
         themeIcon = ThemeIconEnum.SettingsPowerOff,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { (eucBleManager.eucData.value?.speed ?: 0.0) < 0.1 },
         onConfirm = { adapter.powerOff() },
     )
     clickableAndAlert(
@@ -892,13 +900,14 @@ private fun kingsong(appConfig: AppConfig = koinInject()) {
         confirmButtonText = stringResource(R.string.wheel_calibration),
         alertDesc = stringResource(R.string.wheel_calibration_message_inmo),
         themeIcon = ThemeIconEnum.SettingsCalibration,
-        condition = { WheelData.getInstance().speed < 1 },
+        condition = { (eucBleManager.eucData.value?.speed ?: 0.0) < 0.1 },
         onConfirm = { adapter.wheelCalibration() },
     )
 }
 
 @Composable
 private fun begode(appConfig: AppConfig = koinInject()) {
+    val eucBleManager: EucBleManager = koinInject()
     val adapter by remember { mutableStateOf(GotwayAdapter.getInstance()) }
     var isAlexovikFW = appConfig.IsAlexovikFW
     var speedMultipier = 1.0f
@@ -1026,7 +1035,7 @@ private fun begode(appConfig: AppConfig = koinInject()) {
             confirmButtonText = stringResource(R.string.wheel_calibration),
             alertDesc = stringResource(R.string.wheel_calibration_message_inmo),
             themeIcon = ThemeIconEnum.SettingsCalibration,
-            condition = { WheelData.getInstance().speed < 1 },
+            condition = { (eucBleManager.eucData.value?.speed ?: 0.0) < 0.1 },
             onConfirm = { adapter.wheelCalibration() },
         )
         switchPref(
@@ -1289,6 +1298,7 @@ private fun begode(appConfig: AppConfig = koinInject()) {
 
 @Composable
 private fun veteran(appConfig: AppConfig = koinInject()) {
+    val eucBleManager: EucBleManager = koinInject()
     val adapter by remember { mutableStateOf(VeteranAdapter.getInstance()) }
     switchPref(
         name = stringResource(R.string.on_headlight_title),
@@ -1298,7 +1308,7 @@ private fun veteran(appConfig: AppConfig = koinInject()) {
         appConfig.lightEnabled = it
         adapter.setLightState(it)
     }
-    if (!inArray(WheelData.getInstance().model, arrayOf("Nosfet Apex", "Nosfet Aero"))) {
+    if (!inArray(eucBleManager.connectedDevice.value?.model ?: "", arrayOf("Nosfet Apex", "Nosfet Aero"))) {
         list(
             name = stringResource(R.string.pedals_mode_title),
             desc = stringResource(R.string.soft_medium_hard),
@@ -1348,6 +1358,7 @@ private fun veteran(appConfig: AppConfig = koinInject()) {
 
 @Composable
 private fun forAllWheel(appConfig: AppConfig = koinInject()) {
+    val eucBleManager: EucBleManager = koinInject()
     sliderPref(
         name = stringResource(R.string.battery_capacity_title),
         desc = stringResource(R.string.battery_capacity_description),

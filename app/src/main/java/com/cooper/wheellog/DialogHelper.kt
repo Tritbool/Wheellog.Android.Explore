@@ -19,16 +19,19 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
+import com.cooper.wheellog.ble.EucBleManager
 import com.cooper.wheellog.databinding.EdittextLayoutBinding
 import com.cooper.wheellog.databinding.PrivacyPolicyBinding
 import com.cooper.wheellog.databinding.UpdatePwmSettingsBinding
 import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.PermissionsUtil
+import com.cooper.wheellog.utils.toLegacyWheelType
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 object DialogHelper : KoinComponent {
     private val appConfig: AppConfig by inject()
+    private val eucBleManager: EucBleManager by inject()
     /**
      * return false if in App's Battery settings "Not optimized" and true if "Optimizing battery use"
      */
@@ -70,8 +73,11 @@ object DialogHelper : KoinComponent {
     }
 
     fun checkPWMIsSetAndShowAlert(context: Context) {
-        val wd = WheelData.getInstance()
-        if (!wd.isWheelIsReady || wd.isHardwarePWM || appConfig.hwPwm || appConfig.rotationIsSet) {
+        val connectedDevice = eucBleManager.connectedDevice.value
+        val eucData = eucBleManager.eucData.value
+        // isWheelIsReady and isHardwarePWM are not available in new architecture
+        // For now, we'll check if we have a connected device and data
+        if (connectedDevice == null || eucData == null || appConfig.hwPwm || appConfig.rotationIsSet) {
             return
         }
         if (appConfig.rotationSpeed != 500 && appConfig.rotationVoltage != 840) {
@@ -81,12 +87,12 @@ object DialogHelper : KoinComponent {
         val inflater: LayoutInflater = LayoutInflater.from(context)
         val binding = UpdatePwmSettingsBinding.inflate(inflater, null, false)
         binding.modelName.text =
-            if (WheelData.getInstance().model.isNullOrEmpty())
+            if (eucData.model.isNullOrEmpty())
                 "Unknown model"
-            else WheelData.getInstance().model
+            else eucData.model
         val svLayout: LinearLayout = binding.setSpeedVoltageLayout
         val templatesBox: Spinner = binding.spinnerTemplates
-        val templates = when (WheelData.getInstance().wheelType) {
+        val templates = when (connectedDevice.manufacturer.toLegacyWheelType()) {
             Constants.WHEEL_TYPE.GOTWAY ->
                 mutableMapOf(
                         "Begode MTen 67v" to Pair(440, 672), // first - speed, second - voltage

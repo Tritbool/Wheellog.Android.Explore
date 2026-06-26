@@ -6,14 +6,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cooper.wheellog.WheelData
+//import com.cooper.wheellog.WheelData
 
 @Composable
 fun SmartBmsScreen() {
-    val data = remember { WheelData.getInstance() }
-
-    val bms1 = data.bms1
-    val bms2 = data.bms2
+    // BMS data is not available in euc_ble_library
+    // This screen needs to be reimplemented using EUCData if BMS support is added
+    // For now, showing placeholder text
+    
+    // val data = remember { WheelData.getInstance() }
+    // val bms1 = data.bms1
+    // val bms2 = data.bms2
+    
+    val bms1 = null
+    val bms2 = null
 
     Column(
         modifier = Modifier

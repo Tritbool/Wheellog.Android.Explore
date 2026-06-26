@@ -3,6 +3,7 @@ package com.cooper.wheellog
 import android.app.Activity
 import android.net.Uri
 import androidx.appcompat.app.AlertDialog
+import com.cooper.wheellog.ble.EucBleManager
 import com.cooper.wheellog.data.TripDao
 import com.cooper.wheellog.data.TripDataDbEntry
 import okhttp3.*
@@ -24,6 +25,7 @@ import kotlin.coroutines.*
 class ElectroClub: KoinComponent {
     private val appConfig: AppConfig by inject()
     private val dao: TripDao by inject()
+    private val eucBleManager: EucBleManager by inject()
 
     companion object {
         @JvmStatic
@@ -246,7 +248,7 @@ class ElectroClub: KoinComponent {
         activity: Activity,
         success: (String?) -> Unit
     ) {
-        if (!WheelData.getInstance().isConnected || appConfig.ecGarage != null)
+        if (!eucBleManager.isConnected.value || appConfig.ecGarage != null)
             return // not connected or already selected
 
         getGarage { transportList ->

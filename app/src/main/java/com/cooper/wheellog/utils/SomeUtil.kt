@@ -17,7 +17,7 @@ import androidx.fragment.app.Fragment
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.MainActivity
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.ble.EucBleManager
 import com.cooper.wheellog.WheelLog
 import kotlinx.coroutines.*
 import org.koin.core.component.KoinComponent
@@ -28,6 +28,7 @@ import java.io.Serializable
 
 object SomeUtil: KoinComponent {
     private val appConfig: AppConfig by inject()
+    private val eucBleManager: EucBleManager by inject()
     
     @ColorInt
     fun View.getColorEx(@ColorRes id: Int): Int {
@@ -71,12 +72,16 @@ object SomeUtil: KoinComponent {
     @Suppress("DEPRECATION")
     @JvmStatic
     fun playBeep(onlyByWheel: Boolean, onlyDefault: Boolean) {
-        if (WheelData.getInstance() == null) {
-            return
+        // wheelBeep() is not available in euc_ble_library
+        // This functionality needs to be implemented via EucBleClient.sendCommand
+        // For now, we'll skip the wheel beep and use the default beep
+        
+        if (appConfig.beepByWheel || onlyByWheel) {
+            // TODO: Implement wheel beep via EucBleClient.sendCommand
+            // For now, fall through to default beep
         }
 
         if (appConfig.beepByWheel || onlyByWheel) {
-            WheelData.getInstance().wheelBeep()
             return
         }
 

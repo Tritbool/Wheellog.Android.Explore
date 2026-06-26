@@ -65,14 +65,17 @@ Version cible : **FOSS pour F-Droid** (sans dépendances non-libres).
 
 ### 📈 **Statistiques**
 - **Lignes de code legacy supprimées** : ~2 173
-- **Lignes de code migrées** : ~2 415 (WheelView.kt)
-- **Fichiers modifiés** : 6+
+- **Lignes de code migrées** : ~2 415 (WheelView.kt) + ~1 000+ (autres fichiers)
+- **Fichiers modifiés** : 15+
 - **Fichiers supprimés** : 13
-- **Références à WheelData restantes** : ~130 (principalement dans les écrans settings, LoggingService, Alarms, etc.)
+- **Fichiers créés** : 2 (SessionManager.kt, WheelTypeExtensions.kt)
+- **Références à WheelData.getInstance() restantes** : **75** (dans 2 fichiers principaux)
 
-## ✅ **Accomplissements Récent**
+## ✅ **Accomplissements**
 
-### 1.3 **WheelView.kt** (1220+ lignes) - **MIGRÉ** ✅
+### Fichiers Complètement Migrés
+
+#### 1. **WheelView.kt** (1220+ lignes) - **MIGRÉ** ✅
 **Actions accomplies :**
 - ✅ Injection de `EucBleManager` via Koin
 - ✅ Remplacement de toutes les références à `WheelData.getInstance()` par `eucBleManager` ou valeurs locales
@@ -101,37 +104,120 @@ Version cible : **FOSS pour F-Droid** (sans dépendances non-libres).
 
 **Note :** La fonction `switchFlashlight()` est commentée temporairement (nécessite l'implémentation via `EucBleClient.sendCommand(CommandType.LIGHT_ON/OFF)`)
 
-#### 1.2 **ScanActivity.kt** - **DÉJÀ MIGRÉ** ✅
-**Statut :** Déjà utilise `EucBleManager` et observe `discoveredDevices` StateFlow
+#### 2. **ScanActivity.kt** - **MIGRÉ** ✅
+**Statut :** Utilise `EucBleManager` et observe `discoveredDevices` StateFlow
+
+#### 3. **StartScreen.kt** - **MIGRÉ** ✅
+- Remplacement de `WheelData.getInstance().wheelType` par `eucBleManager.connectedDevice.value?.manufacturer?.toLegacyWheelType()`
+
+#### 4. **LogScreen.kt** - **MIGRÉ** ✅
+- Remplacement de `WheelData.getInstance().isConnected` et `.mac`
+
+#### 5. **TripScreen.kt** - **MIGRÉ** ✅
+- Utilisation de `SessionManager` pour les fonctions reset
+
+#### 6. **AlarmScreen.kt** - **MIGRÉ** ✅
+- Remplacement de `WheelData.getInstance().wheelType` et `.model`
+
+#### 7. **WheelScreen.kt** - **MIGRÉ** ✅
+- Remplacement de toutes les références à `WheelData`
+- Adaptation des vérifications de vitesse (speed < 1 → speed < 0.1 km/h)
+
+#### 8. **DialogHelper.kt** - **MIGRÉ** ✅
+- Remplacement de `WheelData` par `eucBleManager`
+
+#### 9. **ElectroClub.kt** - **MIGRÉ** ✅
+- Remplacement de `WheelData.getInstance().isConnected`
+
+#### 10. **AudioUtil.kt** - **MIGRÉ** ✅
+- Remplacement de `WheelData` par `eucBleManager`
+
+#### 11. **SomeUtil.kt** - **MIGRÉ** ✅
+- Remplacement de `WheelData`, wheelBeep commenté (à implémenter via EucBleClient)
+
+#### 12. **Alarms.kt** - **MIGRÉ** ✅
+- Remplacement de toutes les références à `WheelData.getInstance()`
+- Adaptation des propriétés (speedDouble, batteryLevel, temperature, etc.)
+
+#### 13. **SessionManager.kt** - **NOUVEAU** ✅
+- Gestion centralisée des statistiques de session
+- Tracking des max values (current, phaseCurrent, power, pwm, temperature, topSpeed)
+- Fonctions de reset pour les statistiques
+
+#### 14. **WheelTypeExtensions.kt** - **NOUVEAU** ✅
+- Extensions pour convertir manufacturer vers WHEEL_TYPE
+
+#### 15. **BleModule.kt** - **MIS À JOUR** ✅
+- Ajout de `SessionManager` au module Koin
+
+#### 16. **WheelDataComposeBridge.kt** - **DÉPRÉCIÉ** ⚠️
+- Remplacé par `eucBleManager()` fonction Compose
+- À supprimer une fois tous les écrans Compose migrés
+
+#### 17. **SmartBmsScreen.kt** - **PARTIELLEMENT MIGRÉ** ⚠️
+- BMS non disponible dans euc_ble_library
+- Code commenté, à réimplémenter si support BMS ajouté
 
 ## 🚀 **Prochaines Étapes**
 
 ### Phase 1 : Migration des Composants Principaux (Priorité HAUTE)
 
-#### 1.3 **MainPageAdapter.kt** (~70 références à WheelData)
-**Actions requises :**
-- [ ] Injecter `EucBleManager` (déjà KoinComponent)
-- [ ] Ajouter le tracking des session statistics (max values)
-- [ ] Remplacer toutes les références à `WheelData.getInstance()` par `eucBleManager.eucData.value`
-- [ ] Observer `eucBleManager.eucData` pour les mises à jour automatiques
-- [ ] Adapter les calculs pour les propriétés non disponibles dans EUCData
+#### 1. **MainPageAdapter.kt** (~71 références à WheelData) ⚠️
+**Statut :** **À migrer** - Fichier complexe avec de nombreuses propriétés legacy
 
-**Propriétés à migrer (similaires à WheelView) :**
-- `speed`, `speedDouble` → `eucBleManager.eucData.value?.speed`
-- `topSpeedDouble` → tracker local (session max)
+**Actions requises :**
+- [ ] Injecter `EucBleManager` et `SessionManager` (déjà KoinComponent)
+- [ ] Remplacer toutes les références à `WheelData.getInstance()` par `eucBleManager.eucData.value` ou `sessionManager`
+- [ ] Adapter les propriétés non disponibles dans EUCData (bms, cpuTemp, imuTemp, currentAxis, speedAxis, protoVer, chargeTime, modeStr, torque, userDistance, voltageSag, wheelType, xAxis)
+- [ ] Observer `eucBleManager.eucData` pour les mises à jour automatiques
+
+**Propriétés disponibles dans EUCData :**
+- `speed`, `voltage`, `current`, `temperature`, `batteryLevel`, `distance`, `power`, `model`, `rideTime`, `totalDistance`, `topSpeed`, `fanStatus`, `chargingStatus`, `cpuLoad`, `speedLimit`, `wheelDistance`, `angle`, `roll`, `phaseCurrent`, `serial`, `version`, `name`
+
+**Propriétés à implémenter :**
 - `averageSpeedDouble`, `averageRidingSpeedDouble` → calcul à partir de `totalDistance` et `rideTime`
-- `distanceDouble`, `wheelDistanceDouble`, `userDistanceDouble`, `totalDistanceDouble` → propriétés EUCData
-- `voltageDouble`, `voltageSagDouble` → `eucBleManager.eucData.value?.voltage` (voltageSag non disponible)
-- `temperature`, `temperature2`, `cpuTemp`, `imuTemp` → propriétés EUCData
-- `angle`, `roll` → propriétés EUCData
-- `currentDouble`, `phaseCurrentDouble`, `currentLimit` → propriétés EUCData
-- `torque`, `powerDouble`, `motorPower` → propriétés EUCData
-- `batteryLevel` → `eucBleManager.eucData.value?.batteryLevel`
-- `fanStatus`, `chargingStatus` → propriétés EUCData
-- `version`, `error`, `output`, `cpuLoad` → propriétés EUCData
-- `name`, `model`, `serial` → propriétés EUCDevice
-- `rideTimeString`, `sleepTimerString`, `ridingTimeString`, `modeStr`, `chargeTime` → formatage des propriétés EUCData
-- `xAxis` → à implémenter (historique des données)
+- `rideTimeString`, `sleepTimerString`, `ridingTimeString`, `chargeTime` → formatage des propriétés
+- `xAxis` → historique des données pour les graphiques
+
+**Propriétés non disponibles (legacy uniquement) :**
+- `bms` → BMS data (non supporté dans euc_ble_library)
+- `cpuTemp`, `imuTemp` → capteurs de température supplémentaires
+- `currentAxis`, `speedAxis` → données historiques pour graphiques
+- `protoVer` → version du protocole
+- `modeStr` → chaîne de mode
+- `torque` → couple
+- `userDistance` → distance utilisateur
+- `voltageSag` → affaissement de tension
+- `wheelType` → utiliser `manufacturer.toLegacyWheelType()`
+
+#### 2. **LoggingService.kt** (~7 références à WheelData) ⚠️
+**Statut :** **À migrer** - Utilise ParserLogToWheelData (déjà supprimé)
+
+**Actions requises :**
+- [ ] Injecter `EucBleManager`
+- [ ] Remplacer `WheelData.getInstance().mac` par `eucBleManager.connectedDevice.value?.address`
+- [ ] Remplacer `WheelData.getInstance().timeStamp` par timestamp actuel
+- [ ] Implémenter un nouveau système de logging basé sur `EUCData`
+- [ ] Supprimer la dépendance à ParserLogToWheelData
+
+### Phase 2 : Nettoyage Final (Priorité MOYENNE)
+
+#### 3. **Supprimer WheelData.kt wrapper**
+- [ ] Une fois que tous les fichiers utilisent `EucBleManager` directement
+- [ ] Vérifier avec `grep` qu'il n'y a plus de références à `WheelData.getInstance()`
+
+#### 4. **Supprimer les dépendances legacy**
+- [ ] Supprimer les références aux adapters (NinebotZAdapter, InMotionAdapter, etc.)
+- [ ] Nettoyer les imports inutilisés
+
+### Phase 3 : Fonctionnalités Manquantes (Priorité BASSE)
+
+#### 5. **Implémenter les fonctionnalités non disponibles dans euc_ble_library**
+- [ ] `wheelBeep()` → via `EucBleClient.sendCommand(CommandType.LIGHT_ON/OFF)` ou autre commande
+- [ ] BMS support → à ajouter dans euc_ble_library ou implémenter côté application
+- [ ] `voltageSag` → calcul ou support dans euc_ble_library
+- [ ] `torque` → à ajouter dans euc_ble_library
+- [ ] `cpuTemp`, `imuTemp` → capteurs supplémentaires
 
 ### Phase 2 : Migration des Écrans Settings (Priorité MOYENNE)
 

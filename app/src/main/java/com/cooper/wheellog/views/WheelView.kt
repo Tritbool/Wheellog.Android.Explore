@@ -5,23 +5,36 @@ import androidx.appcompat.app.AlertDialog
 import android.content.Context
 import android.graphics.*
 import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.math.MathUtils
-import com.cooper.wheellog.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import com.cooper.wheellog.AppConfig
+import com.cooper.wheellog.R
+import com.cooper.wheellog.ble.EucBleManager
 import com.cooper.wheellog.DialogHelper.setBlackIcon
 import com.cooper.wheellog.utils.Alarms
 import com.cooper.wheellog.utils.Calculator
 import com.cooper.wheellog.utils.MathsUtil.dpToPx
 import com.cooper.wheellog.utils.MathsUtil.kmToMiles
 import com.cooper.wheellog.utils.MathsUtil.kmToMilesMultiplier
-import com.cooper.wheellog.utils.ReflectUtil
 import com.cooper.wheellog.utils.SomeUtil
 import com.cooper.wheellog.utils.SomeUtil.getColorEx
 import com.cooper.wheellog.utils.StringUtil.toTempString
 import com.cooper.wheellog.utils.ThemeManager
+import io.github.tritbool.euc.ble.models.EUCData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import timber.log.Timber
@@ -32,7 +45,28 @@ import kotlin.math.*
 @SuppressLint("ClickableViewAccessibility")
 class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), KoinComponent {
     private val appConfig: AppConfig by inject()
+    private val eucBleManager: EucBleManager by inject()
     private var currentTheme = R.style.OriginalTheme
+    
+    // Session statistics (max values tracking)
+    private var sessionMaxCurrent: Double = 0.0
+    private var sessionMaxPhaseCurrent: Double = 0.0
+    private var sessionMaxPower: Double = 0.0
+    private var sessionMaxPwm: Double = 0.0
+    private var sessionMaxTemperature: Int = 0
+    private var sessionTopSpeed: Double = 0.0
+    private var sessionStartTotalDistance: Double = 0.0
+    private var sessionStartDistance: Double = 0.0
+    
+    // Coroutine scope for observing eucData
+    private val viewScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    
+    // Lifecycle observer to clean up coroutines
+    private val lifecycleObserver = LifecycleEventObserver { _, event ->
+        if (event == Lifecycle.Event.ON_DESTROY) {
+            viewScope.cancel()
+        }
+    }
     private var outerArcPaint = Paint()
     private var innerArcPaint = Paint()
     private var textPaint = Paint()
@@ -116,10 +150,95 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         }
     }
 
+    // Helper functions for session statistics
+    private fun updateSessionMaxValues(data: EUCData) {
+        data.speed?.let { speed ->
+            if (speed > sessionTopSpeed) sessionTopSpeed = speed
+        }
+        data.pwm?.let { pwm ->
+            if (pwm > sessionMaxPwm) sessionMaxPwm = pwm
+        }
+        data.current?.let { current ->
+            if (current > sessionMaxCurrent) sessionMaxCurrent = current
+        }
+        data.phaseCurrent?.let { phaseCurrent ->
+            if (phaseCurrent > sessionMaxPhaseCurrent) sessionMaxPhaseCurrent = phaseCurrent
+        }
+        data.power?.let { power ->
+            if (power > sessionMaxPower) sessionMaxPower = power
+        }
+        data.temperature?.let { temp ->
+            val tempInt = (temp * 100).toInt()
+            if (tempInt > sessionMaxTemperature) sessionMaxTemperature = tempInt
+        }
+    }
+    
+    private fun calculateBatteryPerKm(): Double {
+        val distance = eucBleManager.eucData.value?.wheelDistance ?: 0.0
+        if (distance <= 0) return 0.0
+        val batteryConsumed = 100.0 - (eucBleManager.eucData.value?.batteryLevel ?: 0)
+        return batteryConsumed * 1000 / distance
+    }
+    
+    private fun calculateAvgVoltagePerCell(): Double {
+        val data = eucBleManager.eucData.value ?: return 0.0
+        val cells = when (data.manufacturer.lowercase()) {
+            "kingsong" -> 84.0
+            "gotway", "begode" -> 84.0
+            "inmotion" -> 60.0
+            "ninebot" -> 48.0
+            else -> 60.0
+        }
+        return data.voltage / cells
+    }
+    
+    private fun calculateAverageSpeed(): Double {
+        val data = eucBleManager.eucData.value ?: return 0.0
+        val distanceKm = data.totalDistance ?: 0.0
+        val rideTimeSec = data.rideTime
+        if (rideTimeSec <= 0) return 0.0
+        return distanceKm * 3600 / rideTimeSec
+    }
+    
+    private fun calculateAverageRidingSpeed(): Double {
+        return calculateAverageSpeed()
+    }
+    
+    private fun calculateRemainingDistance(): Double {
+        val batteryPerKm = calculateBatteryPerKm()
+        if (batteryPerKm <= 0) return 0.0
+        val batteryLevel = eucBleManager.eucData.value?.batteryLevel ?: 0
+        return batteryLevel.toDouble() / batteryPerKm
+    }
+    
+    private fun formatRideTime(seconds: Long): String {
+        val hours = seconds / 3600
+        val minutes = (seconds % 3600) / 60
+        val secs = seconds % 60
+        return String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, secs)
+    }
+    
+    // Session statistics accessors
+    fun getSessionMaxCurrent(): Double = sessionMaxCurrent
+    fun getSessionMaxPhaseCurrent(): Double = sessionMaxPhaseCurrent
+    fun getSessionMaxPower(): Double = sessionMaxPower
+    fun getSessionMaxPwm(): Double = sessionMaxPwm
+    fun getSessionMaxTemperature(): Int = sessionMaxTemperature
+    fun getSessionTopSpeed(): Double = sessionTopSpeed
+    
+    fun resetSessionStatistics() {
+        sessionMaxCurrent = 0.0
+        sessionMaxPhaseCurrent = 0.0
+        sessionMaxPower = 0.0
+        sessionMaxPwm = 0.0
+        sessionMaxTemperature = 0
+        sessionTopSpeed = 0.0
+    }
+    
     private val viewBlockInfo: Array<ViewBlockInfo>
         get() = arrayOf(
                 ViewBlockInfo(resources.getString(R.string.pwm)) { String.format(Locale.US, "%.2f%%", mPwm) },
-                ViewBlockInfo(resources.getString(R.string.max_pwm)) { String.format(Locale.US, "%.2f%%", mMaxPwm) },
+                ViewBlockInfo(resources.getString(R.string.max_pwm)) { String.format(Locale.US, "%.2f%%", sessionMaxPwm) },
                 ViewBlockInfo(resources.getString(R.string.voltage)) { String.format(Locale.US, "%.2f " + resources.getString(R.string.volt), mVoltage) },
                 ViewBlockInfo(resources.getString(R.string.average_riding_speed)) {
                     if (useMph) {
@@ -138,9 +257,9 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                 },
                 ViewBlockInfo(resources.getString(R.string.top_speed)) {
                     if (useMph) {
-                        String.format(Locale.US, "%.1f " + resources.getString(R.string.mph), kmToMiles(mTopSpeed))
+                        String.format(Locale.US, "%.1f " + resources.getString(R.string.mph), kmToMiles(sessionTopSpeed))
                     } else {
-                        String.format(Locale.US, "%.1f " + resources.getString(R.string.kmh), mTopSpeed)
+                        String.format(Locale.US, "%.1f " + resources.getString(R.string.kmh), sessionTopSpeed)
                     }
                 },
                 ViewBlockInfo(resources.getString(R.string.distance)) {
@@ -164,15 +283,15 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                 ViewBlockInfo(resources.getString(R.string.battery)) { String.format(Locale.US, "%d %%", mBattery) },
                 ViewBlockInfo(resources.getString(R.string.current)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), mCurrent) },
                 ViewBlockInfo(resources.getString(R.string.phase_current)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), mPhaseCurrent) },
-                ViewBlockInfo(resources.getString(R.string.maxcurrent)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), WheelData.getInstance().maxCurrentDouble) },
-                ViewBlockInfo(resources.getString(R.string.maxphasecurrent)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), WheelData.getInstance().maxPhaseCurrentDouble) },
+                ViewBlockInfo(resources.getString(R.string.maxcurrent)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), sessionMaxCurrent) },
+                ViewBlockInfo(resources.getString(R.string.maxphasecurrent)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), sessionMaxPhaseCurrent) },
                 ViewBlockInfo(
                     resources.getString(R.string.power),
                     {
                         String.format(
                             Locale.US,
                             "%.0f " + resources.getString(R.string.watt),
-                            WheelData.getInstance().powerDouble
+                            eucBleManager.eucData.value?.power ?: 0.0
                         )
                     },
                     false
@@ -183,7 +302,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                         String.format(
                             Locale.US,
                             "%.0f " + resources.getString(R.string.watt),
-                            WheelData.getInstance().maxPowerDouble
+                            sessionMaxPower
                         )
                     },
                     false
@@ -193,23 +312,23 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                 },
                 false),
                 ViewBlockInfo(resources.getString(R.string.temperature2), {
-                    WheelData.getInstance().temperature2.toTempString()
+                    (eucBleManager.eucData.value?.temperature2 ?: 0.0).toTempString()
                 }, false),
                 ViewBlockInfo(resources.getString(R.string.maxtemperature), {
-                    mMaxTemperature.toTempString()
+                    sessionMaxTemperature.toTempString()
                 }, false),
                 ViewBlockInfo(resources.getString(R.string.average_speed), {
                         if (useMph) {
                             String.format(
                                 Locale.US,
                                 "%.1f " + resources.getString(R.string.mph),
-                                kmToMiles(WheelData.getInstance().averageSpeedDouble)
+                                kmToMiles(calculateAverageSpeed())
                             )
                         } else {
                             String.format(
                                 Locale.US,
                                 "%.1f " + resources.getString(R.string.kmh),
-                                WheelData.getInstance().averageSpeedDouble
+                                calculateAverageSpeed()
                             )
                         }
                     },
@@ -217,23 +336,24 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                 ),
                 ViewBlockInfo(
                     resources.getString(R.string.ride_time),
-                    { WheelData.getInstance().rideTimeString },
+                    { formatRideTime(eucBleManager.eucData.value?.rideTime ?: 0L) },
                     false
                 ),
                 ViewBlockInfo(
                     resources.getString(R.string.wheel_distance),
                     {
+                        val wheelDistance = eucBleManager.eucData.value?.wheelDistance ?: 0.0
                         if (useMph) {
                             String.format(
                                 Locale.US,
                                 "%.2f " + resources.getString(R.string.miles),
-                                kmToMiles(WheelData.getInstance().wheelDistanceDouble)
+                                kmToMiles(wheelDistance)
                             )
                         } else {
                             String.format(
                                 Locale.US,
                                 "%.3f " + resources.getString(R.string.km),
-                                WheelData.getInstance().wheelDistanceDouble
+                                wheelDistance
                             )
                         }
                     },
@@ -242,17 +362,18 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                 ViewBlockInfo(
                     resources.getString(R.string.remaining_distance),
                     {
+                        val remaining = calculateRemainingDistance()
                         if (useMph) {
                             String.format(
                                 Locale.US,
                                 "%.2f " + resources.getString(R.string.miles),
-                                kmToMiles(WheelData.getInstance().remainingDistance)
+                                kmToMiles(remaining)
                             )
                         } else {
                             String.format(
                                 Locale.US,
                                 "%.3f " + resources.getString(R.string.km),
-                                WheelData.getInstance().remainingDistance
+                                remaining
                             )
                         }
                     },
@@ -261,24 +382,26 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                 ViewBlockInfo(
                     resources.getString(R.string.battery_per_km),
                     {
-                        String.format(Locale.US, "%.2f %%", WheelData.getInstance().batteryPerKm)
+                        String.format(Locale.US, "%.2f %%", calculateBatteryPerKm())
                     },
                     false
                 ),
                 ViewBlockInfo(
                     resources.getString(R.string.avg_cell_volt),
                     {
-                        String.format(Locale.US, "%.2f " + resources.getString(R.string.volt), WheelData.getInstance().avgVoltagePerCell)
+                        String.format(Locale.US, "%.2f " + resources.getString(R.string.volt), calculateAvgVoltagePerCell())
                     },
                     false
                 ),
                 ViewBlockInfo(
                     resources.getString(R.string.user_distance),
                     {
+                        val totalDistance = eucBleManager.eucData.value?.totalDistance ?: 0.0
                         String.format(
                             Locale.US,
                             "%.3f " + resources.getString(R.string.km),
-                            WheelData.getInstance().userDistanceDouble)
+                            totalDistance
+                        )
                     },
                     false
                 ),
@@ -709,7 +832,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         }
         currentTemperature = updateCurrentValue(targetTemperature, currentTemperature)
         currentBattery = updateCurrentValue(targetBattery, currentBattery)
-        val pwmColor = getPwmColor(WheelData.getInstance().calculatedPwm.toInt())
+        val pwmColor = getPwmColor((eucBleManager.eucData.value?.pwm ?: 0.0).toInt())
 
         //####################################################
         //################# DRAW OUTER ARC ###################
@@ -760,7 +883,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         else if (!appConfig.pwmBasedAlarms && alarm1Speed * 10 > 0 && mSpeed >= alarm1Speed * 10) textPaint.color = getColorEx(R.color.accent)
         else textPaint.color = getColorEx(R.color.wheelview_speed_text)
         textPaint.textSize = speedTextSize
-        val mainText: String = if (appConfig.swapSpeedPwm) WheelData.getInstance().calculatedPwm.roundToInt().toString() else speedString
+        val mainText: String = if (appConfig.swapSpeedPwm) (eucBleManager.eucData.value?.pwm ?: 0.0).roundToInt().toString() else speedString
         canvas.drawText(mainText, outerArcRect.centerX(), speedTextRect.centerY() + speedTextRect.height() / 2f, textPaint)
         textPaint.textSize = speedTextKPHSize
         val metric = if (appConfig.useMph) resources.getString(R.string.mph) else resources.getString(R.string.kmh)
@@ -768,7 +891,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         if (appConfig.useShortPwm || isInEditMode) {
             textPaint.textSize = speedTextKPHSize * 1.2f
             if (!appConfig.swapSpeedPwm) {
-                val pwm = String.format("%02.0f%% / %02.0f%%", WheelData.getInstance().calculatedPwm, WheelData.getInstance().maxPwm)
+                val pwm = String.format("%02.0f%% / %02.0f%%", eucBleManager.eucData.value?.pwm ?: 0.0, sessionMaxPwm)
                 textPaint.color = pwmColor
                 canvas.drawText(pwm, outerArcRect.centerX(), speedTextRect.bottom + speedTextKPHHeight * 3.3f, textPaint)
                 textPaint.color = getColorEx(R.color.wheelview_text)
@@ -785,7 +908,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         //####################################################
         //######## DRAW BATTERY AND TEMPERATURE TEXT #########
         //####################################################
-        if (WheelData.getInstance().isConnected) {
+        if (eucBleManager.isConnected.value) {
             textPaint.textSize = innerArcTextSize
             canvas.save()
             if (width > height) canvas.rotate(144 + currentBattery * 2.25f - 180, innerArcRect.centerX(), innerArcRect.centerY()) else canvas.rotate(144 + currentBattery * 2.25f - 180, innerArcRect.centerY(), innerArcRect.centerX())
@@ -798,7 +921,8 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
             if (appConfig.useBetterPercents || customPercents) {
                 if (width > height) canvas.rotate(144 + -3.3f * 2.25f - 180, innerArcRect.centerX(), innerArcRect.centerY()) else canvas.rotate(144 + -2 * 2.25f - 180, innerArcRect.centerY(), innerArcRect.centerX())
                 var batteryCalculateType = "true"
-                if (customPercents && !WheelData.getInstance().isVoltageTiltbackUnsupported) batteryCalculateType = "custom"
+                // isVoltageTiltbackUnsupported is not available in EUCData, default to true
+                if (customPercents) batteryCalculateType = "custom"
                 val batteryString = String.format(Locale.US, "%s", batteryCalculateType)
                 canvas.drawText(batteryString, batteryTextRect.centerX(), batteryTextRect.centerY(), textPaint)
                 canvas.restore()
@@ -852,7 +976,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         }
         currentTemperature = updateCurrentValue(targetTemperature, currentTemperature)
         currentBattery = updateCurrentValue(targetBattery, currentBattery)
-        val pwmColor = getPwmColor(WheelData.getInstance().calculatedPwm.toInt())
+        val pwmColor = getPwmColor((eucBleManager.eucData.value?.pwm ?: 0.0).toInt())
 
         //####################################################
         //################# DRAW OUTER ARC ###################
@@ -948,7 +1072,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         else
             textPaint.color = getColorEx(R.color.ajdm_wheelview_speed_text)
         textPaint.textSize = speedTextSize
-        val mainText: String = if (appConfig.swapSpeedPwm) WheelData.getInstance().calculatedPwm.roundToInt().toString() else speedString
+        val mainText: String = if (appConfig.swapSpeedPwm) (eucBleManager.eucData.value?.pwm ?: 0.0).roundToInt().toString() else speedString
         canvas.drawText(mainText, outerArcRect.centerX(), speedTextRect.centerY() + speedTextRect.height() / 2, textPaint)
         textPaint.textSize = speedTextKPHSize
         val metric = if (appConfig.useMph) resources.getString(R.string.mph) else resources.getString(R.string.kmh)
@@ -956,7 +1080,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         if (appConfig.useShortPwm || isInEditMode) {
             textPaint.textSize = speedTextKPHSize * 1.2f
             if (!appConfig.swapSpeedPwm) {
-                val pwm = String.format("%02.0f%% / %02.0f%%", WheelData.getInstance().calculatedPwm, WheelData.getInstance().maxPwm)
+                val pwm = String.format("%02.0f%% / %02.0f%%", eucBleManager.eucData.value?.pwm ?: 0.0, sessionMaxPwm)
                 textPaint.color = pwmColor
                 canvas.drawText(pwm, outerArcRect.centerX(), speedTextRect.bottom + speedTextKPHHeight * 3.3f, textPaint)
                 textPaint.color = getColorEx(R.color.ajdm_wheelview_text)
@@ -986,7 +1110,8 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
             if (appConfig.useBetterPercents || customPercents) {
                 if (width > height) canvas.rotate(147 + currentBattery * 2.25f - 180, innerArcRect.centerX(), innerArcRect.centerY()) else canvas.rotate(146 + currentBattery * 2.25f - 180, innerArcRect.centerY(), innerArcRect.centerX())
                 var batteryCalculateType = "true"
-                if (customPercents && !WheelData.getInstance().isVoltageTiltbackUnsupported) batteryCalculateType = "custom"
+                // isVoltageTiltbackUnsupported is not available in EUCData, default to true
+                if (customPercents) batteryCalculateType = "custom"
                 val batteryString = java.lang.String.format(Locale.US, "%s", batteryCalculateType)
                 canvas.drawText(batteryString, batteryTextRect.centerX(), batteryTextRect.centerY(), textPaint)
                 canvas.restore()
@@ -1128,7 +1253,10 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
     private val gestureDetector = GestureDetector(
         context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
-                WheelData.getInstance().adapter?.switchFlashlight()
+                // Flashlight control is now handled via EucBleClient commands
+                // adapter?.switchFlashlight() is not available in euc_ble_library
+                // This functionality needs to be migrated to use EucBleClient.sendCommand
+                // For now, we'll leave it as a no-op
                 return super.onDoubleTap(e)
             }
 
@@ -1194,18 +1322,16 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
             targetBattery = (40f / 100f * MathUtils.clamp(mBattery, 0, 100)).roundToInt()
             currentBattery = targetBattery
             mWheelModel = "GotInSong Z10"
-            try {
-                val wd = WheelData()
-                val wdField = WheelData::class.java.getDeclaredField("mInstance")
-                wdField.isAccessible = true
-                wdField[null] = wd
-                ReflectUtil.SetPrivateField(wd, "mCalculatedPwm", 0.05)
-                ReflectUtil.SetPrivateField(wd, "mMaxPwm", 0.97)
-                ReflectUtil.SetPrivateField(wd, "mConnectionState", true)
-            } catch (ignored: Exception) {
-            }
+            // In edit mode, set some default values for preview
+            mSpeed = 380
+            mPwm = 5.0
+            sessionMaxPwm = 97.0
+            mBattery = 50
+            mTemperature = 35
         } else {
             currentTheme = appConfig.appTheme
+            // Start observing eucData changes
+            startObservingEucData()
         }
 
         useMph = appConfig.useMph
@@ -1216,5 +1342,73 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
             gestureDetector.onTouchEvent(event)
             true
         }
+    }
+    
+    private fun startObservingEucData() {
+        // Only observe if we're not in edit mode
+        if (isInEditMode) return
+        
+        // Find the lifecycle owner and observe
+        findViewTreeLifecycleOwner()?.lifecycle?.addObserver(lifecycleObserver)
+        
+        viewScope.launch {
+            eucBleManager.eucData.collectLatest { data ->
+                data?.let { updateFromEucData(it) }
+            }
+        }
+    }
+    
+    private fun updateFromEucData(data: EUCData) {
+        // Update session max values
+        updateSessionMaxValues(data)
+        
+        // Update local state from EUCData
+        // Note: Legacy WheelData used ×100 for int values, but we're now using Double directly
+        data.speed?.let { speed ->
+            setSpeed((speed * 10).toInt()) // Convert km/h to legacy format (×10)
+            setTopSpeed(speed)
+        }
+        
+        data.voltage?.let { voltage ->
+            setVoltage(voltage)
+        }
+        
+        data.current?.let { current ->
+            setCurrent(current)
+        }
+        
+        data.phaseCurrent?.let { phaseCurrent ->
+            setPhaseCurrent(phaseCurrent)
+        }
+        
+        data.pwm?.let { pwm ->
+            setPwm(pwm)
+            setMaxPwm(pwm)
+        }
+        
+        data.temperature?.let { temp ->
+            setTemperature((temp * 100).toInt())
+            setMaxTemperature((temp * 100).toInt())
+        }
+        
+        data.batteryLevel?.let { battery ->
+            setBattery(battery)
+        }
+        
+        data.distance?.let { distance ->
+            setDistance(distance)
+        }
+        
+        data.totalDistance?.let { totalDistance ->
+            setTotalDistance(totalDistance)
+        }
+        
+        data.rideTime?.let { rideTime ->
+            setRideTime(formatRideTime(rideTime))
+        }
+        
+        // Calculate average speed
+        val avgSpeed = calculateAverageSpeed()
+        setAverageSpeed(avgSpeed)
     }
 }

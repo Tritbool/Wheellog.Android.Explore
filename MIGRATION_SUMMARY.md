@@ -108,74 +108,79 @@ Version cible : **FOSS pour F-Droid** (sans dépendances non-libres).
 
 ### Phase 1 : Migration des Composants Principaux (Priorité HAUTE)
 
-#### 1.4 **MainPageAdapter.kt** (100+ références à WheelData)
+#### 1.3 **MainPageAdapter.kt** (~70 références à WheelData)
 **Actions requises :**
-- [ ] Injecter `EucBleManager`
+- [ ] Injecter `EucBleManager` (déjà KoinComponent)
+- [ ] Ajouter le tracking des session statistics (max values)
 - [ ] Remplacer toutes les références à `WheelData.getInstance()` par `eucBleManager.eucData.value`
 - [ ] Observer `eucBleManager.eucData` pour les mises à jour automatiques
-- [ ] Adapter les calculs et les propriétés non disponibles dans EUCData
+- [ ] Adapter les calculs pour les propriétés non disponibles dans EUCData
 
-**Propriétés à migrer :**
-- `maxCurrentDouble` → tracker local + `eucBleManager.eucData.value?.phaseCurrent`
-- `maxPhaseCurrentDouble` → tracker local + `eucBleManager.eucData.value?.phaseCurrent`
-- `powerDouble` → `eucBleManager.eucData.value?.power`
-- `maxPowerDouble` → tracker local
-- `temperature2` → `eucBleManager.eucData.value?.temperature2`
-- `averageSpeedDouble` → calcul à partir de `totalDistance` et `rideTime`
-- `wheelDistanceDouble` → `eucBleManager.eucData.value?.wheelDistance`
-- `remainingDistance` → calcul à partir de `batteryLevel` et `batteryPerKm`
-- `batteryPerKm` → calcul à partir de `batteryLevel` et `wheelDistance`
-- `avgVoltagePerCell` → calcul à partir de `voltage` et du nombre de cellules
-- `rideTimeString` → formatage de `eucBleManager.eucData.value?.rideTime`
-- `userDistanceDouble` → `eucBleManager.eucData.value?.totalDistance`
-- `calculatedPwm` → `eucBleManager.eucData.value?.pwm`
-- `maxPwm` → tracker local
-
-#### 1.2 **ScanActivity.kt**
-**Actions requises :**
-- [ ] Vérifier l'utilisation de `BluetoothCentralManager`
-- [ ] Remplacer par `eucBleManager.startScan()` et `eucBleManager.stopScan()`
-- [ ] Adapter `DeviceListAdapter` pour utiliser `List<EUCDevice>`
-
-#### 1.3 **MainPageAdapter.kt**
-**Actions requises :**
-- [ ] Injecter `EucBleManager`
-- [ ] Remplacer toutes les références à `WheelData` par `eucBleManager`
+**Propriétés à migrer (similaires à WheelView) :**
+- `speed`, `speedDouble` → `eucBleManager.eucData.value?.speed`
+- `topSpeedDouble` → tracker local (session max)
+- `averageSpeedDouble`, `averageRidingSpeedDouble` → calcul à partir de `totalDistance` et `rideTime`
+- `distanceDouble`, `wheelDistanceDouble`, `userDistanceDouble`, `totalDistanceDouble` → propriétés EUCData
+- `voltageDouble`, `voltageSagDouble` → `eucBleManager.eucData.value?.voltage` (voltageSag non disponible)
+- `temperature`, `temperature2`, `cpuTemp`, `imuTemp` → propriétés EUCData
+- `angle`, `roll` → propriétés EUCData
+- `currentDouble`, `phaseCurrentDouble`, `currentLimit` → propriétés EUCData
+- `torque`, `powerDouble`, `motorPower` → propriétés EUCData
+- `batteryLevel` → `eucBleManager.eucData.value?.batteryLevel`
+- `fanStatus`, `chargingStatus` → propriétés EUCData
+- `version`, `error`, `output`, `cpuLoad` → propriétés EUCData
+- `name`, `model`, `serial` → propriétés EUCDevice
+- `rideTimeString`, `sleepTimerString`, `ridingTimeString`, `modeStr`, `chargeTime` → formatage des propriétés EUCData
+- `xAxis` → à implémenter (historique des données)
 
 ### Phase 2 : Migration des Écrans Settings (Priorité MOYENNE)
 
-#### 2.1 **WheelScreen.kt**
+#### 2.1 **WheelScreen.kt** (~10 références à WheelData)
 - [ ] Remplacer `WheelData.getInstance().wheelType` par `eucBleManager.connectedDevice.value?.manufacturer?.toLegacyWheelType()`
 - [ ] Remplacer `WheelData.getInstance().speed` par `eucBleManager.eucData.value?.speed`
 - [ ] Remplacer `WheelData.getInstance().model` par `eucBleManager.eucData.value?.model`
 
-#### 2.2 **AlarmScreen.kt**
+#### 2.2 **AlarmScreen.kt** (~5 références à WheelData)
 - [ ] Remplacer `WheelData.getInstance().wheelType` par `eucBleManager.connectedDevice.value?.manufacturer?.toLegacyWheelType()`
 - [ ] Remplacer `WheelData.getInstance().model` par `eucBleManager.eucData.value?.model`
 
-#### 2.3 **TripScreen.kt**
-- [ ] Remplacer `WheelData.getInstance().resetMaxValues()` par `eucBleManager` equivalent
-- [ ] Remplacer `WheelData.getInstance().resetVoltageSag()` par `eucBleManager` equivalent
-- [ ] Remplacer `WheelData.getInstance().resetUserDistance()` par `eucBleManager` equivalent
+#### 2.3 **TripScreen.kt** (~5 références à WheelData)
+- [ ] Remplacer `WheelData.getInstance().resetMaxValues()` par reset des session statistics
+- [ ] Remplacer `WheelData.getInstance().resetVoltageSag()` par no-op (non disponible dans EUCData)
+- [ ] Remplacer `WheelData.getInstance().resetUserDistance()` par reset de la distance de départ
 
-#### 2.4 **StartScreen.kt**
+#### 2.4 **StartScreen.kt** (~3 références à WheelData)
 - [ ] Remplacer `WheelData.getInstance()?.wheelType` par `eucBleManager.connectedDevice.value?.manufacturer?.toLegacyWheelType()`
 
-#### 2.5 **LogScreen.kt**
+#### 2.5 **LogScreen.kt** (~3 références à WheelData)
 - [ ] Remplacer `WheelData.getInstance().isConnected` par `eucBleManager.isConnected.value`
 - [ ] Remplacer `WheelData.getInstance().mac` par `eucBleManager.connectedDevice.value?.address`
 
-### Phase 3 : Migration des Services (Priorité MOYENNE)
+### Phase 3 : Migration des Services et Utilitaires (Priorité MOYENNE)
 
-#### 3.1 **LoggingService.kt**
+#### 3.1 **LoggingService.kt** (~10 références à WheelData)
 - [ ] Remplacer les références à `WheelData` par `eucBleManager`
-- [ ] Implémenter un parser basé sur `EUCData` au lieu de `ParserLogToWheelData`
+- [ ] Supprimer `ParserLogToWheelData` (déjà supprimé)
+- [ ] Adapter le logging pour utiliser `EUCData`
 
-#### 3.2 **ElectroClub.kt**
+#### 3.2 **ElectroClub.kt** (~2 références à WheelData)
 - [ ] Remplacer `WheelData.getInstance().isConnected` par `eucBleManager.isConnected.value`
 
-#### 3.3 **DialogHelper.kt**
+#### 3.3 **DialogHelper.kt** (~5 références à WheelData)
 - [ ] Remplacer les références à `WheelData` par `eucBleManager`
+
+#### 3.4 **Alarms.kt** (~20 références à WheelData)
+- [ ] Remplacer toutes les références à `WheelData` par `eucBleManager.eucData.value`
+- [ ] Observer `eucBleManager.eucData` pour les alarmes en temps réel
+
+#### 3.5 **AudioUtil.kt** (~2 références à WheelData)
+- [ ] Remplacer les références à `WheelData` par `eucBleManager`
+
+#### 3.6 **SomeUtil.kt** (~2 références à WheelData)
+- [ ] Remplacer les références à `WheelData` par `eucBleManager`
+
+#### 3.7 **NotificationUtil.kt** (~1 référence à WheelData - commentée)
+- [ ] Vérifier et nettoyer si nécessaire
 
 ### Phase 4 : Nettoyage Final (Priorité BASSE)
 

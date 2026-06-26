@@ -65,20 +65,55 @@ Version cible : **FOSS pour F-Droid** (sans dépendances non-libres).
 
 ### 📈 **Statistiques**
 - **Lignes de code legacy supprimées** : ~2 173
-- **Fichiers modifiés** : 5+
+- **Lignes de code migrées** : ~2 415 (WheelView.kt)
+- **Fichiers modifiés** : 6+
 - **Fichiers supprimés** : 13
-- **Références à WheelData restantes** : ~158 (principalement dans WheelView.kt et les écrans settings)
+- **Références à WheelData restantes** : ~130 (principalement dans les écrans settings, LoggingService, Alarms, etc.)
+
+## ✅ **Accomplissements Récent**
+
+### 1.3 **WheelView.kt** (1220+ lignes) - **MIGRÉ** ✅
+**Actions accomplies :**
+- ✅ Injection de `EucBleManager` via Koin
+- ✅ Remplacement de toutes les références à `WheelData.getInstance()` par `eucBleManager` ou valeurs locales
+- ✅ Implémentation du tracking des max values (session statistics)
+- ✅ Observation du StateFlow `eucData` pour la mise à jour automatique
+- ✅ Ajout des fonctions de calcul (batteryPerKm, avgVoltagePerCell, averageSpeed, remainingDistance)
+- ✅ Suppression de la dépendance à ReflectUtil
+- ✅ Adaptation du mode edit pour Android Studio preview
+- ✅ Gestion du lifecycle pour l'annulation des coroutines
+
+**Propriétés migrées :**
+- `maxCurrentDouble` → `sessionMaxCurrent` (tracker local)
+- `maxPhaseCurrentDouble` → `sessionMaxPhaseCurrent` (tracker local)
+- `powerDouble` → `eucBleManager.eucData.value?.power`
+- `maxPowerDouble` → `sessionMaxPower` (tracker local)
+- `temperature2` → `eucBleManager.eucData.value?.temperature2`
+- `averageSpeedDouble` → `calculateAverageSpeed()` (calcul local)
+- `wheelDistanceDouble` → `eucBleManager.eucData.value?.wheelDistance`
+- `remainingDistance` → `calculateRemainingDistance()` (calcul local)
+- `batteryPerKm` → `calculateBatteryPerKm()` (calcul local)
+- `avgVoltagePerCell` → `calculateAvgVoltagePerCell()` (calcul local)
+- `rideTimeString` → `formatRideTime(eucBleManager.eucData.value?.rideTime)`
+- `userDistanceDouble` → `eucBleManager.eucData.value?.totalDistance`
+- `calculatedPwm` → `eucBleManager.eucData.value?.pwm`
+- `maxPwm` → `sessionMaxPwm` (tracker local)
+
+**Note :** La fonction `switchFlashlight()` est commentée temporairement (nécessite l'implémentation via `EucBleClient.sendCommand(CommandType.LIGHT_ON/OFF)`)
+
+#### 1.2 **ScanActivity.kt** - **DÉJÀ MIGRÉ** ✅
+**Statut :** Déjà utilise `EucBleManager` et observe `discoveredDevices` StateFlow
 
 ## 🚀 **Prochaines Étapes**
 
 ### Phase 1 : Migration des Composants Principaux (Priorité HAUTE)
 
-#### 1.1 **WheelView.kt** (1220 lignes, 25+ références à WheelData)
+#### 1.4 **MainPageAdapter.kt** (100+ références à WheelData)
 **Actions requises :**
-- [ ] Injecter `EucBleManager` (déjà KoinComponent)
-- [ ] Remplacer toutes les références à `WheelData.getInstance()` par `eucBleManager`
-- [ ] Implémenter le tracking des max values directement dans WheelView
-- [ ] Adapter les calculs (batteryPerKm, avgVoltagePerCell, etc.)
+- [ ] Injecter `EucBleManager`
+- [ ] Remplacer toutes les références à `WheelData.getInstance()` par `eucBleManager.eucData.value`
+- [ ] Observer `eucBleManager.eucData` pour les mises à jour automatiques
+- [ ] Adapter les calculs et les propriétés non disponibles dans EUCData
 
 **Propriétés à migrer :**
 - `maxCurrentDouble` → tracker local + `eucBleManager.eucData.value?.phaseCurrent`

@@ -17,16 +17,6 @@
         <item name="android:popupMenuStyle">@style/OriginalTheme.PopupMenuStyle</item>
     </style>
 
-    <style name="OriginalTheme.Transparent" parent="OriginalTheme">
-        <item name="android:windowActionBar">false</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowIsFloating">true</item>
-        <item name="android:backgroundDimEnabled">true</item>
-    </style>
-
     <style name="OriginalTheme.Dialog.Alert" parent="Theme.MaterialComponents.Light.Dialog.Alert">
         <item name="android:windowBackground">@color/alert_bg</item>
         <item name="textColorAlertDialogListItem">@color/primary_dark</item>
@@ -67,10 +57,6 @@
         <item name="android:textColor">@color/accent</item>
     </style>
 
-    <style name="OriginalTheme.CheckBoxStyle" parent="Widget.AppCompat.CompoundButton.CheckBox">
-        <item name="android:textColor">@color/wheelview_textblocks</item>
-    </style>
-
     <style name="OriginalTheme.CheckBoxStyle.Alert" parent="Widget.AppCompat.CompoundButton.CheckBox">
         <item name="android:textColor">@color/primary_dark</item>
         <item name="android:tint">@color/primary_dark</item>
@@ -78,25 +64,11 @@
         <item name="android:textColorSecondary">@color/primary_dark</item>
     </style>
 
-    <style name="OriginalTheme.EditTextStyle" parent="Widget.AppCompat.EditText">
-        <item name="android:textColor">@color/wheelview_textblocks</item>
-    </style>
-
-    <style name="OriginalTheme.EditTextStyle.Alert" parent="Widget.AppCompat.EditText">
-        <item name="android:textColor">@color/primary_dark</item>
-    </style>
-
     <style name="OriginalTheme.Toolbar.ActionButton" parent="@style/Widget.AppCompat.ActionButton">
         <item name="android:minWidth">0dp</item>
         <item name="android:minHeight">0dp</item>
         <item name="android:paddingStart">5dp</item>
         <item name="android:paddingEnd">5dp</item>
-    </style>
-
-    <style name="MultiSelectPref" parent="@android:style/TextAppearance.Medium">
-        <item name="android:gravity">left</item>
-        <item name="layout_columnWeight">1</item>
-        <item name="android:textColor">@color/primary_dark</item>
     </style>
 
     <style name="Stats" parent="@android:style/TextAppearance.Medium">
@@ -127,23 +99,6 @@
         <item name="android:gravity">right</item>
         <item name="android:textSize">10sp</item>
         <item name="android:textStyle">bold</item>
-    </style>
-
-    <style name="LinePageIndicatorStyle">
-        <item name="android:padding">5dp</item>
-    </style>
-
-    <style name="SettingStyle" parent="Theme.AppCompat.NoActionBar">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primary_dark</item>
-        <item name="colorAccent">@color/accent</item>
-        <item name="android:dividerHeight">3dp</item>
-        <item name="actionButtonStyle">@style/OriginalTheme.Toolbar.ActionButton</item>
-        <item name="android:windowBackground">@drawable/background</item>
-        <item name="android:colorBackground">@color/settings_bg</item>
-        <item name="alertDialogTheme">@style/OriginalTheme.Dialog.Alert</item>
-        <item name="popupMenuStyle">@style/OriginalTheme.PopupMenuStyle</item>
-        <item name="android:popupMenuStyle">@style/OriginalTheme.PopupMenuStyle</item>
     </style>
 
     <style name="OriginalTheme.PopupMenuStyle" parent="Widget.AppCompat.PopupMenu">

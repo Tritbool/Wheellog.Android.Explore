@@ -20,7 +20,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.DialogHelper.setBlackIcon
-import com.cooper.wheellog.ElectroClub
 import com.cooper.wheellog.R
 import com.cooper.wheellog.data.TripDao
 import com.cooper.wheellog.data.TripDataDbEntry

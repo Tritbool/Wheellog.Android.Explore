@@ -12,6 +12,7 @@ import io.github.tritbool.euc.ble.core.BLEConstants
 import io.github.tritbool.euc.ble.core.ConnectionCallback
 import io.github.tritbool.euc.ble.core.DataCallback
 import io.github.tritbool.euc.ble.core.ErrorCallback
+import io.github.tritbool.euc.ble.exceptions.BLEException
 import io.github.tritbool.euc.ble.models.EUCData
 import io.github.tritbool.euc.ble.models.EUCDevice
 import kotlinx.coroutines.Dispatchers
@@ -82,20 +83,20 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
     
     private fun setupCallbacks() {
-        eucBleClient.setConnectionCallback(object : ConnectionCallback {
-            override fun onConnectionStateChange(state: BLEConstants.ConnectionState) {
+        eucBleClient.setConnectionCallback(object : ConnectionCallback() {
+            fun onConnectionStateChange(state: BLEConstants.ConnectionState) {
                 viewModelScope.launch {
                     updateConnectionState(state)
                 }
             }
             
-            override fun onDeviceConnected(device: EUCDevice) {
+            fun onDeviceConnected(device: EUCDevice) {
                 viewModelScope.launch {
                     updateConnectedDevice(device)
                 }
             }
             
-            override fun onDeviceDisconnected(device: EUCDevice) {
+            fun onDeviceDisconnected(device: EUCDevice) {
                 viewModelScope.launch {
                     updateDisconnectedDevice(device)
                 }
@@ -111,16 +112,20 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         })
         
         eucBleClient.setErrorCallback(object : ErrorCallback {
-            override fun onError(error: String) {
+            fun onError(error: String) {
                 viewModelScope.launch {
                     updateError(error)
                 }
             }
             
-            override fun onError(error: Throwable) {
+            fun onError(error: Throwable) {
                 viewModelScope.launch {
                     updateError(error.message ?: "Unknown error")
                 }
+            }
+
+            override fun onError(error: BLEException) {
+                TODO("Not yet implemented")
             }
         })
     }

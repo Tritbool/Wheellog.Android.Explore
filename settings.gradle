@@ -18,5 +18,3 @@ dependencyResolutionManagement {
 rootProject.name = "WheelLog.Android"
 
 include ':app'
-include ':shared'
-include ':wearos'

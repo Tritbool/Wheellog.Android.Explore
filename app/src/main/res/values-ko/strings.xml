@@ -11,40 +11,28 @@
     <string name="unknown_device">"알 수 없는 장치"</string>
     <string name="ble_not_supported">"저전력 블루투스가 지원되지 않습니다"</string>
     <string name="error_bluetooth_not_supported">"블루투스를 지원하지 않는 장치입니다."</string>
-    <string name="error_bluetooth_not_initialised">"블루투스를 초기화할 수 없습니다, 종료합니다"</string>
     <string name="bluetooth_required">"블루투스가 필요하지만 올바르게 활성화되지 않았습니다."</string>
     <string name="bluetooth_direct_connect_failed">"직접 연결에 실패했습니다. 휠을 검색합니다…"</string>
     <string name="back_to_exit">"뒤로 가기를 한 번 더 눌러서 종료합니다"</string>
-    <string name="scan">"스캔"</string>
-    <string name="stop">"중지"</string>
-    <string name="connect">"연결"</string>
     <string name="connecting">"연결 중"</string>
     <string name="searching">"검색 중"</string>
     <string name="disconnected">"연결 종료됨"</string>
     <string name="connected">"연결됨"</string>
-    <string name="connection_failed">"연결 실패"</string>
 
     <!-- Fuzzy -->
-    <string name="disconnect">"연결 종료"</string>
     <string name="connect_to_wheel">"휠에 연결"</string>
 
     <!-- Fuzzy -->
     <string name="disconnect_from_wheel">"휠 연결 종료"</string>
-    <string name="waiting_for_device">"장치 대기 중"</string>
     <string name="start_pebble_service">"Pebble Dash 시작"</string>
     <string name="show_settings">"설정 메뉴를 표시합니다"</string>
-    <string name="stop_pebble_service">"Start Pebble 중지"</string>
     <string name="start_data_service">"기록 시작"</string>
     <string name="stop_data_service">"기록 중단"</string>
     <string name="started_logging">"초 동안 기록 중"</string>
     <string name="search_for_wheel">"휠 검색"</string>
     <string name="scanning">"스캔 중…"</string>
     <string name="devices">"장치"</string>
-    <string name="mode_learn">"초심자"</string>
-    <string name="mode_play">"숙련자"</string>
-    <string name="mode_ride">"일반"</string>
     <string name="waiting_for_wheel">"휠을 기다리는 중…"</string>
-    <string name="no_smart_bms">"스마트 BMS가 발견되지 않았습니다"</string>
     <string name="speed">"속도"</string>
     <string name="average_speed">"평균 속도"</string>
     <string name="average_riding_speed">"평균 라이딩"</string>
@@ -94,7 +82,6 @@
     <string name="model">"모델"</string>
     <string name="version">"버전"</string>
     <string name="serial_number">"일련번호"</string>
-    <string name="time_charge_title">"충전 시간"</string>
 
     <!-- Fuzzy -->
     <string name="icon_watch">"워치 아이콘"</string>
@@ -106,8 +93,6 @@
     <string name="icon_connection">"연결 아이콘"</string>
     <string name="icon_beep">경고음</string>
     <string name="connection_lost_at">"초 전 연결 끊김"</string>
-    <string name="enable_auto_upload_title">"자동 업로드를 활성화합니까?"</string>
-    <string name="enable_auto_upload_descriprion">"WiFi 연결 없이 자동 업로드를 할 경우 모바일 데이터를 사용하게 됩니다. 데이터 요금제가 없다면, 이로 인해 네트워크 제공자가 당신에게 과금할 수도 있습니다."</string>
     <string name="logging_error_no_storage_permission">"외부 저장소에 대한 쓰기 권한이 없습니다. 기록을 취소합니다."</string>
     <string name="logging_error_storage_unavailable">"외부 저장소를 사용할 수 없습니다. 기록을 취소합니다."</string>
     <string name="logging_error_no_location_permission">"위치 기록을 요청받았으나 위치 정보에 대한 권한이 제공되지 않았습니다. 위치 정보가 기록되지 않을 것입니다."</string>
@@ -139,7 +124,6 @@
     <string name="led_mode_title">"LED 모드"</string>
 
     <!-- Fuzzy -->
-    <string name="strobe_mode_title">"점멸 모드"</string>
 
     <!-- Fuzzy -->
     <string name="light_mode_title">"전조등 모드"</string>
@@ -154,7 +138,6 @@
     <!-- Fuzzy -->
     <string name="strobe">"점멸"</string>
     <string name="disabled">"비활성화됨"</string>
-    <string name="enabled">"활성화됨"</string>
     <string name="hard">"딱딱함"</string>
     <string name="medium">"보통"</string>
     <string name="soft">"부드러움"</string>
@@ -174,7 +157,6 @@
     <string name="reset_max_values_description">속도, PWM, 전류, 전력의 최대값을 재설정합니다</string>
     <string name="reset_lowest_battery_title"></string>
     <string name="reset_user_distance_title">"사용자 거리 초기화"</string>
-    <string name="edit_mac_addr_title">"MAC 주소 수정"</string>
 
     <!-- Fuzzy -->
     <string name="profile_name_title">"프로필 이름 수정"</string>
@@ -212,8 +194,6 @@
     <string name="cell_voltage_tiltback_description"></string>
     <string name="use_pip_mode_title">"화면 속 화면 모드 활성화"</string>
     <string name="use_pip_mode_description">"백그라운드가 아니라 화면 속 화면 모드로 돌아가도록 합니다"</string>
-    <string name="current_on_dial_title">주요 규모의 전류</string>
-    <string name="current_on_dial_description">대신 속도의 메인 스케일에 전류를 그립니다(속도는 숫자로 유지됩니다)</string>
     <string name="connection_sound_title">"연결음"</string>
     <string name="connection_sound_description">"휠이 연결되거나 끊어질 때 소리를 재생합니다"</string>
     <string name="no_connection_sound_title">"연결 끊김 비프음 간격"</string>
@@ -267,7 +247,6 @@
     <!-- Fuzzy -->
     <string name="alarm_3_battery_title">"배터리 퍼센트"</string>
     <string name="current_alarm_title">"전류 경고"</string>
-    <string name="current_title">"전류"</string>
     <string name="alarm_current_description">"경고를 활성화할 전류 수치입니다"</string>
     <string name="temperature_alarm_title">"온도 경고"</string>
     <string name="temperature_title">"온도"</string>
@@ -282,8 +261,6 @@
     <string name="auto_upload_log_ec_title">"electro.club에 업로드"</string>
     <string name="auto_upload_log_ec_description">"electro.club 사이트에 기록을 자동으로 업로드합니다. GPS가 반드시 켜져 있어야 합니다."</string>
     <string name="select_garage_ec_title">electro.club 전송 선택</string>
-    <string name="auto_upload_log_title">"기록 자동 업로드"</string>
-    <string name="auto_upload_log_description">"Google Drive에 기록을 자동으로 업로드합니다"</string>
     <string name="log_location_title">"위치 기록"</string>
     <string name="log_location_description">"기록에 위치 정보를 포함합니다"</string>
     <string name="use_gps_title">"위치 정보에 GPS 사용"</string>
@@ -294,9 +271,7 @@
     <!-- Fuzzy -->
     <string name="on_off_strobe">"끔/켬/점멸"</string>
     <string name="soft_medium_hard">"부드러움/보통/딱딱함"</string>
-    <string name="alarm_settings_description">"경고 설정"</string>
     <string name="alarm_mode_title">"경고 모드"</string>
-    <string name="calibration_title">"조정"</string>
     <string name="is_gotway_mcm_title">"휠을 Gotway MCM로 설정"</string>
     <string name="is_gotway_mcm_description">"당신의 휠이 Gotway MCM이며, 속도와 거리를 비롯한 여러 값이 잘못 표기될 경우, 올바르게 표기되도록 합니다."</string>
     <string name="ks18l_scaler_title"></string>

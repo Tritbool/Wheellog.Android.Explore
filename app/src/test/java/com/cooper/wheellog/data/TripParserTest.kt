@@ -1,8 +1,6 @@
 package com.cooper.wheellog.data
 
 import android.content.Context
-import com.cooper.wheellog.ElectroClub
-import com.cooper.wheellog.WheelLog
 import com.google.common.collect.Range
 import com.google.common.truth.Truth.*
 import io.mockk.*

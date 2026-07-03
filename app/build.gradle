@@ -94,7 +94,6 @@ android {
 }
 
 dependencies {
-    implementation project(path: ':shared')
 
     // Compose
     implementation libs.compose.foundation

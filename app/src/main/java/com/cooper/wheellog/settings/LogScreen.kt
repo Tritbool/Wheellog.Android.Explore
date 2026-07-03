@@ -21,7 +21,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.BuildConfig
-import com.cooper.wheellog.ElectroClub
 import com.cooper.wheellog.MainActivity
 import com.cooper.wheellog.R
 import com.cooper.wheellog.WheelDataLegacy

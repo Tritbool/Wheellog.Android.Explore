@@ -196,29 +196,6 @@ class LoggingService : Service() {
         Timber.wtf("DataLogger Stopping...")
         notifications.setCustomTitle("Uploading tack...")
 
-        // electro.club upload
-        if (fileUtil.fileName != "" && appConfig.autoUploadEc) {
-            isBusy = true
-            try {
-                Timber.wtf("Uploading %s to electro.club", fileUtil.fileName)
-                val data = fileUtil.readBytes() ?: return
-                ElectroClub.instance.uploadTrack(
-                    data,
-                    fileUtil.fileName,
-                    true
-                ) { success: Boolean? ->
-                    if (!success!!) {
-                        Timber.wtf("Upload failed...")
-                        notifications.setCustomTitle("Upload failed.")
-                    }
-                    reallyDestroy(null)
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                Timber.wtf("Error upload log to electro.club: %s", e.toString())
-                reallyDestroy(path)
-            }
-        }
         if (!isBusy) {
             reallyDestroy(path)
         }

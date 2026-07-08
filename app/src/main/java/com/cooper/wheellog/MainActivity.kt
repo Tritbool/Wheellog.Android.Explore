@@ -39,7 +39,6 @@ import com.cooper.wheellog.BluetoothService.LocalBinder
 import com.cooper.wheellog.DialogHelper.checkAndShowPrivatePolicyDialog
 import com.cooper.wheellog.DialogHelper.checkBatteryOptimizationsAndShowAlert
 import com.cooper.wheellog.DialogHelper.checkPWMIsSetAndShowAlert
-import com.cooper.wheellog.companion.WearOs
 import com.cooper.wheellog.compose.MainScreen
 import com.cooper.wheellog.data.TripDatabase.Companion.getDataBase
 import com.cooper.wheellog.data.TripParser
@@ -90,7 +89,6 @@ class MainActivity : AppCompatActivity() {
     var mMenu: Menu? = null
     private var miSearch: MenuItem? = null
     private var miWheel: MenuItem? = null
-    private var miWatch: MenuItem? = null
     private var miBand: MenuItem? = null
     private var miLogging: MenuItem? = null
     private var mBluetoothAdapter: BluetoothAdapter? = null
@@ -100,7 +98,6 @@ class MainActivity : AppCompatActivity() {
     private var doubleBackToExitPressedOnce = false
     private var snackbar: Snackbar? = null
     private val timeFormatter = SimpleDateFormat("HH:mm:ss ", Locale.US)
-    private var wearOs: WearOs? = null
     private val speedModel: PiPView.SpeedModel by lazy { PiPView.SpeedModel() }
     private var settingsNavHostController: NavHostController? = null
     private val bluetoothService: BluetoothService?
@@ -387,9 +384,7 @@ class MainActivity : AppCompatActivity() {
                             if (WheelDataLegacy.wheelType == WHEEL_TYPE.KINGSONG) {
                                 KingsongAdapter.getInstance().requestNameData()
                             }
-                            if (appConfig.autoWatch && wearOs == null) {
-                                toggleWatch()
-                            }
+
                             notifications.notificationMessageId = R.string.connected
                         }
                         ConnectionState.DISCONNECTING, ConnectionState.DISCONNECTED -> if (isWheelSearch) {
@@ -430,9 +425,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 Constants.ACTION_WHEEL_DATA_AVAILABLE -> {
                     loggingService?.updateFile()
-                    if (wearOs != null) {
-                        wearOs!!.sendUpdateData()
-                    }
+
                     if (appConfig.mibandMode !== MiBandEnum.Alarm) {
                         notifications.update()
                     }
@@ -514,10 +507,7 @@ class MainActivity : AppCompatActivity() {
                     toggleLogging()
                     notifications.update()
                 }
-                Constants.NOTIFICATION_BUTTON_WATCH -> {
-                    toggleWatch()
-                    notifications.update()
-                }
+
                 Constants.NOTIFICATION_BUTTON_BEEP -> playBeep()
                 Constants.NOTIFICATION_BUTTON_LIGHT -> if (WheelDataLegacy.adapter != null) {
                     WheelDataLegacy.adapter.switchFlashlight()
@@ -527,12 +517,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun toggleWatch() {
-        togglePebbleService()
-        // TODO: Fix garmin for API 34
-        // if (appConfig.garminConnectIqEnable) toggleGarminConnectIQ() else stopGarminConnectIQ()
-        toggleWearOs()
-    }
 
     private fun toggleLogging() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -558,15 +542,8 @@ class MainActivity : AppCompatActivity() {
             MiBandEnum.Max -> miBand!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuMiBandMax))
         }
 
-        miBand?.isVisible = appConfig.mainMenuButtons.contains("miband")
-        miWatch?.isVisible = appConfig.mainMenuButtons.contains("watch")
         mMenu?.findItem(R.id.miReset)?.isVisible = appConfig.mainMenuButtons.contains("reset")
 
-        if (PebbleService.isInstanceCreated()) {
-            miWatch!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuWatchOn))
-        } else {
-            miWatch!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuWatchOff))
-        }
         if (LoggingService.isInstanceCreated()) {
             miLogging!!.setTitle(R.string.stop_data_service)
             miLogging!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuLogOn))
@@ -836,9 +813,7 @@ class MainActivity : AppCompatActivity() {
         // Real finish.
         Timber.wtf("-=[ finish ]=-")
         onDestroyProcess = true
-        if (wearOs != null) {
-            wearOs!!.stop()
-        }
+
         stopPebbleService()
         stopGarminConnectIQ()
         stopLoggingService()
@@ -900,8 +875,6 @@ class MainActivity : AppCompatActivity() {
         mMenu = menu.apply {
             miSearch = findItem(R.id.miSearch)
             miWheel = findItem(R.id.miWheel)
-            miWatch = findItem(R.id.miWatch)
-            miBand = findItem(R.id.miBand)
             miLogging = findItem(R.id.miLogging)
         }
 
@@ -969,14 +942,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 true
             }
-            R.id.miWatch -> {
-                toggleWatch()
-                true
-            }
-            R.id.miBand -> {
-                toggleSwitchMiBand()
-                true
-            }
+
+
             R.id.miReset -> {
                 WheelDataLegacy.resetExtremumValues()
                 showSnackBar(getString(R.string.reset_extremum_values_title))
@@ -1103,14 +1070,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun toggleWearOs() {
-        wearOs = if (wearOs == null) {
-            WearOs(this)
-        } else {
-            wearOs!!.stop()
-            null
-        }
-    }
 
     private fun stopGarminConnectIQ() {
         if (GarminConnectIQ.isInstanceCreated) toggleGarminConnectIQ()
@@ -1272,7 +1231,6 @@ class MainActivity : AppCompatActivity() {
         intentFilter.addAction(Constants.ACTION_PEBBLE_SERVICE_TOGGLED)
         intentFilter.addAction(Constants.ACTION_PREFERENCE_RESET)
         intentFilter.addAction(Constants.NOTIFICATION_BUTTON_CONNECTION)
-        intentFilter.addAction(Constants.NOTIFICATION_BUTTON_WATCH)
         intentFilter.addAction(Constants.NOTIFICATION_BUTTON_LOGGING)
         intentFilter.addAction(Constants.NOTIFICATION_BUTTON_BEEP)
         intentFilter.addAction(Constants.NOTIFICATION_BUTTON_LIGHT)

@@ -1,4 +1,5 @@
 package com.cooper.wheellog.settings
+import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.content.Context
 import android.content.Intent
@@ -29,7 +30,7 @@ import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.BuildConfig
 import com.cooper.wheellog.LocaleManager
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelDataLegacy
+import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.WheelLog
 import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.ThemeIconEnum
@@ -50,13 +51,13 @@ fun startScreen(
 
         var isSpecificVisible by remember {
             mutableStateOf(
-                WheelDataLegacy?.wheelType != Constants.WHEEL_TYPE.Unknown
+                viewModel?.wheelType != Constants.WHEEL_TYPE.Unknown
             )
         }
         systemBroadcastReceiver(systemAction = Constants.ACTION_WHEEL_MODEL_CHANGED) { intent ->
             if (intent?.action == Constants.ACTION_WHEEL_MODEL_CHANGED) {
                 isSpecificVisible =
-                    WheelDataLegacy?.wheelType != Constants.WHEEL_TYPE.Unknown
+                    viewModel?.wheelType != Constants.WHEEL_TYPE.Unknown
             }
         }
 

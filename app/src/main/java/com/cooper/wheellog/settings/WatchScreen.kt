@@ -47,23 +47,6 @@ fun watchScreen(appConfig: AppConfig = koinInject()) {
             }
         }
 
-        group(name = stringResource(R.string.watch_garmin_group_title)) {
-            switchPref(
-                name = stringResource(R.string.garmin_connectiq_enable_title),
-                desc = stringResource(R.string.garmin_connectiq_enable_description),
-                default = appConfig.garminConnectIqEnable,
-            ) {
-                appConfig.garminConnectIqEnable = it
-            }
-
-            switchPref(
-                name = stringResource(R.string.garmin_connectiq_use_beta_title),
-                desc = stringResource(R.string.garmin_connectiq_use_beta_description),
-                default = appConfig.useGarminBetaCompanion,
-                showDiv = false,
-            ) {
-                appConfig.useGarminBetaCompanion = it
-            }
         }
 
         group(name = stringResource(R.string.watch_miband_group_title)) {

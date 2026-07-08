@@ -1,4 +1,5 @@
 package com.cooper.wheellog.settings
+import com.cooper.wheellog.ble.BleSessionViewModel
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -10,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelDataLegacy
+import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.MathsUtil
 import org.koin.compose.koinInject
@@ -24,10 +25,10 @@ fun alarmScreen(appConfig: AppConfig = koinInject()) {
         var alarmsEnabled by remember { mutableStateOf(appConfig.alarmsEnabled) }
         var pwmBasedAlarms by remember { mutableStateOf(appConfig.pwmBasedAlarms) }
         val ksAlteredAlarms =
-            WheelDataLegacy.wheelType == Constants.WHEEL_TYPE.KINGSONG
-                    && WheelDataLegacy.model.compareTo("KS-18A") != 0
+            viewModel.wheelType == Constants.WHEEL_TYPE.KINGSONG
+                    && viewModel.model.compareTo("KS-18A") != 0
         val wheelAlarm =
-                WheelDataLegacy.wheelType == Constants.WHEEL_TYPE.GOTWAY
+                viewModel.wheelType == Constants.WHEEL_TYPE.GOTWAY
 
         switchPref(
             name = stringResource(R.string.enable_alarms_title),

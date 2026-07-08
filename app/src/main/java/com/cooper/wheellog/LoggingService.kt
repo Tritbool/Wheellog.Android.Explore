@@ -1,4 +1,5 @@
 package com.cooper.wheellog
+import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -31,8 +32,11 @@ import java.util.Locale
 
 class LoggingService : Service() {
     private val appConfig: AppConfig by inject()
+    private val viewModel: BleSessionViewModel by inject()
     private val notifications: NotificationUtil by inject()
+    private val viewModel: BleSessionViewModel by inject()
     private val dao: TripDao by inject()
+    private val viewModel: BleSessionViewModel by inject()
     private var sdf: SimpleDateFormat? = null
     private var mLocation: Location? = null
     private var mLastLocation: Location? = null
@@ -71,8 +75,6 @@ class LoggingService : Service() {
     private val mBinder: IBinder = LocalBinder()
 
     override fun onBind(intent: Intent): IBinder? {
-        // WheelDataLegacy is always available now
-        // if (WheelDataLegacy == null) {
         //     stopSelf()
         //     return null
         // }
@@ -97,7 +99,7 @@ class LoggingService : Service() {
         }
         sdf = SimpleDateFormat("yyyy-MM-dd,HH:mm:ss.SSS", Locale.US)
         var writeToLastLog = false
-        val mac = WheelDataLegacy.mac
+        val mac = viewModel.mac
         if (appConfig.continueThisDayLog &&
             appConfig.continueThisDayLogMacException != mac
         ) {
@@ -122,7 +124,7 @@ class LoggingService : Service() {
         if (!writeToLastLog) {
             val sdFormatter = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US)
             val filename = sdFormatter.format(Date()) + ".csv"
-            if (!fileUtil.prepareFile(filename, WheelDataLegacy.mac)) {
+            if (!fileUtil.prepareFile(filename, viewModel.mac)) {
                 stopSelf()
                 return mBinder
             }
@@ -259,11 +261,11 @@ class LoggingService : Service() {
                 mLocationDistance
             )
         }
-        val wd = WheelDataLegacy
+        val wd = viewModel
         fileUtil.writeLine(
             String.format(
                 Locale.US, "%s,%s%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%d,%d,%d,%.2f,%.2f,%s,%s",
-                sdf!!.format(WheelDataLegacy.timeStamp),
+                sdf!!.format(viewModel.timeStamp),
                 LocationDataString,
                 wd.speedDouble,
                 wd.voltageDouble,

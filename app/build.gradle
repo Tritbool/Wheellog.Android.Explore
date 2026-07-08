@@ -143,7 +143,6 @@ dependencies {
 
     // UI
     implementation libs.timber
-    implementation libs.osmdroid
     implementation libs.mpandroidchart
     implementation libs.circleindicator
     implementation libs.guava

@@ -1,4 +1,5 @@
 package com.cooper.wheellog.utils
+import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -21,6 +22,7 @@ import java.util.*
 
 class NotificationUtil(private val context: Context): KoinComponent {
     private val appConfig: AppConfig by inject()
+    private val viewModel: BleSessionViewModel by inject()
     private val builder: NotificationCompat.Builder
     private var kostilTimer: Timer? = null
     private var customText = ""
@@ -73,7 +75,7 @@ class NotificationUtil(private val context: Context): KoinComponent {
             notificationView.setOnClickPendingIntent(it.first,
                     PendingIntent.getBroadcast(context, 0, Intent(it.third), intentFlag))
         }
-        val wd = WheelDataLegacy ?: return builder.build()
+        val wd = viewModel ?: return builder.build()
         val connectionState = wd.bluetoothService?.connectionState
                 ?: ConnectionState.DISCONNECTED
         val batteryLevel = wd.batteryLevel
@@ -81,7 +83,7 @@ class NotificationUtil(private val context: Context): KoinComponent {
         val distance = wd.distanceDouble
         val speed = wd.speedDouble
         val title = customText.ifEmpty { context.getString(notificationMessageId) }
-        val titleRide = WheelDataLegacy.rideTimeString
+        val titleRide = viewModel.rideTimeString
         notificationView.setTextViewText(R.id.text_title, context.getString(R.string.app_name))
         notificationView.setTextViewText(R.id.ib_actions_text, context.getString(R.string.notifications_actions_text))
         if (connectionState == ConnectionState.CONNECTED || distance + temperature + batteryLevel + speed > 0) {
@@ -125,7 +127,7 @@ class NotificationUtil(private val context: Context): KoinComponent {
                 if (LoggingService.isInstanceCreated()) ThemeManager.getId(ThemeIconEnum.NotificationLogOn)
                 else ThemeManager.getId(ThemeIconEnum.NotificationLogOff))
         notificationView.setImageViewResource(R.id.ib_watch,
-                if (PebbleService.isInstanceCreated()) ThemeManager.getId(ThemeIconEnum.NotificationWatchOn)
+                ThemeManager.getId(ThemeIconEnum.NotificationWatchOff)
                 else ThemeManager.getId(ThemeIconEnum.NotificationWatchOff))
         notificationView.setImageViewResource(R.id.ib_beep, ThemeManager.getId(ThemeIconEnum.NotificationHorn))
         notificationView.setImageViewResource(R.id.ib_light, ThemeManager.getId(ThemeIconEnum.NotificationLight))
@@ -192,7 +194,7 @@ class NotificationUtil(private val context: Context): KoinComponent {
             kostilTimer = Timer().apply {
                 scheduleAtFixedRate(object : TimerTask() {
                     override fun run() {
-                        val wd = WheelDataLegacy
+                        val wd = viewModel
                         if (wd == null) {
                             kostilTimer?.cancel()
                             kostilTimer = null
@@ -217,7 +219,7 @@ class NotificationUtil(private val context: Context): KoinComponent {
 // for test
 //        Timer().scheduleAtFixedRate(object : TimerTask() {
 //            override fun run() {
-//                val wd = WheelDataLegacy ?: return
+//                val wd = viewModel ?: return
 //                wd.batteryLevel = ((Math.random() * 100).toInt())
 //                wd.temperature = (Math.random() * 10000).toInt()
 //                wd.totalDistance = (Math.random() * 10000).toLong()

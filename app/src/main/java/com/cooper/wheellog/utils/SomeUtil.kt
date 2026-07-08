@@ -1,4 +1,5 @@
 package com.cooper.wheellog.utils
+import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.annotation.SuppressLint
 import android.content.*
@@ -17,7 +18,7 @@ import androidx.fragment.app.Fragment
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.MainActivity
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelDataLegacy
+import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.WheelLog
 import kotlinx.coroutines.*
 import org.koin.core.component.KoinComponent
@@ -28,6 +29,7 @@ import java.io.Serializable
 
 object SomeUtil: KoinComponent {
     private val appConfig: AppConfig by inject()
+    private val viewModel: BleSessionViewModel by inject()
     
     @ColorInt
     fun View.getColorEx(@ColorRes id: Int): Int {
@@ -71,12 +73,12 @@ object SomeUtil: KoinComponent {
     @Suppress("DEPRECATION")
     @JvmStatic
     fun playBeep(onlyByWheel: Boolean, onlyDefault: Boolean) {
-        if (WheelDataLegacy == null) {
+        if (viewModel == null) {
             return
         }
 
         if (appConfig.beepByWheel || onlyByWheel) {
-            WheelDataLegacy.wheelBeep()
+            viewModel.wheelBeep()
             return
         }
 

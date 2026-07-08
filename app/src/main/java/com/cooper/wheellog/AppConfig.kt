@@ -1,4 +1,5 @@
 package com.cooper.wheellog
+import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -23,7 +24,7 @@ class AppConfig(var context: Context): KoinComponent {
     private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
     private var specificPrefix: String = ""
     private val separator = ";"
-    private val wd by lazy { WheelDataLegacy }
+    private val viewModel: BleSessionViewModel by inject()
 
     init {
         // Clear all preferences if they are incompatible
@@ -164,7 +165,7 @@ class AppConfig(var context: Context): KoinComponent {
         get() = getValue(R.string.beep_on_volume_up, false)
         set(value) {
             setValue(R.string.beep_on_volume_up, value)
-            volumeKeyController.setActive(wd.isConnected && value)
+            volumeKeyController.setActive(viewModel.isConnected && value)
         }
 
     var beepByWheel: Boolean
@@ -192,9 +193,9 @@ class AppConfig(var context: Context): KoinComponent {
         set(value) {
             setValue(R.string.use_reconnect, value)
             if (value)
-                wd.bluetoothService?.startReconnectTimer()
+                viewModel.bluetoothService?.startReconnectTimer()
             else
-                wd.bluetoothService?.stopReconnectTimer()
+                viewModel.bluetoothService?.stopReconnectTimer()
         }
 
     var detectBatteryOptimization: Boolean

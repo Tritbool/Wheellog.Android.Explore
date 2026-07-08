@@ -1,4 +1,5 @@
 package com.cooper.wheellog
+import com.cooper.wheellog.ble.BleSessionViewModel
 
 //import com.yandex.metrica.YandexMetrica
 import android.annotation.SuppressLint
@@ -29,6 +30,7 @@ import org.koin.core.component.inject
 
 object DialogHelper : KoinComponent {
     private val appConfig: AppConfig by inject()
+    private val viewModel: BleSessionViewModel by inject()
     /**
      * return false if in App's Battery settings "Not optimized" and true if "Optimizing battery use"
      */
@@ -70,7 +72,7 @@ object DialogHelper : KoinComponent {
     }
 
     fun checkPWMIsSetAndShowAlert(context: Context) {
-        val wd = WheelDataLegacy
+        val wd = viewModel
         if (!wd.isWheelIsReady || wd.isHardwarePWM || appConfig.hwPwm || appConfig.rotationIsSet) {
             return
         }
@@ -81,12 +83,12 @@ object DialogHelper : KoinComponent {
         val inflater: LayoutInflater = LayoutInflater.from(context)
         val binding = UpdatePwmSettingsBinding.inflate(inflater, null, false)
         binding.modelName.text =
-            if (WheelDataLegacy.model.isNullOrEmpty())
+            if (viewModel.model.isNullOrEmpty())
                 "Unknown model"
-            else WheelDataLegacy.model
+            else viewModel.model
         val svLayout: LinearLayout = binding.setSpeedVoltageLayout
         val templatesBox: Spinner = binding.spinnerTemplates
-        val templates = when (WheelDataLegacy.wheelType) {
+        val templates = when (viewModel.wheelType) {
             Constants.WHEEL_TYPE.GOTWAY ->
                 mutableMapOf(
                         "Begode MTen 67v" to Pair(440, 672), // first - speed, second - voltage

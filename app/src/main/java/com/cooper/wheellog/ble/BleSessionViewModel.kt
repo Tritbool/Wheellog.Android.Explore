@@ -65,6 +65,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     private var voltageSag: Int = 20000
     private var wheelIsReady: Boolean = false
     private var wheelAlarm: Boolean = false
+    private var bmsView: Boolean = false
     
     // ========== GRAPH DATA (for charts) ==========
     private val graphUpdateInterval = 1000L // milliseconds
@@ -537,6 +538,98 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         speedAxis.clear()
         wheelIsReady = false
         wheelAlarm = false
+    }
+    
+    // ========== PUBLIC PROPERTIES FOR DIRECT ACCESS (Migration from WheelDataLegacy) ==========
+    
+    // Basic telemetry - Double values
+    val speedDouble: Double get() = _sessionState.value.currentSpeed
+    val voltageDouble: Double get() = _sessionState.value.currentVoltage
+    val currentDouble: Double get() = _sessionState.value.currentCurrent
+    val temperature: Int get() = getLegacyTemperature()
+    val temperatureDouble: Double get() = _sessionState.value.currentTemperature
+    val powerDouble: Double get() = _sessionState.value.currentPower
+    val phaseCurrentDouble: Double get() = _sessionState.value.lastData?.phaseCurrent ?: 0.0
+    val torque: Double get() = _sessionState.value.lastData?.torque ?: 0.0
+    val angle: Double get() = _sessionState.value.lastData?.angle ?: 0.0
+    val roll: Double get() = _sessionState.value.lastData?.roll ?: 0.0
+    
+    // Battery and voltage
+    val batteryLevel: Int get() = getLegacyBatteryLevel()
+    val batteryLowestLevel: Int get() = batteryLowest
+    val voltageSagDouble: Double get() = voltageSag.toDouble() / 100
+    
+    // Distances
+    val distanceDouble: Double get() = _sessionState.value.wheelDistance ?: 0.0
+    val totalDistanceDouble: Double get() = _sessionState.value.totalDistance ?: 0.0
+    val wheelDistanceDouble: Double get() = _sessionState.value.wheelDistance ?: 0.0
+    val userDistanceDouble: Double get() = 0.0 // TODO: Implement user distance tracking
+    
+    // Speeds
+    val topSpeedDouble: Double get() = sessionTopSpeed
+    val averageSpeedDouble: Double get() = 0.0 // TODO: Implement average speed calculation
+    val averageRidingSpeedDouble: Double get() = 0.0 // TODO: Implement average riding speed calculation
+    val speedLimit: Double get() = _sessionState.value.speedLimit ?: 0.0
+    
+    // PWM
+    val calculatedPwm: Double get() = _sessionState.value.pwm ?: 0.0
+    val maxPwm: Double get() = sessionMaxPwm
+    
+    // Temperatures
+    val maxTemp: Double get() = _sessionState.value.lastData?.motorTemperature ?: _sessionState.value.lastData?.temperature2 ?: _sessionState.value.currentTemperature
+    val cpuTemp: Int get() = _sessionState.value.cpuLoad ?: 0
+    val imuTemp: Int get() = 0 // TODO: Implement IMU temperature
+    val temperature2: Int get() = (_sessionState.value.lastData?.temperature2 ?: 0.0 * 100).toInt()
+    
+    // Device info
+    val name: String get() = getName()
+    val model: String get() = getModel()
+    val version: String get() = getVersion()
+    val serial: String get() = getSerial()
+    val mac: String get() = getMac()
+    val manufacturer: String get() = getManufacturer()
+    
+    // Status
+    val isConnected: Boolean get() = isConnected()
+    val fanStatus: Int get() = _sessionState.value.fanStatus ?: 0
+    val chargingStatus: Int get() = _sessionState.value.chargingStatus ?: 0
+    val output: Int get() = 0 // TODO: Implement output calculation
+    val wheelAlarm: Boolean get() = getWheelAlarm()
+    var bmsView: Boolean = false
+    val error: String get() = _sessionState.value.lastError ?: ""
+    
+    // Time
+    val rideTimeString: String get() = formatRideTime(_sessionState.value.rideTime ?: 0)
+    val ridingTimeString: String get() = formatRideTime(ridingTime.toLong())
+    val sleepTimerString: String get() = "00:00" // TODO: Implement sleep timer
+    
+    // Mode and protocol
+    val modeStr: String get() = _sessionState.value.lastData?.mode ?: ""
+    val protoVer: String get() = "" // TODO: Implement protocol version
+    val chargeTime: String get() = "00:00" // TODO: Implement charge time
+    
+    // Graph data
+    val xAxis: ArrayList<String> get() = this.xAxis
+    val currentAxis: ArrayList<Float> get() = this.currentAxis
+    val speedAxis: ArrayList<Float> get() = this.speedAxis
+    
+    // Wheel type (computed from manufacturer)
+    val wheelType: com.cooper.wheellog.utils.Constants.WHEEL_TYPE get() = manufacturer.toLegacyWheelType()
+    
+    // BMS data
+    val bms: Any? get() = null // TODO: Implement BMS data access
+    
+    // Current limit
+    val currentLimit: Double get() = _sessionState.value.lastData?.current ?: 0.0
+    
+    // Motor power
+    val motorPower: Double get() = _sessionState.value.currentPower
+    
+    private fun formatRideTime(seconds: Long): String {
+        val hours = seconds / 3600
+        val minutes = (seconds % 3600) / 60
+        val secs = seconds % 60
+        return String.format("%02d:%02d:%02d", hours, minutes, secs)
     }
     
     // ========== CLEANUP ==========

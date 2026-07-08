@@ -31,11 +31,12 @@ import androidx.compose.ui.*
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.coroutineScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
-import com.cooper.wheellog.BluetoothService.LocalBinder
+import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.DialogHelper.checkAndShowPrivatePolicyDialog
 import com.cooper.wheellog.DialogHelper.checkBatteryOptimizationsAndShowAlert
 import com.cooper.wheellog.DialogHelper.checkPWMIsSetAndShowAlert
@@ -99,16 +100,17 @@ class MainActivity : AppCompatActivity() {
     private var snackbar: Snackbar? = null
     private val timeFormatter = SimpleDateFormat("HH:mm:ss ", Locale.US)
     private val speedModel: PiPView.SpeedModel by lazy { PiPView.SpeedModel() }
+    private val viewModel: BleSessionViewModel by viewModel()
     private var settingsNavHostController: NavHostController? = null
     private val bluetoothService: BluetoothService?
-        get() = WheelDataLegacy.bluetoothService
+        get() = viewModel.bluetoothService
     private var loggingService: LoggingService? = null
     inner class ServicesConnection: ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             when (componentName.className) {
                 BluetoothService::class.java.name -> {
                     val bluetoothService = (service as LocalBinder).getService()
-                    WheelDataLegacy.bluetoothService = bluetoothService
+                    viewModel.bluetoothService = bluetoothService
                     if (bluetoothService.connectionState == ConnectionState.DISCONNECTED && mDeviceAddress.isNotEmpty()) {
                         bluetoothService.wheelAddress = mDeviceAddress
                         toggleConnectToWheel()
@@ -123,8 +125,8 @@ class MainActivity : AppCompatActivity() {
         fun disconnect(componentName: ComponentName?) {
             when (componentName?.className) {
                 BluetoothService::class.java.name -> {
-                    WheelDataLegacy.bluetoothService = null
-                    WheelDataLegacy.isConnected = false
+                    viewModel.bluetoothService = null
+                    viewModel.isConnected = false
                     Timber.e("BluetoothService disconnected")
                 }
                 LoggingService::class.java.name -> {
@@ -336,7 +338,7 @@ class MainActivity : AppCompatActivity() {
                 Constants.ACTION_WHEEL_DATA_AVAILABLE -> {
                     when (appConfig.pipBlock) {
                         getString(R.string.consumption) -> speedModel.value.floatValue = Calculator.whByKm.toFloat()
-                        else -> speedModel.value.floatValue = WheelDataLegacy.speed / 10f
+                        else -> speedModel.value.floatValue = viewModel.speed / 10f
                     }
                     pipView.invalidate()
                 }
@@ -371,7 +373,7 @@ class MainActivity : AppCompatActivity() {
                         showSnackBar(R.string.bluetooth_direct_connect_failed)
                     }
                     setConnectionState(connectionState, isWheelSearch)
-                    WheelDataLegacy.isConnected =
+                    viewModel.isConnected =
                         connectionState == ConnectionState.CONNECTED
                     when (connectionState) {
                         ConnectionState.CONNECTED -> {
@@ -381,7 +383,7 @@ class MainActivity : AppCompatActivity() {
                             ) {
                                 toggleLoggingService()
                             }
-                            if (WheelDataLegacy.wheelType == WHEEL_TYPE.KINGSONG) {
+                            if (viewModel.wheelType == WHEEL_TYPE.KINGSONG) {
                                 KingsongAdapter.getInstance().requestNameData()
                             }
 
@@ -394,7 +396,7 @@ class MainActivity : AppCompatActivity() {
                                 notifications.notificationMessageId = R.string.connecting
                             }
                         } else {
-                            when (WheelDataLegacy.wheelType) {
+                            when (viewModel.wheelType) {
                                 WHEEL_TYPE.INMOTION -> {
                                     InMotionAdapter.newInstance()
                                     InmotionAdapterV2.newInstance()
@@ -432,13 +434,13 @@ class MainActivity : AppCompatActivity() {
                     if (!LoggingService.isInstanceCreated() &&
                         appConfig.startAutoLoggingWhenIsMovingMore != 0f &&
                         appConfig.autoLog &&
-                        WheelDataLegacy.speedDouble > appConfig.startAutoLoggingWhenIsMovingMore
+                        viewModel.speedDouble > appConfig.startAutoLoggingWhenIsMovingMore
                     ) {
                         toggleLoggingService()
                     }
                     if (appConfig.alarmsEnabled) {
                         checkAlarm(
-                            WheelDataLegacy.calculatedPwm / 100,
+                            viewModel.calculatedPwm / 100,
                             applicationContext
                         )
                     }
@@ -509,8 +511,8 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 Constants.NOTIFICATION_BUTTON_BEEP -> playBeep()
-                Constants.NOTIFICATION_BUTTON_LIGHT -> if (WheelDataLegacy.adapter != null) {
-                    WheelDataLegacy.adapter.switchFlashlight()
+                Constants.NOTIFICATION_BUTTON_LIGHT -> if (viewModel.adapter != null) {
+                    viewModel.adapter.switchFlashlight()
                 }
                 Constants.NOTIFICATION_BUTTON_MIBAND -> toggleSwitchMiBand()
             }
@@ -736,7 +738,7 @@ class MainActivity : AppCompatActivity() {
                 bluetoothService!!.isWheelSearch
             )
         }
-        if (WheelDataLegacy.wheelType != WHEEL_TYPE.Unknown) {
+        if (viewModel.wheelType != WHEEL_TYPE.Unknown) {
             pagerAdapter.configureSecondDisplay()
         }
         if (checkNotificationsPermissions(this)) {
@@ -814,14 +816,12 @@ class MainActivity : AppCompatActivity() {
         Timber.wtf("-=[ finish ]=-")
         onDestroyProcess = true
 
-        stopPebbleService()
-        stopGarminConnectIQ()
         stopLoggingService()
-        WheelDataLegacy.full_reset()
+        viewModel.full_reset()
         if (bluetoothService != null) {
             try {
                 unbindService(mBLEServiceConnection)
-                WheelDataLegacy.bluetoothService = null
+                viewModel.bluetoothService = null
             } catch (_: Exception) {
                 // ignored
             }
@@ -945,7 +945,7 @@ class MainActivity : AppCompatActivity() {
 
 
             R.id.miReset -> {
-                WheelDataLegacy.resetExtremumValues()
+                viewModel.resetExtremumValues()
                 showSnackBar(getString(R.string.reset_extremum_values_title))
                 true
             }
@@ -1059,28 +1059,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun stopPebbleService() {
-        if (PebbleService.isInstanceCreated()) togglePebbleService()
     }
 
-    private fun togglePebbleService() {
-        val pebbleServiceIntent = Intent(applicationContext, PebbleService::class.java)
-        if (PebbleService.isInstanceCreated()) stopService(pebbleServiceIntent) else ContextCompat.startForegroundService(
-            this,
-            pebbleServiceIntent
-        )
-    }
 
 
     private fun stopGarminConnectIQ() {
-        if (GarminConnectIQ.isInstanceCreated) toggleGarminConnectIQ()
-    }
-
-    private fun toggleGarminConnectIQ() {
-        val garminConnectIQIntent = Intent(applicationContext, GarminConnectIQ::class.java)
-        if (GarminConnectIQ.isInstanceCreated) stopService(garminConnectIQIntent) else ContextCompat.startForegroundService(
-            this,
-            garminConnectIQIntent
-        )
     }
 
     private fun toggleSwitchMiBand() {
@@ -1145,8 +1128,8 @@ class MainActivity : AppCompatActivity() {
             val mDeviceName = result.data?.getStringExtra("NAME")
             Timber.i("Device selected = %s", mDeviceName)
             bluetoothService!!.wheelAddress = mDeviceAddress
-            WheelDataLegacy.full_reset()
-            WheelDataLegacy.btName = mDeviceName
+            viewModel.full_reset()
+            viewModel.btName = mDeviceName
             pagerAdapter.updateScreen(true)
             setMenuIconStates()
             toggleConnectToWheel()

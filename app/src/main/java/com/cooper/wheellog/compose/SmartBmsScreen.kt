@@ -1,4 +1,5 @@
 package com.cooper.wheellog.compose
+import com.cooper.wheellog.ble.BleSessionViewModel
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -6,14 +7,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cooper.wheellog.WheelDataLegacy
+import com.cooper.wheellog.ble.BleSessionViewModel
 
 @Composable
 fun SmartBmsScreen() {
-    val data = remember { WheelDataLegacy }
+    val viewModel: BleSessionViewModel = koinViewModel()
 
-    val bms1 = data.bms1
-    val bms2 = data.bms2
+    val bms1 = viewModel.bms1
+    val bms2 = viewModel.bms2
 
     Column(
         modifier = Modifier

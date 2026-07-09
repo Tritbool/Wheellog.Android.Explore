@@ -76,7 +76,6 @@
     <string name="enable_alarms_title">Увімкнути попередження</string>
     <string name="enable_alarms_description">Телефон буде вібрувати під час попередження.</string>
     <string name="disable_phone_vibration_title">Відключити вібросигнал</string>
-    <string name="disable_phone_vibration_description">Телефон не буде вібрувати, але Pebble буде показуваті попередження.</string>
     <string name="speed_alarm1_phone_title">Перевищення швидкості 1</string>
     <string name="speed_trigger_description">Попередження про досягнуту швидкість</string>
     <string name="speed_alarm2_phone_title">Перевищення швидкості 2</string>
@@ -95,10 +94,6 @@
     <string name="no_chart_data">Немає даних графіку</string>
     <string name="auto_log_title">Автоматичне логування</string>
     <string name="auto_log_description">Автоматично почати запис логу після підключення колеса</string>
-    <string name="log_location_title">Місцезнаходження</string>
-    <string name="log_location_description">Додати позицію у лог.</string>
-    <string name="use_gps_title">Використовувати GPS</string>
-    <string name="use_gps_description">Використовувати дані GPS для точного пошуку локації.</string>
     <string name="on_off_strobe">Вимк./Увімк./Строб</string>
     <string name="soft_medium_hard">Плавні/Середні/Жорсткі</string>
     <string name="alarm_mode_title">Режим попередження</string>
@@ -133,21 +128,13 @@
     <string name="connection_lost_at">Підключення розірвано</string>
     <string name="devices">Пристрої</string>
     <string name="disable_phone_beep_title">Відключити звукові сповіщення</string>
-    <string name="disable_phone_beep_description">Пристрій без звуку, але буде відправляти дані на MiBand</string>
     <string name="disconnect_from_wheel">Відключитись від колеса</string>
     <string name="disconnected">Відключено</string>
     <string name="error_bluetooth_not_supported">Bluetooth не підтримується</string>
-    <string name="garmin_connectiq_enable_description">Активувати Garmin ConnectIQ</string>
-    <string name="garmin_connectiq_enable_title">Garmin ConnectIQ</string>
-    <string name="garmin_connectiq_missing_app_message">WheelLog App не встановлено на ConnectIQ.</string>
-    <string name="garmin_connectiq_service_unavailable_message">Немає доступу до сервісу ConnectIQ</string>
     <string name="icon_connection">Піктограма підключення</string>
     <string name="icon_logging">Піктограма логу</string>
     <string name="icon_watch">Піктограма годинника</string>
-    <string name="logging_error_all_location_providers_disabled">Сервіси локації вимкнено у системі. Дані будуть не точними</string>
-    <string name="logging_error_gps_disabled">Розташування запитано, але GPS вимкнений. Буде записуватися розташування через стільникову мережу</string>
     <string name="logging_error_network_disabled">Логування місця розташування через стільникову мережу увімкнено, але функція вимкнена в Android. Місце розташування не буде записуватися</string>
-    <string name="logging_error_no_location_permission">Розташування запитано, але дозвіл не наданий. Дані місця розташування не будуть записані</string>
     <string name="logging_error_no_storage_permission">Немає дозволу на запис файлів. Логи не будуть записані</string>
     <string name="logging_error_storage_unavailable">Зовнішнє сховище не доступне, логування скасовано</string>
     <string name="reset_lowest_battery_title">Скинути просадку напруги</string>
@@ -156,7 +143,6 @@
     <string name="search_for_wheel">Знайти колесо</string>
     <string name="searching">Пошук</string>
     <string name="start_data_service">Логування заборонено</string>
-    <string name="start_pebble_service">Запустити Pebble екран</string>
     <string name="stop_data_service">Зупинити логування</string>
     <string name="unknown_device">Невідомий пристрій</string>
     <string name="use_better_percents_description">Використовувати поліпшену формулу розрахунку % замість формули виробника колеса</string>
@@ -186,10 +172,6 @@
     <string name="maxcurrent">Макс. струм</string>
     <string name="maxpower">Макс. потужність</string>
     <string name="titlealarm">Перевищення!</string>
-    <string name="alarmmiband">Аларми на MiBand</string>
-    <string name="minmiband">Базове відображення на Mi Band 4/5/6/Amazfit</string>
-    <string name="medmiband">Додаткове відображення на Mi Band 4/5/6</string>
-    <string name="maxmiband">Відображення піктограм, тільки для MiBand 6/нових Amazfit</string>
     <string name="alarm_text_speed_v">[ШВИДКІСТЬ] \n  - %1$.0f к/г</string>
     <string name="alarm_text_current_v">[СТРУМ] \n  - %1$.0f A</string>
     <string name="alarm_text_temperature_v">[НАГРІВ] \n  - %1$d°C</string>
@@ -224,8 +206,6 @@
     <string name="warning_pwm_description">Попереднє попередження по PWM (0 = вимк)</string>
     <string name="warning_speed_period_title">Частота попередження</string>
     <string name="warning_speed_period_description">Як часто попереджувати, 0 - вимкнено</string>
-    <string name="auto_upload_log_ec_title">Завантажити на electro.club</string>
-    <string name="auto_upload_log_ec_description">Автоматичне завантаження логу. Потрібно увімкнути GPS.</string>
     <string name="ks18l_scaler_title">Корегування одометру 18L</string>
     <string name="ks18l_scaler_description">Якщо Ваш 18L неправильно відображає дистанцію - виберіть даний пункт</string>
     <string name="gotway_negative_title">Дзеркальний режим сили струму та напруги</string>
@@ -273,7 +253,6 @@
     <string name="beep_on_single_tap_description">Якщо тапнути по екрану - спрацює гудок</string>
     <string name="beep_on_volume_up_description">Якщо натиснути кнопки гучності - спрацює гудок</string>
     <string name="beep_on_volume_up_title">Гудок на кнопках гучності</string>
-    <string name="icon_miband">Піктограма Mi Band</string>
     <string name="notification_buttons_title">Кнопки у шторці</string>
     <string name="notifications_actions_text">Кнопки:</string>
     <string name="day_night_theme_night">Нічна тема</string>
@@ -298,11 +277,9 @@
     <string name="wheel_calibration">Калібрування колеса</string>
     <string name="power_off_message">Колесо буде вимкнено, продовжити?</string>
     <string name="wheel_calibration_message_inmo">Будь-ласка переведіть колесо в позицію паркування</string>
-    <string name="ec_choose_transport">[ec] Виберіть транспорт</string>
     <string name="private_policy_title">Політика конфиденційності</string>
     <string name="private_policy_agree">Я прочитав та погоджуюся</string>
     <string name="current_mac">MAC адреса</string>
-    <string name="log_location_pop_up">Ця програма збирає дані про місцезнаходження, щоб додавати дані GPS у логах CSV, коли WheelLog працює у фоновому режимі або коли екран вимкнено. Дані GPS не збираються при відключенні EUC.</string>
     <string name="private_policy"><![CDATA[Перед використанням програми потрібно прийняти <a href =\"https://github.com/Wheellog/Wheellog.Android/wiki/Privacy-Policy\">Політику використання</a> та <a href=\"https://github.com/Wheellog/Wheellog.Android/wiki/Terms-&-Conditions\">Загальні положення</a>]]></string>
     <string name="show_page_trips_title">Сторінка поїздок</string>
     <string name="drl_settings_title">Увімкнути DRL</string>
@@ -320,7 +297,6 @@
     <string name="notification_buttons_description">Налаштування кнопок в панелі сповіщення</string>
     <string name="notification_text_ajdm_theme">%1$.1f км/г | %2$d%% | %3$d°C | %4$.1f км</string>
     <string name="icon_light">Піктобрама ліхтарика</string>
-    <string name="miband_desc">Змінити режим Mi Band</string>
     <string name="alarm_text_pwm">PWM аларм</string>
     <string name="newton">Н*м</string>
     <string name="alarm_factor1_title">Початок PWM попередження</string>
@@ -334,8 +310,6 @@
     <string name="auto_log_when_moving_title">Автолог тільки після початку руху</string>
     <string name="remaining_distance">Залишилося пробігу</string>
     <string name="battery_per_km">Батарея за км</string>
-    <string name="trip_menu_view_map">Показати карту</string>
-    <string name="trip_menu_upload_to_ec">Завантажити на electro.club</string>
     <string name="trip_menu_share">Поділитися</string>
     <string name="trip_menu_delete_file">Видалити</string>
     <string name="trip_menu_delete_file_confirmation">Точно видалити?</string>
@@ -348,11 +322,7 @@
     <string name="continue_this_day_log_alert_description">Даний лог не буде дозаписаний, якщо Ви продовжите.</string>
     <string name="use_wheel_beep_for_alarm_title">Використовувати вбудований біпер замість аудіо</string>
     <string name="use_wheel_beep_for_alarm_description">Аларми будуть передані на вбудований біпер замість навушників/колонки</string>
-    <string name="miband_fixrs_title">Mi Band фікс для Begode RS/EX</string>
-    <string name="miband_fixrs_description">Використовувати тільки якщо є проблеми з оновленням даних на Mi Band</string>
     <string name="use_fahrenheit_title">Використовувати Фаренгейт</string>
     <string name="use_fahrenheit_description">Показувати температуру в Фаренгейті замість Цельсію</string>
     <string name="measurement_systems_category_title">Системи вимірювання</string>
-    <string name="garmin_connectiq_use_beta_title">Бета компаньон Garmin</string>
-    <string name="garmin_connectiq_use_beta_description">Використовувати бета-версію компаньона замість стабільного</string>
 </resources>

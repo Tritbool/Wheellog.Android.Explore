@@ -12,7 +12,6 @@
 	<string name="connected">Συνδέθηκε</string>
     <string name="connect_to_wheel">Σύνδεση στη Ρόδα</string>
 	<string name="disconnect_from_wheel">Αποσύνδεση από τη Ρόδα</string>
-    <string name="start_pebble_service">Έναρξη Pebble Dash</string>
     <string name="start_data_service">Εκκίνηση Καταγραφής</string>
 	<string name="stop_data_service">Λήξη Καταγραφής</string>
 	<string name="started_logging">Έναρξη καταγραφής στο</string>
@@ -51,10 +50,7 @@
 	<string name="connection_lost_at">Έγινε αποσύνδεση στις</string>
     <string name="logging_error_no_storage_permission">Δεν υπάρχει άδεια για εγγραφή σε εξωτερικό αποθηκευτικό χώρο. Η καταγραφή ακυρώθηκε.</string>
 	<string name="logging_error_storage_unavailable">Η εξωτερική αποθήκευση δεν είναι διαθέσιμη. Η καταγραφή ακυρώθηκε.</string>
-	<string name="logging_error_no_location_permission">Η τοποθεσία της καταγραφής ζητήθηκε, αλλά δεν δόθηκε άδεια για τα δεδομένα τοποθεσίας. Δεν θα καταγραφούν δεδομένα τοποθεσίας.</string>
-	<string name="logging_error_gps_disabled">Η καταχώρηση τοποθεσίας με χρήση του GPS ζητήθηκε, αλλά το GPS είναι απενεργοποιημένο. Η τοποθεσία θα καταγράφεται χρησιμοποιώντας στοιχεία κυψελοειδούς δικτύου (GSM).</string>
 	<string name="logging_error_network_disabled">Η καταγραφή τοποθεσίας με χρήση κυψελοειδούς δικτύου (GSM) ζητήθηκε, αλλά ο συγκεκριμένος πάροχος τοποθεσίας είναι απενεργοποιημένος. Δεν θα καταγραφούν δεδομένα τοποθεσίας.</string>
-	<string name="logging_error_all_location_providers_disabled">Η τοποθεσία έχει απενεργοποιηθεί στο Android. Δεν θα καταγραφούν δεδομένα τοποθεσίας.</string>
 	<string name="alarm_text_speed">Ο συναγερμός ταχύτητας ενεργοποιήθηκε</string>
 	<string name="alarm_text_current">Ο συναγερμός ισχύος ενεργοποιήθηκε</string>
 	<string name="alarm_text_temperature">Ο συναγερμός θερμοκρασίας ενεργοποιήθηκε</string>
@@ -64,18 +60,12 @@
     // LOG PREFERENCES
     // SPEED PREFERENCES
     // WATCH PREFERENCES
-	<string name="garmin_connectiq_enable_title">Garmin ConnectIQ</string>
-	<string name="garmin_connectiq_enable_description">Ενεργοποιήστε τη δυνατότητα σύνδεσης Garmin ConnectIQ</string>
-    // Garmin ConnectIQ dialogs
-	<string name="garmin_connectiq_missing_app_message">Η εφαρμογή WheelLog που χρησιμοποιείται με αυτήν την εφαρμογή δεν είναι εγκατεστημένη στη συσκευή σας ConnectIQ. Εγκαταστήστε το γραφικό στοιχείο και δοκιμάστε ξανά.</string>
-	<string name="garmin_connectiq_service_unavailable_message">Η υπηρεσία ConnectIQ δεν είναι διαθέσιμη.</string>
 	// TRIP PREFERENCES
 	<string name="kmh">km/h</string>
 	<string name="mph">mph</string>
 	<string name="km">km</string>
 	<string name="miles">mi</string>
 	<string name="horn_mode_title">Λειτουργία Κόρνας</string>
-	<string name="horn_mode_description">Εκτελείται όταν πατηθεί το κουμπί επιλογής στο ρολόι Pebble</string>
 	<string name="tilt_back_description">Ταχύτητα απόκλισης</string>
 	<string name="max_speed_title">Μέγιστη ταχύτητα</string>
 	<string name="alert1_title">1η ταχύτητα ειδοποίησης</string>
@@ -136,10 +126,6 @@
 	<string name="no_chart_data">Δεν υπάρχουν διαθέσιμα δεδομένα</string>
 	<string name="auto_log_title">Αυτόματη Καταγραφή</string>
 	<string name="auto_log_description">Αρχίστε την καταγραφή αυτόματα όταν συνδέεται μια ρόδα</string>
-    <string name="log_location_title">Τοποθεσία Καταγραφής</string>
-	<string name="log_location_description">Συμπεριλάβετε δεδομένα θέσης μέσα στα αρχεία καταγραφής</string>
-	<string name="use_gps_title">Χρησιμοποιήστε GPS για τοποθεσία</string>
-	<string name="use_gps_description">Χρησιμοποιήστε το GPS για την τοποθεσία αντί για τον πάροχο δικτύου. Το GPS είναι πιο ακριβές, αλλά μπορεί να καταναλώσει περισσότερη ενέργεια από την μπαταρία</string>
 	<string name="on_off_strobe">Ενεργό/Ανενεργό/Ενάλλαξη</string>
 	<string name="soft_medium_hard">Μαλακό / Μεσαίο / Σκληρό</string>
     <string name="alarm_mode_title">Λειτουργία Συναγερμού</string>

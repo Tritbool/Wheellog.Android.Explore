@@ -12,7 +12,6 @@
 	<string name="connected">Conectado</string>
     <string name="connect_to_wheel">Conectar a la rueda</string>
 	<string name="disconnect_from_wheel">Desconectar de la rueda</string>
-    <string name="start_pebble_service">Iniciar servicios pebble.</string>
     <string name="start_data_service">Iniciar datos</string>
 	<string name="stop_data_service">Detener datos</string>
 	<string name="started_logging">Iniciar registro</string>
@@ -51,10 +50,7 @@
 	<string name="connection_lost_at">Conexion perdida.</string>
     <string name="logging_error_no_storage_permission">Error de registro, sin permiso de almacenamiento.</string>
 	<string name="logging_error_storage_unavailable">Error de registro, sin espacio para almacenamiento.</string>
-	<string name="logging_error_no_location_permission">Error de registro, sin permiso de ubicación.</string>
-	<string name="logging_error_gps_disabled">Error de registro, GPS desactivado.</string>
 	<string name="logging_error_network_disabled">Error de registro, red deshabilitada.</string>
-	<string name="logging_error_all_location_providers_disabled">Error de registro, todos los proveedores de ubicación deshabilitados.</string>
 	<string name="alarm_text_speed">Alarma de velocidad</string>
 	<string name="alarm_text_current">Alarma de corriente</string>
 	<string name="alarm_text_temperature">Alarma de temperatura</string>
@@ -64,18 +60,12 @@
     // LOG PREFERENCES
     // SPEED PREFERENCES
     // WATCH PREFERENCES
-	<string name="garmin_connectiq_enable_title">Garmin ConnectIQ</string>
-	<string name="garmin_connectiq_enable_description">Habilitar conectividad a Garmin ConnectIQ</string>
-    // Garmin ConnectIQ dialogs
-	<string name="garmin_connectiq_missing_app_message">La aplicación WheelLog utilizada con esta aplicación no está instalada en su dispositivo ConnectIQ. Instale el widget e intente nuevamente.</string>
-	<string name="garmin_connectiq_service_unavailable_message">El servicio ConnectIQ no está disponible.</string>
 	// TRIP PREFERENCES
 	<string name="kmh">km/h</string>
 	<string name="mph">mph</string>
 	<string name="km">km</string>
 	<string name="miles">mi</string>
 	<string name="horn_mode_title">Modo de bocina</string>
-	<string name="horn_mode_description">Se ejecuta cuando se presiona el botón de selección en el reloj Pebble.</string>
 	<string name="tilt_back_description">Velocidad maxima</string>
 	<string name="max_speed_title">Velocidad máxima</string>
 	<string name="alert1_title">1a velocidad de alerta</string>
@@ -136,10 +126,6 @@
 	<string name="no_chart_data">Datos no disponibles</string>
 	<string name="auto_log_title">Registro automatico.</string>
 	<string name="auto_log_description">Comience a registrar tan pronto como el rueda se conecte.</string>
-    <string name="log_location_title">Registrar información de ubicación.</string>
-	<string name="log_location_description">Incluir datos de ubicación dentro de los registros.</string>
-	<string name="use_gps_title">Usar GPS para localización.</string>
-	<string name="use_gps_description">Utilice el GPS en lugar de la información de ubicación del operador móvil. El GPS es más preciso pero puede consumir más batería del teléfono.</string>
 	<string name="on_off_strobe">OOn/Off/Parpadeo</string>
 	<string name="soft_medium_hard">Suave/Normal/Sport</string>
     <string name="alarm_mode_title">Modo de alarma</string>

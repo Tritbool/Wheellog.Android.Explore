@@ -12,7 +12,6 @@
 	<string name="connected">Свързан</string>
     <string name="connect_to_wheel">Свържи се с колелото</string>
 	<string name="disconnect_from_wheel">Откачи се от колелото</string>
-    <string name="start_pebble_service">Стартирай Pebble Dash</string>
     <string name="start_data_service">Стартирай лога</string>
 	<string name="stop_data_service">Спри лога</string>
 	<string name="started_logging">Започни лог към</string>
@@ -51,10 +50,7 @@
 	<string name="connection_lost_at">Връзката прекратена</string>
     <string name="logging_error_no_storage_permission">Нямам разрешение за запис във външното пространство. Прекратявам лога.</string>
 	<string name="logging_error_storage_unavailable">Външното пространство е недостъпно. Прекратявам лога.</string>
-	<string name="logging_error_no_location_permission">Беше изискан запис на локацията, но липсват права за достъп до нея. Никакви координати няма да бъдат записани.</string>
-	<string name="logging_error_gps_disabled">Беше изискан GPS лог, но GPS-а е изключен. Локацията ще се записва използвайки данни от мобилната мрежа.</string>
 	<string name="logging_error_network_disabled">Беше изискан запис на локация чрез данни от мобилната мрежа, но те са недостъпни. Никакви координати няма да бъдат записани.</string>
-	<string name="logging_error_all_location_providers_disabled">Локацията е изключена от настройките на Андроид. Никакви координати няма да бъдат записани.</string>
 	<string name="alarm_text_speed">Задействана аларма за скорост</string>
 	<string name="alarm_text_current">Задействана аларма за ток</string>
 	<string name="alarm_text_temperature">Задействана аларма за температура</string>
@@ -64,18 +60,12 @@
     // LOG PREFERENCES
     // SPEED PREFERENCES
     // WATCH PREFERENCES
-	<string name="garmin_connectiq_enable_title">Garmin ConnectIQ</string>
-	<string name="garmin_connectiq_enable_description">Активиране на свързването с Garmin ConnectIQ</string>
-    // Garmin ConnectIQ dialogs
-	<string name="garmin_connectiq_missing_app_message">Приложението WheelLog, използвано с това приложение, не е инсталирано на вашето ConnectIQ устройство. Моля, инсталирайте джаджа и опитайте отново.</string>
-	<string name="garmin_connectiq_service_unavailable_message">The ConnectIQ service не е достъпна.</string>
 	// TRIP PREFERENCES
 	<string name="kmh">км/ч</string>
 	<string name="mph">mph</string>
 	<string name="km">км</string>
 	<string name="miles">mi</string>
 	<string name="horn_mode_title">Режим на клаксона</string>
-	<string name="horn_mode_description">Изпълнява се щом определения бутон на Pebble watch е натиснат</string>
 	<string name="tilt_back_description">Tiltback скорост</string>
 	<string name="max_speed_title">Максимална скорост</string>
 	<string name="alert1_title">1-ва скорост на сигнала</string>
@@ -136,10 +126,6 @@
 	<string name="no_chart_data">Няма данни</string>
 	<string name="auto_log_title">Автоматичен Лог</string>
 	<string name="auto_log_description">Започни да логваш автоматично, щом се свържеш към колелото</string>
-    <string name="log_location_title">Запис на Локация</string>
-	<string name="log_location_description">Включвай данни за локация в лога</string>
-	<string name="use_gps_title">Използвай GPS за локализация</string>
-	<string name="use_gps_description">Използвай GPS за локализация вместо мобилния оператор. GPS е по-точен но може да консумира повече батерия</string>
 	<string name="on_off_strobe">Вкл/Изкл/Строб</string>
 	<string name="soft_medium_hard">Меки/Средни/Твърди</string>
     <string name="alarm_mode_title">Алармен режим</string>

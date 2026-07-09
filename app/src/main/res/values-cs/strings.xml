@@ -12,7 +12,6 @@
 	<string name="connected">Připojeno</string>
     <string name="connect_to_wheel">Připojit k jednokolce</string>
 	<string name="disconnect_from_wheel">Odpojit od jednokolky</string>
-    <string name="start_pebble_service">Zapnout Pebble Dash</string>
     <string name="start_data_service">Zapnout záznam</string>
 	<string name="stop_data_service">Zastavit záznam</string>
 	<string name="started_logging">Zaznamenávám do</string>
@@ -51,10 +50,7 @@
 	<string name="connection_lost_at">Spojení ztraceno</string>
     <string name="logging_error_no_storage_permission">Přístup k uložišti zamítnut. Záznam vypnut.</string>
 	<string name="logging_error_storage_unavailable">Uložiště není dostupné. Záznam vypnut.</string>
-	<string name="logging_error_no_location_permission">Záznam polohy byl nastaven, ale povolení k přistupu k poloze nebylo uděleno. Poloha nebude zaznamenávána.</string>
-	<string name="logging_error_gps_disabled">Záznam polohy pomocí GPS byl nastaven, ale GPS je vypnutá. Poloha pro záznam bude určena pomocí mobilní sítě.</string>
 	<string name="logging_error_network_disabled">Záznam polohy pomocí GSM byl nastaven, ale v nastavení systému zařízení není povolen. Poloha nebude zaznamenávána.</string>
-	<string name="logging_error_all_location_providers_disabled">Určení polohy je vypnuté v systému Android. Poloha nebude zaznamenávána.</string>
 	<string name="alarm_text_speed">Rychlost byla překročena!</string>
 	<string name="alarm_text_current">Proud byl překročen!</string>
 	<string name="alarm_text_temperature">Teplota byla překročena!</string>
@@ -64,18 +60,12 @@
     // LOG PREFERENCES
     // SPEED PREFERENCES
     // WATCH PREFERENCES
-	<string name="garmin_connectiq_enable_title">Garmin ConnectIQ</string>
-	<string name="garmin_connectiq_enable_description">Povolit připojení k Garmin ConnectIQ</string>
-    // Garmin ConnectIQ dialogs
-	<string name="garmin_connectiq_missing_app_message">Aplikace WheelLog použitá v této aplikaci není na vašem zařízení ConnectIQ nainstalována. Nainstalujte si widget a zkuste to znovu.</string>
-	<string name="garmin_connectiq_service_unavailable_message">Služba ConnectIQ není k dispozici.</string>
 	// TRIP PREFERENCES
 	<string name="kmh">km/h</string>
 	<string name="mph">mph</string>
 	<string name="km">km</string>
 	<string name="miles">mi</string>
 	<string name="horn_mode_title">Mód zvonku</string>
-	<string name="horn_mode_description">Zvonit při stisku tlačítka SELECT na Pebble</string>
 	<string name="tilt_back_description">Rychlost, při které je aktivován tilt-back</string>
 	<string name="max_speed_title">Maximální rychlost</string>
 	<string name="alert1_title">1 Rychlost výstrahy</string>
@@ -136,10 +126,6 @@
 	<string name="no_chart_data">Nejsou k dispozici žádná data</string>
 	<string name="auto_log_title">Automatické zaznamenávání</string>
 	<string name="auto_log_description">Záznam započne automaticky po připojení jednokolky</string>
-    <string name="log_location_title">Záznam polohy</string>
-	<string name="log_location_description">V rámci záznamu zahrň i polohu</string>
-	<string name="use_gps_title">Použití GPS pro určení polohy</string>
-	<string name="use_gps_description">Použij GPS místo určení polohy pomocí mobilní sítě. Je to přesnější, ale náročnější na baterii.</string>
 	<string name="on_off_strobe">Off/On/Blikání</string>
 	<string name="soft_medium_hard">Měkké/Normální/Tvrdé</string>
     <string name="alarm_mode_title">Mód upozornění</string>

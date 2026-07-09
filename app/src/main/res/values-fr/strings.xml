@@ -12,7 +12,6 @@
 	<string name="connected">Connecté</string>
     <string name="connect_to_wheel">Se connecter à la roue</string>
 	<string name="disconnect_from_wheel">Déconnecté par la roue</string>
-    <string name="start_pebble_service">Démarrage Pebble Dash</string>
     <string name="start_data_service">Démarrage du journal</string>
 	<string name="stop_data_service">Arrêt du journal</string>
 	<string name="started_logging">Début du journal vers</string>
@@ -51,10 +50,7 @@
 	<string name="connection_lost_at">Perte de connexion</string>
     <string name="logging_error_no_storage_permission">Ecriture impossible sur le stockage externe. Journalisation annulée.</string>
 	<string name="logging_error_storage_unavailable">Stockage externe indisponible. Journalisation annulée.</string>
-	<string name="logging_error_no_location_permission">Utilisation des données de localisation non fournie. Aucune donnée de localisation ne sera enregistrée.</string>
-	<string name="logging_error_gps_disabled">Le GPS est désactivé. Utilisation et enregistrement des données de localisation via le réseau mobile téléphonique.</string>
 	<string name="logging_error_network_disabled">La réception des données de localisation via le réseau mobile téléphonique est désactivée. Aucune donnée de localisation ne sera enregistrée.</string>
-	<string name="logging_error_all_location_providers_disabled">La localisation est désactivée dans android. Aucune donnée de localisation ne sera enregistrée.</string>
 	<string name="alarm_text_speed">Alarme de vitesse signalée</string>
 	<string name="alarm_text_current">Alarme de courant signalée</string>
 	<string name="alarm_text_temperature">Alarme de température signalée</string>
@@ -64,18 +60,12 @@
     // LOG PREFERENCES
     // SPEED PREFERENCES
     // WATCH PREFERENCES
-	<string name="garmin_connectiq_enable_title">Garmin ConnectIQ</string>
-	<string name="garmin_connectiq_enable_description">Activer la connectivité à Garmin ConnectIQ</string>
-    // Garmin ConnectIQ dialogs
-	<string name="garmin_connectiq_missing_app_message">L\'application WheelLog utilisée avec cette application n\'est pas installée sur votre appareil ConnectIQ. S\'il vous plaît installer le widget et essayez à nouveau.</string>
-	<string name="garmin_connectiq_service_unavailable_message">Le service ConnectIQ est indisponible.</string>
 	// TRIP PREFERENCES
 	<string name="kmh">km/h</string>
 	<string name="mph">mph</string>
 	<string name="km">km</string>
 	<string name="miles">mi</string>
 	<string name="horn_mode_title">Mode de l\'avertisseur</string>
-	<string name="horn_mode_description">Executé quand le bouton sélection de la montre Pebble watch est appuyé</string>
 	<string name="tilt_back_description">Vitesse de Tiltback</string>
 	<string name="max_speed_title">Vitesse Max</string>
 	<string name="alert1_title">1ère vitesse d\'alerte</string>
@@ -136,10 +126,6 @@
 	<string name="no_chart_data">Pas de données disponibles</string>
 	<string name="auto_log_title">Journalisation automatique</string>
 	<string name="auto_log_description">Démarrer la journalisation dès qu\'une roue est connectée</string>
-    <string name="log_location_title">Journaliser les informations de localisation</string>
-	<string name="log_location_description">Ajout des données de localisation dans le journal</string>
-	<string name="use_gps_title">Utilisation du GPS pour la localisation</string>
-	<string name="use_gps_description">Utiliser plutôt le GPS que les informations de localisation de l\'opérateur mobile. Le GPS est plus précis mais peut consommer plus la batterie du téléphone</string>
 	<string name="on_off_strobe">Off/On/Stroboscope</string>
 	<string name="soft_medium_hard">Souple/Normal/Dur</string>
     <string name="alarm_mode_title">Mode de l\'alarme</string>

@@ -12,7 +12,6 @@
 	<string name="connected">Verbunden</string>
     <string name="connect_to_wheel">Verbinde mit dem Rad</string>
 	<string name="disconnect_from_wheel">Unterbreche Verbindung zum Rad</string>
-    <string name="start_pebble_service">Starte Pebble Dash</string>
     <string name="start_data_service">Starte Logging</string>
 	<string name="stop_data_service">Stop Logging</string>
 	<string name="started_logging">Starte logging auf</string>
@@ -51,10 +50,7 @@
 	<string name="connection_lost_at">Verbindug unterbrochen</string>
     <string name="logging_error_no_storage_permission">Schreiberlaubnis für den externent Speicher fehlt. Logging beendet.</string>
 	<string name="logging_error_storage_unavailable">Kein externer Speicher verfügbar. Logging beendet.</string>
-	<string name="logging_error_no_location_permission">Standortaufzeichnung wurde angefordert aber Standortrechte fehlen. Standorddaten können nicht aufgezeichnet werden.</string>
-	<string name="logging_error_gps_disabled">GPS-Standortaufzeichnung wurde angefordert aber das GPS ist nicht aktiv. Standortbestimmung wird durch das Mobilnetz durchgeführt.</string>
 	<string name="logging_error_network_disabled">Standortaufzeichnung durch Mobilnetz wurde angefordert, diese Methode der Standortbestimmung ist aber deaktiviert. Standorddaten können nicht aufgezeichnet werden.</string>
-	<string name="logging_error_all_location_providers_disabled">Android Standortbestimmung ist  deaktiviert. Standorddaten können nicht aufgezeichnet werden.</string>
 	<string name="alarm_text_speed">Geschwindigkeitsalarm ausgelöst</string>
 	<string name="alarm_text_current">Stromalarm ausgelöst</string>
 	<string name="alarm_text_temperature">Temperaturalarm ausgelöst</string>
@@ -64,18 +60,12 @@
     // LOG PREFERENCES
     // SPEED PREFERENCES
     // WATCH PREFERENCES
-	<string name="garmin_connectiq_enable_title">Garmin ConnectIQ</string>
-	<string name="garmin_connectiq_enable_description">Aktivieren Sie die Konnektivität zu Garmin ConnectIQ</string>
-    // Garmin ConnectIQ dialogs
-	<string name="garmin_connectiq_missing_app_message">Die mit dieser Anwendung verwendete WheelLog-App ist nicht auf Ihrem ConnectIQ-Gerät installiert. Bitte installieren Sie das Widget und versuchen Sie es erneut.</string>
-	<string name="garmin_connectiq_service_unavailable_message">Der ConnectIQ-Dienst ist nicht verfügbar.</string>
 	// TRIP PREFERENCES
 	<string name="kmh">km/h</string>
 	<string name="mph">mph</string>
 	<string name="km">km</string>
 	<string name="miles">mi</string>
 	<string name="horn_mode_title">Hornmodus</string>
-	<string name="horn_mode_description">Wird ausgeführt wenn der Auswahl-Knopf der Pebble-Watch gedrückt wird</string>
 	<string name="tilt_back_description">Tiltback Geschwindigkeit</string>
 	<string name="max_speed_title">Max. Geschwindigkeit</string>
 	<string name="alert1_title">1 Alarmgeschwindigkeit</string>
@@ -136,10 +126,6 @@
 	<string name="no_chart_data">Keine Daten verfügbar</string>
 	<string name="auto_log_title">Auto Log</string>
 	<string name="auto_log_description">Logging nach Verbindung zum Rad automatisch beginnen</string>
-    <string name="log_location_title">Standortlogs</string>
-	<string name="log_location_description">Standort loggen</string>
-	<string name="use_gps_title">GPS zur Ortsbestimmung</string>
-	<string name="use_gps_description">Benutzt das GPS und nicht das Mobilnetz zur Ortsbestimmung. Diese Methode ist genauer aber verbraucht mehre Energie</string>
 	<string name="on_off_strobe">An/Aus/Stroboskop</string>
 	<string name="soft_medium_hard">Sanft/Mittel/Hard</string>
     <string name="alarm_mode_title">Alarmmodus</string>

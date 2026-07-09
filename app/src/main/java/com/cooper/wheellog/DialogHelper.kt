@@ -1,7 +1,6 @@
 package com.cooper.wheellog
 import com.cooper.wheellog.ble.BleSessionViewModel
 
-//import com.yandex.metrica.YandexMetrica
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
@@ -265,8 +264,6 @@ object DialogHelper : KoinComponent {
         }
         binding.okButton.setOnClickListener {
             appConfig.privatePolicyAccepted = true
-            appConfig.yandexMetricaAccepted = binding.agreeWithMetrica.isChecked
-//            YandexMetrica.setStatisticsSending(
 //                mainActivity.applicationContext,
 //                binding.agreeWithMetrica.isChecked
 //            )

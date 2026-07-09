@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
-import com.wheellog.shared.WearPage
 import org.koin.compose.koinInject
 import java.util.EnumSet
 
@@ -16,17 +15,6 @@ import java.util.EnumSet
 fun watchScreen(appConfig: AppConfig = koinInject()) {
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState())
-    ) {
-        group(name = stringResource(R.string.watch_wearos_group_title)) {
-            multiList(
-                name = stringResource(R.string.wearos_pages_title),
-                desc = stringResource(R.string.wearos_pages_description),
-                entries = WearPage.values().associate { it.name to it.name },
-                defaultKeys = appConfig.wearOsPages.map { it.name },
-                showDiv = false,
-            ) { list ->
-                EnumSet.copyOf(list.map { WearPage.valueOf(it) }).also { enumSet ->
-                    appConfig.wearOsPages = enumSet
                 }
             }
         }

@@ -282,36 +282,6 @@ object Alarms: KoinComponent {
             }
         }
         mContext.sendBroadcast(intent)
-        if (appConfig.mibandMode === MiBandEnum.Alarm) {
-            val miText: String = when (alarmType) {
-                ALARM_TYPE.SPEED1,
-                ALARM_TYPE.SPEED2,
-                ALARM_TYPE.SPEED3,
-                ALARM_TYPE.PWM ->
-                    String.format(
-                        Locale.US,
-                        mContext.getString(R.string.alarm_text_speed_v),
-                        viewModel.speedDouble
-                    )
-                ALARM_TYPE.CURRENT ->
-                    String.format(
-                        Locale.US,
-                        mContext.getString(R.string.alarm_text_current_v),
-                        viewModel.currentDouble
-                    )
-                ALARM_TYPE.TEMPERATURE ->
-                    String.format(
-                        Locale.US,
-                        mContext.getString(R.string.alarm_text_temperature_v),
-                        viewModel.temperature
-                    )
-                ALARM_TYPE.BATTERY ->
-                    String.format(
-                        Locale.US,
-                        mContext.getString(R.string.alarm_text_battery_v),
-                        viewModel.batteryLevel
-                    )
-                ALARM_TYPE.WHEEL ->
                     String.format(
                             Locale.US,
                             mContext.getString(R.string.alarm_text_wheel_v)

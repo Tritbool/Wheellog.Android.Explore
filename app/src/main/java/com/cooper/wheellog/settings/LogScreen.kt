@@ -182,54 +182,10 @@ fun logScreen(appConfig: AppConfig = koinInject())
         }
 
         AnimatedVisibility (locationDependency && gpsDependency.value) {
-            val autoUploadDependency = remember { mutableStateOf(appConfig.autoUploadEc) }
-            Column {
-                switchPref(
-                    name = stringResource(R.string.auto_upload_log_ec_title),
-                    desc = stringResource(R.string.auto_upload_log_ec_description),
-                    defaultState = autoUploadDependency,
-                ) {
-                    appConfig.autoUploadEc = it
-                    autoUploadDependency.value = it
-                    if (!it) {
-                        ElectroClub.instance.logout()
-                    }
                 }
 
-                if (autoUploadDependency.value && viewModel.isConnected) {
-                    val activity = LocalContext.current as Activity
-                    clickablePref(
-                        name = stringResource(R.string.select_garage_ec_title),
-                        desc = appConfig.ecGarage ?: "",
-                    ) {
-                        appConfig.ecGarage = null
-                        ElectroClub.instance.getAndSelectGarageByMacOrShowChooseDialog(
-                            mac = "",
-                            activity = activity,
-                        ) { }
-                    }
                 }
 
-                if (autoUploadDependency.value && appConfig.ecToken == null) {
-                    loginAlertDialog(
-                        title = "electro.club",
-                        onDismiss = {
-                            autoUploadDependency.value = false
-                            appConfig.autoUploadEc = false
-                        },
-                    ) { login, password ->
-                        suspendCoroutine { continuation ->
-                            ElectroClub.instance.login(
-                                email = login,
-                                password = password,
-                            ) { success ->
-                                val errorMessage = ElectroClub.instance.lastError ?: ""
-                                if (success) {
-                                    ElectroClub.instance.getAndSelectGarageByMacOrShowChooseDialog(
-                                        viewModel.mac,
-                                        context as Activity
-                                    ) { }
-                                }
                                 continuation.resume(Pair(success, errorMessage))
                             }
                         }

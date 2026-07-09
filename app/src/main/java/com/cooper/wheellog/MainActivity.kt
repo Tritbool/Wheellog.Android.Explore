@@ -62,7 +62,6 @@ import io.github.tritbool.euc.ble.core.BLEConstants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-// import com.yandex.metrica.YandexMetrica
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
@@ -90,7 +89,6 @@ class MainActivity : AppCompatActivity() {
     var mMenu: Menu? = null
     private var miSearch: MenuItem? = null
     private var miWheel: MenuItem? = null
-    private var miBand: MenuItem? = null
     private var miLogging: MenuItem? = null
     private var mBluetoothAdapter: BluetoothAdapter? = null
     private var doubleBackToExitPressedOnce = false

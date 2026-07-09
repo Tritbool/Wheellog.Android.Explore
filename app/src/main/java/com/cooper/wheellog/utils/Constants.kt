@@ -27,7 +27,6 @@ object Constants {
     const val NOTIFICATION_BUTTON_WATCH = "com.cooper.wheellog.notificationWatchButton"
     const val NOTIFICATION_BUTTON_BEEP = "com.cooper.wheellog.notificationBeepButton"
     const val NOTIFICATION_BUTTON_LIGHT = "com.cooper.wheellog.notificationLightButton"
-    const val NOTIFICATION_BUTTON_MIBAND = "com.cooper.wheellog.notificationMiBandButton"
     const val NOTIFICATION_CHANNEL_ID_NOTIFICATION = "com.cooper.wheellog.Channel_Notification"
     const val notificationChannelName = "Notify"
     const val notificationChannelDescription = "Default Notify"

@@ -503,12 +503,8 @@ fun applicationScreen(
             }
 
             switchPref(
-                name = stringResource(R.string.send_yandex_metriсa_title),
-                desc = stringResource(R.string.send_yandex_metriсa_description),
-                default = appConfig.yandexMetricaAccepted,
                 showDiv = false,
             ) {
-                appConfig.yandexMetricaAccepted = it
             }
         }
     }

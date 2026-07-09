@@ -19,14 +19,10 @@ class WheelLog : Application() {
         }
         // WheelData.initiate() - REMOVED: Migration to BleSessionViewModel
 
-        // YandexMetrica.
 //        if (BuildConfig.metrica_api.isNotEmpty()) {
-//            val config = YandexMetricaConfig
 //                .newConfigBuilder(BuildConfig.metrica_api)
 //                .withLocationTracking(false)
-//                .withStatisticsSending(AppConfig.yandexMetricaAccepted)
 //                .build()
-//            YandexMetrica.activate(applicationContext, config)
 //        }
     }
 

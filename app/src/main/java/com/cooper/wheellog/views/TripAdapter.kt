@@ -89,24 +89,7 @@ class TripAdapter(var context: Context, private var tripModels: ArrayList<TripMo
         private val appConfig: AppConfig by inject()
         private val context = itemBinding.root.context
 
-        private fun uploadToEc(tripModel: TripModel) {
-            val inputStream =
-                get<Context>().contentResolver.openInputStream(tripModel.uri)
-            if (inputStream == null) {
-                Timber.i("Failed to create inputStream for %s", tripModel.title)
-            } else {
-                val data = ByteStreams.toByteArray(inputStream)
-                inputStream.close()
-                ElectroClub.instance.uploadTrack(data, tripModel.title, false) { }
-            }
-        }
 
-        private fun showTrackEc(trackIdInEc: Int) {
-            if (trackIdInEc != -1) {
-                val browserIntent = Intent(Intent.ACTION_VIEW, ElectroClub.instance.getUrlFromTrackId(trackIdInEc))
-                context.startActivity(browserIntent, Bundle.EMPTY)
-            }
-        }
 
         private fun share(tripModel: TripModel) {
             val sendIntent: Intent = Intent().apply {
@@ -256,19 +239,8 @@ class TripAdapter(var context: Context, private var tripModels: ArrayList<TripMo
             }) {
                 setDescFromDb(trip)
                 val wrapper = ContextThemeWrapper(context, R.style.OriginalTheme_PopupMenuStyle)
-                val ecAvailable = appConfig.ecToken != null
                 val popupMenu = PopupMenu(wrapper,  itemBinding.popupButton).apply {
                     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-                        menu.add(0, 0, 0, R.string.trip_menu_upload_to_ec).apply {
-                            icon =
-                                context.getDrawable(ThemeManager.getId(ThemeIconEnum.TripsUpload))
-                            isVisible = trackIdInEc == -1 && ecAvailable
-                        }
-                        menu.add(0, 1, 1, R.string.trip_menu_open_in_ec).apply {
-                            icon =
-                                context.getDrawable(ThemeManager.getId(ThemeIconEnum.TripsOpenEc))
-                            isVisible = trackIdInEc != -1 && ecAvailable
-                        }
                         menu.add(0, 2, 2, R.string.trip_menu_share).icon =
                             context.getDrawable(ThemeManager.getId(ThemeIconEnum.TripsShare))
                         menu.add(0, 3, 3, R.string.trip_menu_delete_file).icon =
@@ -276,10 +248,8 @@ class TripAdapter(var context: Context, private var tripModels: ArrayList<TripMo
                     }
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
-                            0 -> uploadToEc(tripModel)
-                            1 -> showTrackEc(trackIdInEc)
-                            2 -> share(tripModel)
-                            3 -> deleteFile(tripModel, adapter)
+                            0 -> share(tripModel)
+                            1 -> deleteFile(tripModel, adapter)
                         }
                         return@setOnMenuItemClickListener false
                     }

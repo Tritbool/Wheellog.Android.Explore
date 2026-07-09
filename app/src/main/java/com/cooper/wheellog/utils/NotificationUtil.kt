@@ -67,7 +67,6 @@ class NotificationUtil(private val context: Context): KoinComponent {
                 Triple(R.id.ib_watch, R.string.icon_watch, Constants.NOTIFICATION_BUTTON_WATCH),
                 Triple(R.id.ib_beep, R.string.icon_beep, Constants.NOTIFICATION_BUTTON_BEEP),
                 Triple(R.id.ib_light, R.string.icon_light, Constants.NOTIFICATION_BUTTON_LIGHT),
-                Triple(R.id.ib_mi_band, R.string.icon_miband, Constants.NOTIFICATION_BUTTON_MIBAND)
         ).forEach {
             notificationView.setViewVisibility(it.first,
                     if (buttonSettings.contains(context.getString(it.second))) View.VISIBLE
@@ -87,7 +86,6 @@ class NotificationUtil(private val context: Context): KoinComponent {
         notificationView.setTextViewText(R.id.text_title, context.getString(R.string.app_name))
         notificationView.setTextViewText(R.id.ib_actions_text, context.getString(R.string.notifications_actions_text))
         if (connectionState == ConnectionState.CONNECTED || distance + temperature + batteryLevel + speed > 0) {
-            if (appConfig.mibandMode == MiBandEnum.Alarm) {
                 notificationView.setTextViewText(R.id.text_message, context.getString(R.string.alarmmiband))
             } else {
                 val template = when (appConfig.appTheme) {
@@ -101,12 +99,6 @@ class NotificationUtil(private val context: Context): KoinComponent {
             notificationView.setTextViewText(R.id.text_title, title)
         }
 
-        notificationView.setImageViewResource(R.id.ib_mi_band,
-                when (appConfig.mibandMode) {
-                    MiBandEnum.Alarm -> ThemeManager.getId(ThemeIconEnum.MenuMiBandAlarm)
-                    MiBandEnum.Min -> ThemeManager.getId(ThemeIconEnum.MenuMiBandMin)
-                    MiBandEnum.Medium -> ThemeManager.getId(ThemeIconEnum.MenuMiBandMed)
-                    MiBandEnum.Max -> ThemeManager.getId(ThemeIconEnum.MenuMiBandMax)
                 })
         // Themes
         if (appConfig.appTheme == R.style.AJDMTheme) {
@@ -146,15 +138,10 @@ class NotificationUtil(private val context: Context): KoinComponent {
                 else
                     title)
 
-        when (appConfig.mibandMode) {
-            MiBandEnum.Alarm -> {
                 builder.setContentTitle(context.getString(R.string.titlealarm))
                     .setContentText(alarmText)
                 alarmText = ""
             }
-            MiBandEnum.Min -> builder.setContentText(context.getString(R.string.notification_text_min, speed, wd.topSpeedDouble, wd.batteryLevel, wd.distanceDouble))
-            MiBandEnum.Medium -> builder.setContentText(context.getString(R.string.notification_text_med, speed, wd.averageSpeedDouble, wd.calculatedPwm, wd.batteryLevel, wd.temperature, wd.distanceDouble))
-            MiBandEnum.Max -> builder.setContentText(context.getString(R.string.notification_text_max, speed, wd.topSpeedDouble, wd.averageSpeedDouble, wd.batteryLevel, wd.voltageDouble, wd.powerDouble, wd.temperature, wd.distanceDouble))
         }
 
         buildIsSucceed = true
@@ -200,7 +187,6 @@ class NotificationUtil(private val context: Context): KoinComponent {
                             kostilTimer = null
                             return
                         }
-                        if (appConfig.mibandMode != MiBandEnum.Alarm && wd.speedDouble > 0) {
                             update()
                         }
                     }

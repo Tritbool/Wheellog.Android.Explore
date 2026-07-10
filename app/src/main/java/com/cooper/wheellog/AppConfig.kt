@@ -198,11 +198,6 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue(R.string.private_policy_accepted, false)
         set(value) = setValue(R.string.private_policy_accepted, value)
 
-    set(value )
-    {
-//                context,
-//            )
-    }
     //endregion
 
     //region logs

@@ -36,7 +36,7 @@ class NotificationUtil(private val context: Context) : KoinComponent {
     init {
         builder = NotificationCompat.Builder(
             context,
-            Constants.NO********ION_CHANNEL_ID_NO********ION
+            Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION
         )
         createNotificationChannel()
     }
@@ -48,7 +48,7 @@ class NotificationUtil(private val context: Context) : KoinComponent {
             return
         }
         val channel = NotificationChannel(
-            Constants.NO********ION_CHANNEL_ID_NO********ION,
+            Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION,
             Constants.notificationChannelName,
             NotificationManager.IMPORTANCE_MIN
         ).apply {
@@ -80,12 +80,12 @@ class NotificationUtil(private val context: Context) : KoinComponent {
             Triple(
                 R.id.ib_connection,
                 R.string.icon_connection,
-                Constants.NO********ION_BUTTON_CONNECTION
+                Constants.NOTIFICATION_BUTTON_CONNECTION
             ),
-            Triple(R.id.ib_logging, R.string.icon_logging, Constants.NO********ION_BUTTON_LOGGING),
-            Triple(R.id.ib_watch, R.string.icon_watch, Constants.NO********ION_BUTTON_WATCH),
-            Triple(R.id.ib_beep, R.string.icon_beep, Constants.NO********ION_BUTTON_BEEP),
-            Triple(R.id.ib_light, R.string.icon_light, Constants.NO********ION_BUTTON_LIGHT),
+            Triple(R.id.ib_logging, R.string.icon_logging, Constants.NOTIFICATION_BUTTON_LOGGING),
+            Triple(R.id.ib_watch, R.string.icon_watch, Constants.NOTIFICATION_BUTTON_WATCH),
+            Triple(R.id.ib_beep, R.string.icon_beep, Constants.NOTIFICATION_BUTTON_BEEP),
+            Triple(R.id.ib_light, R.string.icon_light, Constants.NOTIFICATION_BUTTON_LIGHT),
         ).forEach {
             notificationView.setViewVisibility(
                 it.first,
@@ -97,7 +97,7 @@ class NotificationUtil(private val context: Context) : KoinComponent {
                 PendingIntent.getBroadcast(context, 0, Intent(it.third), intentFlag)
             )
         }
-        
+
         val connectionState = viewModel.sessionState.value.connectionState
         val batteryLevel = viewModel.batteryLevel
         val temperature = viewModel.temperature
@@ -124,7 +124,7 @@ class NotificationUtil(private val context: Context) : KoinComponent {
         } else {
             notificationView.setTextViewText(R.id.text_title, title)
         }
-        
+
         if (appConfig.appTheme == R.style.AJDMTheme) {
             notificationView.setImageViewResource(R.id.icon, R.drawable.ajdm_notification_icon)
             notificationView.setInt(
@@ -167,7 +167,7 @@ class NotificationUtil(private val context: Context) : KoinComponent {
             .setContentIntent(pendingIntent)
             .setContent(notificationView)
             .setCustomBigContentView(notificationView)
-            .setChannelId(Constants.NO********ION_CHANNEL_ID_NO********ION)
+            .setChannelId(Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION)
             .setOngoing(true)
             .priority = NotificationCompat.PRIORITY_MIN
 
@@ -187,7 +187,7 @@ class NotificationUtil(private val context: Context) : KoinComponent {
         notification = build()
         if (buildIsSucceed) {
             with(NotificationManagerCompat.from(context)) {
-                notify(Constants.MAIN_NO********ION_ID, notification!!)
+                notify(Constants.MAIN_NOTIFICATION_ID, notification!!)
             }
         }
     }
@@ -197,4 +197,5 @@ class NotificationUtil(private val context: Context) : KoinComponent {
         update()
     }
 
-    fun close() {
+    fun close() {}
+}

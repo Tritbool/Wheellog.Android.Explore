@@ -33,7 +33,6 @@ enum class ThemeIconEnum {
     SettingsCalibration,
     SettingsLanguage,
     SettingsAutoLog,
-    SettingsLocation,
     SettingsBlocks,
     SettingsNotification,
     SettingsPageEvents,

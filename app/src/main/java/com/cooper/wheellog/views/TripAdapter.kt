@@ -154,14 +154,12 @@ class TripAdapter(var context: Context, private var tripModels: ArrayList<TripMo
                     val mph = context.getString(R.string.mph)
                     val miles = context.getString(R.string.miles)
                     desc1 = "\uD83D\uDE80 ${formatMi(trip.maxSpeed)} $mph" +
-                            "\n\uD83D\uDCE1 ${formatMi(trip.maxSpeedGps)} $mph" +
                             "\n\u267f ${formatMi(trip.avgSpeed)} $mph"
                     desc2 += "\n\uD83D\uDCCF ${formatMi(trip.distance / 1000.0f)} $miles"
                 } else {
                     val kmh = context.getString(R.string.kmh)
                     val km = context.getString(R.string.km)
                     desc1 = "\uD83D\uDE80 ${format(trip.maxSpeed)} $kmh" +
-                            "\n\uD83D\uDCE1 ${format(trip.maxSpeedGps)} $kmh" +
                             "\n\u267f ${format(trip.avgSpeed)} $kmh"
                     desc2 += "\n\uD83D\uDCCF ${format(trip.distance / 1000.0f)} $km"
                 }

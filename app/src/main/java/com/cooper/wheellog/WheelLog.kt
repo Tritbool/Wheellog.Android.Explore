@@ -18,12 +18,6 @@ class WheelLog : Application() {
             Timber.plant(Timber.DebugTree(), FileLoggingTree(applicationContext))
         }
         // WheelData.initiate() - REMOVED: Migration to BleSessionViewModel
-
-//        if (BuildConfig.metrica_api.isNotEmpty()) {
-//                .newConfigBuilder(BuildConfig.metrica_api)
-//                .withLocationTracking(false)
-//                .build()
-//        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

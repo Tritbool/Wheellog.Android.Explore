@@ -102,7 +102,7 @@ class ScanActivity: AppCompatActivity() {
             flags = flags and WindowManager.LayoutParams.FLAG_DIM_BEHIND.inv()
         }
         alertDialog.show()
-        if (!isLocationEnabled(this)) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && !isLocationEnabled(this)) {
             val myIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             startActivity(myIntent)
         }

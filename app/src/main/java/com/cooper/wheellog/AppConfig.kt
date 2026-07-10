@@ -188,11 +188,6 @@ class AppConfig(var context: Context) : KoinComponent {
     var useReconnect: Boolean
         get() = getValue(R.string.use_reconnect, false)
         set(value) {
-            setValue(R.string.use_reconnect, value)
-            if (value)
-                viewModel.bluetoothService?.startReconnectTimer()
-            else
-                viewModel.bluetoothService?.stopReconnectTimer()
         }
 
     var detectBatteryOptimization: Boolean

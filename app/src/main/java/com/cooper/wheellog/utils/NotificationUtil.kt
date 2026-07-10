@@ -16,7 +16,7 @@ import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.cooper.wheellog.*
-import com.welie.blessed.ConnectionState
+import io.github.tritbool.euc.ble.core.BLEConstants
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.*
@@ -33,6 +33,14 @@ class NotificationUtil(private val context: Context) : KoinComponent {
         private set
     var alarmText: String = ""
 
+    init {
+        builder = NotificationCompat.Builder(
+            context,
+            Constants.NO********ION_CHANNEL_ID_NO********ION
+        )
+        createNotificationChannel()
+    }
+
     private fun createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
@@ -40,7 +48,7 @@ class NotificationUtil(private val context: Context) : KoinComponent {
             return
         }
         val channel = NotificationChannel(
-            Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION,
+            Constants.NO********ION_CHANNEL_ID_NO********ION,
             Constants.notificationChannelName,
             NotificationManager.IMPORTANCE_MIN
         ).apply {
@@ -72,12 +80,12 @@ class NotificationUtil(private val context: Context) : KoinComponent {
             Triple(
                 R.id.ib_connection,
                 R.string.icon_connection,
-                Constants.NOTIFICATION_BUTTON_CONNECTION
+                Constants.NO********ION_BUTTON_CONNECTION
             ),
-            Triple(R.id.ib_logging, R.string.icon_logging, Constants.NOTIFICATION_BUTTON_LOGGING),
-            Triple(R.id.ib_watch, R.string.icon_watch, Constants.NOTIFICATION_BUTTON_WATCH),
-            Triple(R.id.ib_beep, R.string.icon_beep, Constants.NOTIFICATION_BUTTON_BEEP),
-            Triple(R.id.ib_light, R.string.icon_light, Constants.NOTIFICATION_BUTTON_LIGHT),
+            Triple(R.id.ib_logging, R.string.icon_logging, Constants.NO********ION_BUTTON_LOGGING),
+            Triple(R.id.ib_watch, R.string.icon_watch, Constants.NO********ION_BUTTON_WATCH),
+            Triple(R.id.ib_beep, R.string.icon_beep, Constants.NO********ION_BUTTON_BEEP),
+            Triple(R.id.ib_light, R.string.icon_light, Constants.NO********ION_BUTTON_LIGHT),
         ).forEach {
             notificationView.setViewVisibility(
                 it.first,
@@ -89,26 +97,21 @@ class NotificationUtil(private val context: Context) : KoinComponent {
                 PendingIntent.getBroadcast(context, 0, Intent(it.third), intentFlag)
             )
         }
-        val wd = viewModel ?: return builder.build()
-        val connectionState = wd.bluetoothService?.connectionState
-            ?: ConnectionState.DISCONNECTED
-        val batteryLevel = wd.batteryLevel
-        val temperature = wd.temperature
-        val distance = wd.distanceDouble
-        val speed = wd.speedDouble
+        
+        val connectionState = viewModel.sessionState.value.connectionState
+        val batteryLevel = viewModel.batteryLevel
+        val temperature = viewModel.temperature
+        val distance = viewModel.distanceDouble
+        val speed = viewModel.speedDouble
         val title = customText.ifEmpty { context.getString(notificationMessageId) }
         val titleRide = viewModel.rideTimeString
+
         notificationView.setTextViewText(R.id.text_title, context.getString(R.string.app_name))
         notificationView.setTextViewText(
             R.id.ib_actions_text,
             context.getString(R.string.notifications_actions_text)
         )
-        if (connectionState == ConnectionState.CONNECTED || distance + temperature + batteryLevel + speed > 0) {
-            notificationView.setTextViewText(
-                R.id.text_message,
-                context.getString(R.string.alarmmiband)
-            )
-        } else {
+        if (connectionState == BLEConstants.ConnectionState.CONNECTED || distance + temperature + batteryLevel + speed > 0) {
             val template = when (appConfig.appTheme) {
                 R.style.AJDMTheme -> R.string.notification_text_ajdm_theme
                 else -> R.string.notification_text
@@ -118,7 +121,10 @@ class NotificationUtil(private val context: Context) : KoinComponent {
                 context.getString(template, speed, batteryLevel, temperature, distance)
             )
             notificationView.setTextViewText(R.id.text_title, "$title - $titleRide")
+        } else {
+            notificationView.setTextViewText(R.id.text_title, title)
         }
+        
         if (appConfig.appTheme == R.style.AJDMTheme) {
             notificationView.setImageViewResource(R.id.icon, R.drawable.ajdm_notification_icon)
             notificationView.setInt(
@@ -134,8 +140,8 @@ class NotificationUtil(private val context: Context) : KoinComponent {
         notificationView.setImageViewResource(
             R.id.ib_connection,
             when (connectionState) {
-                ConnectionState.CONNECTING -> ThemeManager.getId(ThemeIconEnum.NotificationConnecting)
-                ConnectionState.CONNECTED -> ThemeManager.getId(ThemeIconEnum.NotificationConnected)
+                BLEConstants.ConnectionState.CONNECTING -> ThemeManager.getId(ThemeIconEnum.NotificationConnecting)
+                BLEConstants.ConnectionState.CONNECTED -> ThemeManager.getId(ThemeIconEnum.NotificationConnected)
                 else -> ThemeManager.getId(ThemeIconEnum.NotificationDisconnected)
             }
         )
@@ -147,7 +153,7 @@ class NotificationUtil(private val context: Context) : KoinComponent {
         notificationView.setImageViewResource(
             R.id.ib_watch,
             ThemeManager.getId(ThemeIconEnum.NotificationWatchOff)
-            else ThemeManager . getId (ThemeIconEnum.NotificationWatchOff))
+        )
         notificationView.setImageViewResource(
             R.id.ib_beep,
             ThemeManager.getId(ThemeIconEnum.NotificationHorn)
@@ -161,22 +167,16 @@ class NotificationUtil(private val context: Context) : KoinComponent {
             .setContentIntent(pendingIntent)
             .setContent(notificationView)
             .setCustomBigContentView(notificationView)
-            .setChannelId(Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION)
+            .setChannelId(Constants.NO********ION_CHANNEL_ID_NO********ION)
             .setOngoing(true)
             .priority = NotificationCompat.PRIORITY_MIN
 
         builder.setContentTitle(
-            if (connectionState == ConnectionState.CONNECTED && distance + temperature + batteryLevel + speed > 0)
+            if (connectionState == BLEConstants.ConnectionState.CONNECTED && distance + temperature + batteryLevel + speed > 0)
                 titleRide
             else
                 title
         )
-
-        builder.setContentTitle(context.getString(R.string.titlealarm))
-            .setContentText(alarmText)
-        alarmText = ""
-
-
 
         buildIsSucceed = true
         return builder.build()
@@ -187,7 +187,7 @@ class NotificationUtil(private val context: Context) : KoinComponent {
         notification = build()
         if (buildIsSucceed) {
             with(NotificationManagerCompat.from(context)) {
-                notify(Constants.MAIN_NOTIFICATION_ID, notification!!)
+                notify(Constants.MAIN_NO********ION_ID, notification!!)
             }
         }
     }
@@ -198,57 +198,3 @@ class NotificationUtil(private val context: Context) : KoinComponent {
     }
 
     fun close() {
-        with(NotificationManagerCompat.from(context)) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                deleteNotificationChannel(Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION)
-            }
-            cancelAll()
-        }
-        kostilTimer?.cancel()
-        kostilTimer = null
-    }
-
-    // Fix Me
-    // https://github.com/Wheellog/Wheellog.Android/pull/249
-    fun updateKostilTimer() {
-        if (appConfig.mibandFixRs && kostilTimer == null) {
-            kostilTimer = Timer().apply {
-                scheduleAtFixedRate(object : TimerTask() {
-                    override fun run() {
-                        val wd = viewModel
-                        if (wd == null) {
-                            kostilTimer?.cancel()
-                            kostilTimer = null
-                            return
-                        }
-                        update()
-                    }
-                }
-            }, 5000, 1000)
-
-        } else {
-            kostilTimer?.cancel()
-            kostilTimer = null
-        }
-    }
-
-    init {
-        createNotificationChannel()
-        builder =
-            NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION)
-        updateKostilTimer()
-// for test
-//        Timer().scheduleAtFixedRate(object : TimerTask() {
-//            override fun run() {
-//                val wd = viewModel ?: return
-//                wd.batteryLevel = ((Math.random() * 100).toInt())
-//                wd.temperature = (Math.random() * 10000).toInt()
-//                wd.totalDistance = (Math.random() * 10000).toLong()
-//                wd.speed = (Math.random() * 5000).toInt()
-//                update()
-//                val intent = Intent(Constants.ACTION_WHEEL_DATA_AVAILABLE)
-//                context.sendBroadcast(intent)
-//            }
-//        }, 1000, 1000)
-    }
-}

@@ -34,9 +34,7 @@ class LoggingService : Service() {
     private val appConfig: AppConfig by inject()
     private val viewModel: BleSessionViewModel by inject()
     private val notifications: NotificationUtil by inject()
-    private val viewModel: BleSessionViewModel by inject()
     private val dao: TripDao by inject()
-    private val viewModel: BleSessionViewModel by inject()
     private var sdf: SimpleDateFormat? = null
     private var mLocation: Location? = null
     private var mLastLocation: Location? = null

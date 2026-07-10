@@ -21,9 +21,9 @@ import com.cooper.wheellog.views.WheelView
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
-import com.github.mikephil.charting.viewModel.Entry
-import com.github.mikephil.charting.viewModel.LineData
-import com.github.mikephil.charting.viewModel.LineDataSet
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import kotlinx.coroutines.*
 import org.koin.core.component.KoinComponent
@@ -273,8 +273,8 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                         pagesView[R.layout.main_view_graph]?.findViewById<View>(R.id.leftAxisLabel)?.visibility = View.VISIBLE
                         pagesView[R.layout.main_view_graph]?.findViewById<View>(R.id.leftAxisLabel)?.visibility = View.VISIBLE
                     } else {
-                        dataSetSpeed = chart1!!.viewModel.getDataSetByLabel(activity.getString(R.string.speed_axis), true) as LineDataSet
-                        dataSetCurrent = chart1!!.viewModel.getDataSetByLabel(activity.getString(R.string.current_axis), true) as LineDataSet
+                        dataSetSpeed = chart1!!.data.getDataSetByLabel(activity.getString(R.string.speed_axis), true) as LineDataSet
+                        dataSetCurrent = chart1!!.data.getDataSetByLabel(activity.getString(R.string.current_axis), true) as LineDataSet
                     }
                     // TODO: fix me
                     // ужасно-тормозной код по перерисовывнию графика.
@@ -300,7 +300,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     dataSetCurrent.notifyDataSetChanged()
                     dataSetSpeed.notifyDataSetChanged()
                     chart1?.apply {
-                        this.viewModel.notifyDataChanged()
+                        this.data.notifyDataChanged()
                         notifyDataSetChanged()
                         invalidate()
                     }

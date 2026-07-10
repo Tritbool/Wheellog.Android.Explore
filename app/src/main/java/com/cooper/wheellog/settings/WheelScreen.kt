@@ -1,5 +1,4 @@
 package com.cooper.wheellog.settings
-import com.cooper.wheellog.ble.BleSessionViewModel
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -15,10 +14,14 @@ import com.cooper.wheellog.R
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.utils.*
 import com.cooper.wheellog.utils.StringUtil.inArray
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
-fun wheelScreen(appConfig: AppConfig = koinInject())
+fun wheelScreen(
+    appConfig: AppConfig = koinInject(),
+    viewModel: BleSessionViewModel = koinViewModel(),
+)
 {
     Column(
         modifier = Modifier

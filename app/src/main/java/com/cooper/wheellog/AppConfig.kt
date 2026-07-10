@@ -270,6 +270,26 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue("show_clock", true)
         set(value) = setValue("show_clock", value)
 
+    //region connection
+    var lastMac: String
+        get() = getValue("last_mac", "")
+        set(value) = setValue("last_mac", value)
+
+    var advDataForWheel: String
+        get() = getValue("adv_data_for_wheel", "")
+        set(value) = setValue("adv_data_for_wheel", value)
+
+    var passwordForWheel: String
+        get() = getValue("password_for_wheel", "")
+        set(value) = setValue("password_for_wheel", value)
+    //endregion
+
+    //region alarms
+    var alarmsEnabled: Boolean
+        get() = getValue("alarms_enabled", false)
+        set(value) = setValue("alarms_enabled", value)
+    //endregion
+
     fun getResId(resName: String?): Int {
         return if (resName == null || resName === "") {
             -1

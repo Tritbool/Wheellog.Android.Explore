@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
@@ -17,6 +19,7 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 fun wheelScreen(
     appConfig: AppConfig = koinInject(),
     viewModel: BleSessionViewModel = koinViewModel(),
@@ -54,6 +57,7 @@ fun wheelScreen(
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun lightPowerSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
     val supportsLightToggle = viewModel.isCommandSupported(CommandType.LIGHT_ON) ||
             viewModel.isCommandSupported(CommandType.LIGHT_OFF)
@@ -70,6 +74,7 @@ private fun lightPowerSetting(appConfig: AppConfig, viewModel: BleSessionViewMod
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun lightModeSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
     if (!viewModel.isCommandSupported(CommandType.SET_LIGHT_MODE)) return
 
@@ -90,6 +95,7 @@ private fun lightModeSetting(appConfig: AppConfig, viewModel: BleSessionViewMode
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun lightBrightnessSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
     if (!viewModel.isCommandSupported(CommandType.LIGHT_BRIGHTNESS)) return
 
@@ -106,6 +112,7 @@ private fun lightBrightnessSetting(appConfig: AppConfig, viewModel: BleSessionVi
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun speakerVolumeSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
     if (!viewModel.isCommandSupported(CommandType.SPEAKER_VOLUME)) return
 
@@ -122,6 +129,7 @@ private fun speakerVolumeSetting(appConfig: AppConfig, viewModel: BleSessionView
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun lockSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
     val supportsLock = viewModel.isCommandSupported(CommandType.LOCK) ||
             viewModel.isCommandSupported(CommandType.UNLOCK)
@@ -138,6 +146,7 @@ private fun lockSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun pedalsModeSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
     if (!viewModel.isCommandSupported(CommandType.SET_PEDALS_MODE)) return
 
@@ -157,6 +166,7 @@ private fun pedalsModeSetting(appConfig: AppConfig, viewModel: BleSessionViewMod
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun ledModeSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
     if (!viewModel.isCommandSupported(CommandType.SET_LED_MODE)) return
 
@@ -183,6 +193,7 @@ private fun ledModeSetting(appConfig: AppConfig, viewModel: BleSessionViewModel)
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun speedLimitSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
     if (!viewModel.isCommandSupported(CommandType.SET_SPEED_LIMIT)) return
 
@@ -200,6 +211,7 @@ private fun speedLimitSetting(appConfig: AppConfig, viewModel: BleSessionViewMod
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun alarmSpeedSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
     if (!viewModel.isCommandSupported(CommandType.SET_ALARM_SPEED)) return
 
@@ -217,6 +229,7 @@ private fun alarmSpeedSetting(appConfig: AppConfig, viewModel: BleSessionViewMod
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun powerOffSetting(viewModel: BleSessionViewModel) {
     if (!viewModel.isCommandSupported(CommandType.POWER_OFF)) return
 
@@ -230,6 +243,7 @@ private fun powerOffSetting(viewModel: BleSessionViewModel) {
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun calibrationSetting(viewModel: BleSessionViewModel) {
     if (!viewModel.isCommandSupported(CommandType.CALIBRATE)) return
 
@@ -243,6 +257,7 @@ private fun calibrationSetting(viewModel: BleSessionViewModel) {
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun resetTripSetting(viewModel: BleSessionViewModel) {
     if (!viewModel.isCommandSupported(CommandType.RESET_TRIP)) return
 

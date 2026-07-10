@@ -1,23 +1,22 @@
 package com.cooper.wheellog
-import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_UNSPECIFIED
 import androidx.preference.PreferenceManager
+import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.utils.NotificationUtil
 import com.cooper.wheellog.utils.ThemeEnum
 import com.cooper.wheellog.utils.VolumeKeyController
-import com.wheellog.shared.Constants
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import timber.log.Timber
 
-class AppConfig(var context: Context): KoinComponent {
+class AppConfig(var context: Context) : KoinComponent {
     private val notifications: NotificationUtil by inject()
     private val volumeKeyController: VolumeKeyController by inject()
-    private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private val sharedPreferences: SharedPreferences =
+        PreferenceManager.getDefaultSharedPreferences(context)
     private var specificPrefix: String = ""
     private val separator = ";"
     private val viewModel: BleSessionViewModel by inject()
@@ -77,11 +76,11 @@ class AppConfig(var context: Context): KoinComponent {
         get() = getValue(R.string.use_fahrenheit, false)
         set(value) = setValue(R.string.use_fahrenheit, value)
 
-   private var viewBlocksString: String?
+    private var viewBlocksString: String?
         get() = getValue(R.string.view_blocks_string, null)
         set(value) = setValue(R.string.view_blocks_string, value)
 
-   var viewBlocks: Array<String>
+    var viewBlocks: Array<String>
         get() = this.viewBlocksString?.split(separator)?.toTypedArray()
             ?: arrayOf(
                 context.getString(R.string.pwm),
@@ -91,8 +90,11 @@ class AppConfig(var context: Context): KoinComponent {
                 context.getString(R.string.riding_time),
                 context.getString(R.string.top_speed),
                 context.getString(R.string.distance),
-                context.getString(R.string.total))
-        set(value) { this.viewBlocksString = value.joinToString(separator) }
+                context.getString(R.string.total)
+            )
+        set(value) {
+            this.viewBlocksString = value.joinToString(separator)
+        }
 
     var usePipMode: Boolean
         get() = getValue(R.string.use_pip_mode, false)
@@ -114,8 +116,11 @@ class AppConfig(var context: Context): KoinComponent {
             ?: arrayOf(
                 context.getString(R.string.icon_connection),
                 context.getString(R.string.icon_logging),
-                context.getString(R.string.icon_watch))
-        set(value) { this.notificationButtonsString = value.joinToString(separator) }
+                context.getString(R.string.icon_watch)
+            )
+        set(value) {
+            this.notificationButtonsString = value.joinToString(separator)
+        }
 
     var maxSpeed: Int
         get() = getValue(R.string.max_speed, 50)
@@ -198,10 +203,11 @@ class AppConfig(var context: Context): KoinComponent {
         get() = getValue(R.string.private_policy_accepted, false)
         set(value) = setValue(R.string.private_policy_accepted, value)
 
-        set(value) {
+    set(value )
+    {
 //                context,
 //            )
-        }
+    }
     //endregion
 
     //region logs
@@ -251,7 +257,7 @@ class AppConfig(var context: Context): KoinComponent {
         get() = getValue(R.string.continue_this_day_log_exception, "")
         set(value) = setValue(R.string.continue_this_day_log_exception, value)
     //endregion    
-    
+
     //region watch
     var hornMode: Int
         get() = getValue(R.string.horn_mode, 0)
@@ -281,3 +287,61 @@ class AppConfig(var context: Context): KoinComponent {
             notifications.updateKostilTimer()
         }
 
+    fun getResId(resName: String?): Int {
+        return if (resName == null || resName === "") {
+            -1
+        } else try {
+            context.resources.getIdentifier(resName, "string", context.packageName)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            -1
+        }
+    }
+
+    private fun setSpecific(resId: Int, value: Any?) {
+        setValue(specificPrefix + "_" + context.getString(resId), value)
+    }
+
+    fun setValue(resId: Int, value: Any?) {
+        setValue(context.getString(resId), value)
+    }
+
+    fun setValue(key: String, value: Any?) {
+        when (value) {
+            is String? -> sharedPreferences.edit().putString(key, value).apply()
+            is String -> sharedPreferences.edit().putString(key, value).apply()
+            is Int -> sharedPreferences.edit().putInt(key, value).apply()
+            is Float -> sharedPreferences.edit().putFloat(key, value).apply()
+            is Double -> sharedPreferences.edit().putFloat(key, value.toFloat()).apply()
+            is Boolean -> sharedPreferences.edit().putBoolean(key, value).apply()
+            is Long -> sharedPreferences.edit().putLong(key, value).apply()
+        }
+    }
+
+    private fun <T : Any?> getSpecific(resId: Int, defaultValue: T): T {
+        return getValue(specificPrefix + "_" + context.getString(resId), defaultValue)
+    }
+
+    fun <T : Any?> getValue(resId: Int, defaultValue: T): T {
+        return getValue(context.getString(resId), defaultValue)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any?> getValue(key: String, defaultValue: T): T {
+        return try {
+            when (defaultValue) {
+                is String? -> sharedPreferences.getString(key, defaultValue) as T
+                is String -> sharedPreferences.getString(key, defaultValue) as T
+                is Int -> sharedPreferences.getInt(key, defaultValue) as T
+                is Float -> sharedPreferences.getFloat(key, defaultValue) as T
+                is Double -> sharedPreferences.getFloat(key, defaultValue.toFloat()).toDouble() as T
+                is Boolean -> sharedPreferences.getBoolean(key, defaultValue) as T
+                is Long -> sharedPreferences.getLong(key, defaultValue) as T
+                else -> defaultValue
+            }
+        } catch (ex: ClassCastException) {
+            defaultValue
+        }
+    }
+
+}

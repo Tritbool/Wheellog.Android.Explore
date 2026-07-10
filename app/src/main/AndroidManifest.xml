@@ -70,3 +70,5 @@
                 android:minHeight="200dp" />
         </activity>
         <!-- <activity-alias used to change app icon dynamically>   : default icon, set enabled true    -->
+    </application>
+</manifest>

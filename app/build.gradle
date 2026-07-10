@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    compileSdk 35
+    compileSdk 37
 
     signingConfigs {
         debug {
@@ -16,8 +16,8 @@ android {
 
     defaultConfig {
         applicationId "com.cooper.wheellog"
-        minSdk 21
-        targetSdk 35
+        minSdk 23
+        targetSdk 36
         versionCode 129
         versionName "3.2.8b"
         buildConfigField 'String', 'BUILD_TIME', "\"" + new Date().format('HH:mm dd.MM.yyyy') + "\""

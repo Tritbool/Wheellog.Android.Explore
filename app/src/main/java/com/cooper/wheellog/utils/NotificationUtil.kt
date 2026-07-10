@@ -1,4 +1,5 @@
 package com.cooper.wheellog.utils
+
 import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.annotation.SuppressLint
@@ -20,7 +21,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.*
 
-class NotificationUtil(private val context: Context): KoinComponent {
+class NotificationUtil(private val context: Context) : KoinComponent {
     private val appConfig: AppConfig by inject()
     private val viewModel: BleSessionViewModel by inject()
     private val builder: NotificationCompat.Builder
@@ -38,9 +39,11 @@ class NotificationUtil(private val context: Context): KoinComponent {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return
         }
-        val channel = NotificationChannel(Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION,
-                Constants.notificationChannelName,
-                NotificationManager.IMPORTANCE_MIN).apply {
+        val channel = NotificationChannel(
+            Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION,
+            Constants.notificationChannelName,
+            NotificationManager.IMPORTANCE_MIN
+        ).apply {
             description = Constants.notificationChannelDescription
         }
         // Register the channel with the system; you can't change the importance
@@ -56,27 +59,39 @@ class NotificationUtil(private val context: Context): KoinComponent {
         val notificationView = RemoteViews(context.packageName, R.layout.notification_base)
         val buttonSettings = appConfig.notificationButtons
         val intentFlag = if (Build.VERSION.SDK_INT >= 23) PendingIntent.FLAG_IMMUTABLE else 0
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, intentFlag)
+        val pendingIntent: PendingIntent =
+            PendingIntent.getActivity(context, 0, notificationIntent, intentFlag)
 
-        notificationView.setViewVisibility(R.id.ib_actions_layout,
-                if (buttonSettings.any()) View.VISIBLE
-                else View.GONE)
+        notificationView.setViewVisibility(
+            R.id.ib_actions_layout,
+            if (buttonSettings.any()) View.VISIBLE
+            else View.GONE
+        )
 
-        arrayOf(Triple(R.id.ib_connection, R.string.icon_connection, Constants.NOTIFICATION_BUTTON_CONNECTION),
-                Triple(R.id.ib_logging, R.string.icon_logging, Constants.NOTIFICATION_BUTTON_LOGGING),
-                Triple(R.id.ib_watch, R.string.icon_watch, Constants.NOTIFICATION_BUTTON_WATCH),
-                Triple(R.id.ib_beep, R.string.icon_beep, Constants.NOTIFICATION_BUTTON_BEEP),
-                Triple(R.id.ib_light, R.string.icon_light, Constants.NOTIFICATION_BUTTON_LIGHT),
+        arrayOf(
+            Triple(
+                R.id.ib_connection,
+                R.string.icon_connection,
+                Constants.NOTIFICATION_BUTTON_CONNECTION
+            ),
+            Triple(R.id.ib_logging, R.string.icon_logging, Constants.NOTIFICATION_BUTTON_LOGGING),
+            Triple(R.id.ib_watch, R.string.icon_watch, Constants.NOTIFICATION_BUTTON_WATCH),
+            Triple(R.id.ib_beep, R.string.icon_beep, Constants.NOTIFICATION_BUTTON_BEEP),
+            Triple(R.id.ib_light, R.string.icon_light, Constants.NOTIFICATION_BUTTON_LIGHT),
         ).forEach {
-            notificationView.setViewVisibility(it.first,
-                    if (buttonSettings.contains(context.getString(it.second))) View.VISIBLE
-                    else View.GONE)
-            notificationView.setOnClickPendingIntent(it.first,
-                    PendingIntent.getBroadcast(context, 0, Intent(it.third), intentFlag))
+            notificationView.setViewVisibility(
+                it.first,
+                if (buttonSettings.contains(context.getString(it.second))) View.VISIBLE
+                else View.GONE
+            )
+            notificationView.setOnClickPendingIntent(
+                it.first,
+                PendingIntent.getBroadcast(context, 0, Intent(it.third), intentFlag)
+            )
         }
         val wd = viewModel ?: return builder.build()
         val connectionState = wd.bluetoothService?.connectionState
-                ?: ConnectionState.DISCONNECTED
+            ?: ConnectionState.DISCONNECTED
         val batteryLevel = wd.batteryLevel
         val temperature = wd.temperature
         val distance = wd.distanceDouble
@@ -84,65 +99,84 @@ class NotificationUtil(private val context: Context): KoinComponent {
         val title = customText.ifEmpty { context.getString(notificationMessageId) }
         val titleRide = viewModel.rideTimeString
         notificationView.setTextViewText(R.id.text_title, context.getString(R.string.app_name))
-        notificationView.setTextViewText(R.id.ib_actions_text, context.getString(R.string.notifications_actions_text))
+        notificationView.setTextViewText(
+            R.id.ib_actions_text,
+            context.getString(R.string.notifications_actions_text)
+        )
         if (connectionState == ConnectionState.CONNECTED || distance + temperature + batteryLevel + speed > 0) {
-                notificationView.setTextViewText(R.id.text_message, context.getString(R.string.alarmmiband))
-            } else {
-                val template = when (appConfig.appTheme) {
-                    R.style.AJDMTheme -> R.string.notification_text_ajdm_theme
-                    else -> R.string.notification_text
-                }
-                notificationView.setTextViewText(R.id.text_message, context.getString(template, speed, batteryLevel, temperature, distance))
-                notificationView.setTextViewText(R.id.text_title, "$title - $titleRide")
-            }
+            notificationView.setTextViewText(
+                R.id.text_message,
+                context.getString(R.string.alarmmiband)
+            )
         } else {
-            notificationView.setTextViewText(R.id.text_title, title)
+            val template = when (appConfig.appTheme) {
+                R.style.AJDMTheme -> R.string.notification_text_ajdm_theme
+                else -> R.string.notification_text
+            }
+            notificationView.setTextViewText(
+                R.id.text_message,
+                context.getString(template, speed, batteryLevel, temperature, distance)
+            )
+            notificationView.setTextViewText(R.id.text_title, "$title - $titleRide")
         }
-
-                })
-        // Themes
         if (appConfig.appTheme == R.style.AJDMTheme) {
             notificationView.setImageViewResource(R.id.icon, R.drawable.ajdm_notification_icon)
-            notificationView.setInt(R.id.status_bar_latest_event_content, "setBackgroundResource", R.color.ajdm_background)
+            notificationView.setInt(
+                R.id.status_bar_latest_event_content,
+                "setBackgroundResource",
+                R.color.ajdm_background
+            )
             val textColor = Color.BLACK
             notificationView.setTextColor(R.id.text_title, textColor)
             notificationView.setTextColor(R.id.text_message, textColor)
             notificationView.setTextColor(R.id.ib_actions_text, textColor)
         }
-        notificationView.setImageViewResource(R.id.ib_connection,
-                when (connectionState) {
-                    ConnectionState.CONNECTING -> ThemeManager.getId(ThemeIconEnum.NotificationConnecting)
-                    ConnectionState.CONNECTED -> ThemeManager.getId(ThemeIconEnum.NotificationConnected)
-                    else -> ThemeManager.getId(ThemeIconEnum.NotificationDisconnected)
-                })
-        notificationView.setImageViewResource(R.id.ib_logging,
-                if (LoggingService.isInstanceCreated()) ThemeManager.getId(ThemeIconEnum.NotificationLogOn)
-                else ThemeManager.getId(ThemeIconEnum.NotificationLogOff))
-        notificationView.setImageViewResource(R.id.ib_watch,
-                ThemeManager.getId(ThemeIconEnum.NotificationWatchOff)
-                else ThemeManager.getId(ThemeIconEnum.NotificationWatchOff))
-        notificationView.setImageViewResource(R.id.ib_beep, ThemeManager.getId(ThemeIconEnum.NotificationHorn))
-        notificationView.setImageViewResource(R.id.ib_light, ThemeManager.getId(ThemeIconEnum.NotificationLight))
+        notificationView.setImageViewResource(
+            R.id.ib_connection,
+            when (connectionState) {
+                ConnectionState.CONNECTING -> ThemeManager.getId(ThemeIconEnum.NotificationConnecting)
+                ConnectionState.CONNECTED -> ThemeManager.getId(ThemeIconEnum.NotificationConnected)
+                else -> ThemeManager.getId(ThemeIconEnum.NotificationDisconnected)
+            }
+        )
+        notificationView.setImageViewResource(
+            R.id.ib_logging,
+            if (LoggingService.isInstanceCreated()) ThemeManager.getId(ThemeIconEnum.NotificationLogOn)
+            else ThemeManager.getId(ThemeIconEnum.NotificationLogOff)
+        )
+        notificationView.setImageViewResource(
+            R.id.ib_watch,
+            ThemeManager.getId(ThemeIconEnum.NotificationWatchOff)
+            else ThemeManager . getId (ThemeIconEnum.NotificationWatchOff))
+        notificationView.setImageViewResource(
+            R.id.ib_beep,
+            ThemeManager.getId(ThemeIconEnum.NotificationHorn)
+        )
+        notificationView.setImageViewResource(
+            R.id.ib_light,
+            ThemeManager.getId(ThemeIconEnum.NotificationLight)
+        )
 
         builder.setSmallIcon(ThemeManager.getId(ThemeIconEnum.NotificationIcon))
-                .setContentIntent(pendingIntent)
-                .setContent(notificationView)
-                .setCustomBigContentView(notificationView)
-                .setChannelId(Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION)
-                .setOngoing(true)
-                .priority = NotificationCompat.PRIORITY_MIN
+            .setContentIntent(pendingIntent)
+            .setContent(notificationView)
+            .setCustomBigContentView(notificationView)
+            .setChannelId(Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION)
+            .setOngoing(true)
+            .priority = NotificationCompat.PRIORITY_MIN
 
         builder.setContentTitle(
-                if (connectionState == ConnectionState.CONNECTED && distance + temperature + batteryLevel + speed > 0)
-                    titleRide
-                else
-                    title)
+            if (connectionState == ConnectionState.CONNECTED && distance + temperature + batteryLevel + speed > 0)
+                titleRide
+            else
+                title
+        )
 
-                builder.setContentTitle(context.getString(R.string.titlealarm))
-                    .setContentText(alarmText)
-                alarmText = ""
-            }
-        }
+        builder.setContentTitle(context.getString(R.string.titlealarm))
+            .setContentText(alarmText)
+        alarmText = ""
+
+
 
         buildIsSucceed = true
         return builder.build()
@@ -187,11 +221,11 @@ class NotificationUtil(private val context: Context): KoinComponent {
                             kostilTimer = null
                             return
                         }
-                            update()
-                        }
+                        update()
                     }
-                }, 5000, 1000)
-            }
+                }
+            }, 5000, 1000)
+
         } else {
             kostilTimer?.cancel()
             kostilTimer = null
@@ -200,7 +234,8 @@ class NotificationUtil(private val context: Context): KoinComponent {
 
     init {
         createNotificationChannel()
-        builder = NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION)
+        builder =
+            NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID_NOTIFICATION)
         updateKostilTimer()
 // for test
 //        Timer().scheduleAtFixedRate(object : TimerTask() {

@@ -286,8 +286,6 @@ object DialogHelper : KoinComponent {
             .show()
     }
 
-    fun checkAndShowLocationDialog(context: Context) {}
-
     fun AlertDialog.setBlackIcon(): AlertDialog {
         this.findViewById<ImageView>(android.R.id.icon)
             ?.setColorFilter(Color.BLACK, android.graphics.PorterDuff.Mode.SRC_IN)

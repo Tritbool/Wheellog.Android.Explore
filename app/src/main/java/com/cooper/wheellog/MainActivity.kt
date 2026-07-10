@@ -440,7 +440,6 @@ class MainActivity : AppCompatActivity() {
         pagerAdapter.updateScreen(true)
         pagerAdapter.updatePageOfTrips()
         checkClockVisible()
-        DialogHelper.checkAndShowLocationDialog(this)
         setMenuIconStates()
     }
 

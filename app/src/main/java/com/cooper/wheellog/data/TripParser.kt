@@ -77,10 +77,6 @@ object TripParser: KoinComponent {
                     val row = line.split(",")
                     val timeString = row[header[LogHeaderEnum.TIME]!!]
                     val dateString = row[header[LogHeaderEnum.DATE]!!]
-                    fun optionalDouble(column: LogHeaderEnum): Double {
-                        val index = header[column] ?: return 0.0
-                        return row.getOrNull(index)?.toDoubleOrNull() ?: 0.0
-                    }
                     val logTick = LogTick(
                         timeString = timeString,
                         timePlusDayOfWeek = sdfFullDate.parse(
@@ -88,16 +84,12 @@ object TripParser: KoinComponent {
                             ParsePosition(8)
                         )!!.time / 100f,
                         time = sdfTime.parse(timeString)!!.time / 100f,
-                        latitude = optionalDouble(LogHeaderEnum.LATITUDE),
-                        longitude = optionalDouble(LogHeaderEnum.LONGITUDE),
-                        altitude = optionalDouble(LogHeaderEnum.GPS_ALT),
                         batteryLevel = row[header[LogHeaderEnum.BATTERY_LEVEL]!!].toIntOrNull()
                             ?: 0,
                         voltage = row[header[LogHeaderEnum.VOLTAGE]!!].toDoubleOrNull() ?: 0.0,
                         current = row[header[LogHeaderEnum.CURRENT]!!].toDoubleOrNull() ?: 0.0,
                         power = row[header[LogHeaderEnum.POWER]!!].toDoubleOrNull() ?: 0.0,
                         speed = row[header[LogHeaderEnum.SPEED]!!].toDoubleOrNull() ?: 0.0,
-                        speedGps = optionalDouble(LogHeaderEnum.GPS_SPEED),
                         temperature = row[header[LogHeaderEnum.SYSTEM_TEMP]!!].toIntOrNull() ?: 0,
                         pwm = row[header[LogHeaderEnum.PWM]!!].toDoubleOrNull() ?: 0.0,
                         distance = row[header[LogHeaderEnum.DISTANCE]!!].toIntOrNull() ?: 0,
@@ -145,7 +137,6 @@ object TripParser: KoinComponent {
                     if (firstTotalDistance == 0 && it.totalDistance > 0) {
                         firstTotalDistance = it.totalDistance
                     }
-                    maxSpeedGps = maxSpeedGps.coerceAtLeast(it.speedGps.toFloat())
                     maxCurrent = maxCurrent.coerceAtLeast(it.current.toFloat())
                     maxPwm = maxPwm.coerceAtLeast(it.pwm.toFloat())
                 }

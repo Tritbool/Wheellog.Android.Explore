@@ -125,7 +125,6 @@
     <string name="ec_token" translatable="false">ec_token</string>
     <string name="ec_user_id" translatable="false">ec_user_id</string>
     <string name="ec_garage" translatable="false">ec_garage</string>
-    <string name="use_gps" translatable="false">use_gps</string>
     <string name="use_raw_data" translatable="false">use_raw_data</string>
 
     // APP PREFERENCES

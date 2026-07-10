@@ -208,7 +208,6 @@ fun applicationScreen(
                 entries = mapOf(
                     stringResource(R.string.icon_connection) to stringResource(R.string.icon_connection),
                     stringResource(R.string.icon_logging) to stringResource(R.string.icon_logging),
-                    stringResource(R.string.icon_watch) to stringResource(R.string.icon_watch),
                     stringResource(R.string.icon_beep) to stringResource(R.string.icon_beep),
                     stringResource(R.string.icon_light) to stringResource(R.string.icon_light),
                     stringResource(R.string.icon_miband) to stringResource(R.string.icon_miband),

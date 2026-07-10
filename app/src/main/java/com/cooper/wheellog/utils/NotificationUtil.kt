@@ -83,7 +83,6 @@ class NotificationUtil(private val context: Context) : KoinComponent {
                 Constants.NOTIFICATION_BUTTON_CONNECTION
             ),
             Triple(R.id.ib_logging, R.string.icon_logging, Constants.NOTIFICATION_BUTTON_LOGGING),
-            Triple(R.id.ib_watch, R.string.icon_watch, Constants.NOTIFICATION_BUTTON_WATCH),
             Triple(R.id.ib_beep, R.string.icon_beep, Constants.NOTIFICATION_BUTTON_BEEP),
             Triple(R.id.ib_light, R.string.icon_light, Constants.NOTIFICATION_BUTTON_LIGHT),
         ).forEach {
@@ -149,10 +148,6 @@ class NotificationUtil(private val context: Context) : KoinComponent {
             R.id.ib_logging,
             if (LoggingService.isInstanceCreated()) ThemeManager.getId(ThemeIconEnum.NotificationLogOn)
             else ThemeManager.getId(ThemeIconEnum.NotificationLogOff)
-        )
-        notificationView.setImageViewResource(
-            R.id.ib_watch,
-            ThemeManager.getId(ThemeIconEnum.NotificationWatchOff)
         )
         notificationView.setImageViewResource(
             R.id.ib_beep,

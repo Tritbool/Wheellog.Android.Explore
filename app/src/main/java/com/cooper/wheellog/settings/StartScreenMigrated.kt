@@ -89,12 +89,6 @@ fun startScreenMigrated(
                 onSelect(SettingsScreenEnum.Alarm.name)
             }
         }
-        clickablePref(
-            name = stringResource(R.string.watch_settings_title),
-            themeIcon = ThemeIconEnum.SettingsWatch,
-        ) {
-            onSelect(SettingsScreenEnum.Watch.name)
-        }
         if (isSpecificVisible) {
             clickablePref(
                 name = stringResource(R.string.wheel_settings_title),
@@ -108,24 +102,6 @@ fun startScreenMigrated(
             ) {
                 onSelect(SettingsScreenEnum.Trip.name)
             }
-        }
-        clickablePref(
-            name = stringResource(R.string.ble_settings_title),
-            themeIcon = ThemeIconEnum.SettingsBluetooth,
-        ) {
-            onSelect(SettingsScreenEnum.Bluetooth.name)
-        }
-        clickablePref(
-            name = stringResource(R.string.notifications_settings_title),
-            themeIcon = ThemeIconEnum.SettingsNotifications,
-        ) {
-            onSelect(SettingsScreenEnum.Notification.name)
-        }
-        clickablePref(
-            name = stringResource(R.string.about_settings_title),
-            themeIcon = ThemeIconEnum.SettingsAbout,
-        ) {
-            onSelect(SettingsScreenEnum.About.name)
         }
     }
 }

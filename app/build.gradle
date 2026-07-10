@@ -42,18 +42,6 @@ android {
         }
     }
 
-    buildTypes.configureEach { buildType ->
-        def props = new Properties()
-        def propsPath = "../local.properties"
-        if (file(propsPath).exists()) {
-            file(propsPath).withInputStream { stream -> props.load(stream) }
-        }
-        def ec_token = System.getProperty("ec_accessToken") ?: props.getProperty('ec_accessToken') ?: ""
-        def metrica  = System.getProperty("metrica_api")    ?: props.getProperty('metrica_api')    ?: ""
-        buildType.buildConfigField 'String', 'ec_accessToken', "\"" + ec_token + "\""
-        buildType.buildConfigField 'String', 'metrica_api',    "\"" + metrica  + "\""
-    }
-
     buildFeatures {
         viewBinding true
         compose true
@@ -136,10 +124,6 @@ dependencies {
     implementation platform(libs.koin.bom)
     implementation libs.koin.android
     implementation libs.koin.compose
-
-    // Network / server
-    implementation libs.okhttp
-    implementation libs.nanohttpd
 
     // UI
     implementation libs.timber

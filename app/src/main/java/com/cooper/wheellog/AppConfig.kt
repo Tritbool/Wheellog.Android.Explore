@@ -115,8 +115,7 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = this.notificationButtonsString?.split(separator)?.toTypedArray()
             ?: arrayOf(
                 context.getString(R.string.icon_connection),
-                context.getString(R.string.icon_logging),
-                context.getString(R.string.icon_watch)
+                context.getString(R.string.icon_logging)
             )
         set(value) {
             this.notificationButtonsString = value.joinToString(separator)
@@ -269,6 +268,55 @@ class AppConfig(var context: Context) : KoinComponent {
     var showClock: Boolean
         get() = getValue("show_clock", true)
         set(value) = setValue("show_clock", value)
+
+    //region wheel
+    var lightEnabled: Boolean
+        get() = getValue("wheel_light_enabled", false)
+        set(value) = setValue("wheel_light_enabled", value)
+
+    var lightMode: String
+        get() = getValue("wheel_light_mode", "0")
+        set(value) = setValue("wheel_light_mode", value)
+
+    var lightBrightness: Int
+        get() = getValue("wheel_light_brightness", 100)
+        set(value) = setValue("wheel_light_brightness", value)
+
+    var speakerVolume: Int
+        get() = getValue("wheel_speaker_volume", 5)
+        set(value) = setValue("wheel_speaker_volume", value)
+
+    var pedalsMode: String
+        get() = getValue("wheel_pedals_mode", "0")
+        set(value) = setValue("wheel_pedals_mode", value)
+
+    var ledMode: String
+        get() = getValue("wheel_led_mode", "0")
+        set(value) = setValue("wheel_led_mode", value)
+
+    var wheelMaxSpeed: Int
+        get() = getValue("wheel_max_speed", 25)
+        set(value) = setValue("wheel_max_speed", value)
+
+    var wheelAlarm1Speed: Int
+        get() = getValue("wheel_alarm_1_speed", 25)
+        set(value) = setValue("wheel_alarm_1_speed", value)
+
+    var wheelLocked: Boolean
+        get() = getValue("wheel_locked", false)
+        set(value) = setValue("wheel_locked", value)
+
+    var batteryCapacity: Int
+        get() = getValue("battery_capacity_wh", 0)
+        set(value) = setValue("battery_capacity_wh", value)
+
+    var chargingPower: Int
+        get() = getValue("charging_power_deci_amp", 0)
+        set(value) = setValue("charging_power_deci_amp", value)
+
+    var profileName: String
+        get() = getValue("profile_name", "")
+        set(value) = setValue("profile_name", value)
 
     //region connection
     var lastMac: String

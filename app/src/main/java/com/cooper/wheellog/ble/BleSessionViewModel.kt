@@ -16,6 +16,8 @@ import io.github.tritbool.euc.ble.core.ErrorCallback
 import io.github.tritbool.euc.ble.exceptions.BLEException
 import io.github.tritbool.euc.ble.models.EUCData
 import io.github.tritbool.euc.ble.models.EUCDevice
+import io.github.tritbool.euc.ble.protocols.CommandSupport
+import io.github.tritbool.euc.ble.protocols.CommandType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -412,6 +414,15 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
     fun getEucBleClient(): EucBleClient = eucBleClient
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun sendCommand(commandType: CommandType, value: Any = Unit) {
+        eucBleClient.sendCommand(commandType, value)
+    }
+
+    fun isCommandSupported(commandType: CommandType): Boolean {
+        return eucBleClient.getCommandSupport(commandType) == CommandSupport.SUPPORTED
+    }
+
     // ========== WHEEL DATA COMPATIBILITY ==========
 
     // These functions provide compatibility with the legacy WheelData API
@@ -572,6 +583,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     // ========== PUBLIC PROPERTIES FOR DIRECT ACCESS (Migration from WheelDataLegacy) ==========
 
     // Basic telemetry - Double values
+    val speed: Double get() = speedDouble
     val speedDouble: Double get() = _sessionState.value.currentSpeed
     val voltageDouble: Double get() = _sessionState.value.currentVoltage
     val currentDouble: Double get() = _sessionState.value.currentCurrent

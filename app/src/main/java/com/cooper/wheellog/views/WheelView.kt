@@ -18,7 +18,6 @@ import com.cooper.wheellog.utils.MathsUtil.dpToPx
 import com.cooper.wheellog.utils.MathsUtil.kmToMiles
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.utils.MathsUtil.kmToMilesMultiplier
-import com.cooper.wheellog.utils.ReflectUtil
 import com.cooper.wheellog.utils.SomeUtil
 import com.cooper.wheellog.utils.SomeUtil.getColorEx
 import com.cooper.wheellog.utils.StringUtil.toTempString
@@ -1196,16 +1195,6 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
             targetBattery = (40f / 100f * MathUtils.clamp(mBattery, 0, 100)).roundToInt()
             currentBattery = targetBattery
             mWheelModel = "GotInSong Z10"
-            try {
-                val wd = WheelData()
-                val wdField = WheelData::class.java.getDeclaredField("mInstance")
-                wdField.isAccessible = true
-                wdField[null] = wd
-                ReflectUtil.SetPrivateField(wd, "mCalculatedPwm", 0.05)
-                ReflectUtil.SetPrivateField(wd, "mMaxPwm", 0.97)
-                ReflectUtil.SetPrivateField(wd, "mConnectionState", true)
-            } catch (ignored: Exception) {
-            }
         } else {
             currentTheme = appConfig.appTheme
         }

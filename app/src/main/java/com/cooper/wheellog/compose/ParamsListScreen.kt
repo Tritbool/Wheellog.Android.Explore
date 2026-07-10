@@ -8,46 +8,44 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cooper.wheellog.utils.MathsUtil
 import com.cooper.wheellog.AppConfig
+import com.cooper.wheellog.ble.BleSessionViewModel
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import java.util.Locale
 
 @Composable
-fun ParamsListScreen() {
-    val data = remember { WheelDataComposeBridge.data }
+fun ParamsListScreen(viewModel: BleSessionViewModel = koinViewModel()) {
     val appConfig: AppConfig = koinInject()
-
     val useMph = appConfig.useMph
 
-    val items = remember(data) {
-        listOf(
-            "Speed" to formatSpeed(data.speedDouble, useMph),
-            "Top Speed" to formatSpeed(data.topSpeedDouble, useMph),
-            "Average Speed" to formatSpeed(data.averageSpeedDouble, useMph),
-            "Average Riding Speed" to formatSpeed(data.averageRidingSpeedDouble, useMph),
-            "Distance" to formatDistance(data.distanceDouble, useMph),
-            "Wheel Distance" to formatDistance(data.wheelDistanceDouble, useMph),
-            "User Distance" to formatDistance(data.userDistanceDouble, useMph),
-            "Total Distance" to formatDistance(data.totalDistanceDouble, useMph),
-            "Voltage" to String.format(Locale.US, "%.2f V", data.voltageDouble),
-            "Voltage Sag" to String.format(Locale.US, "%.2f V", data.voltageSagDouble),
-            "Current" to String.format(Locale.US, "%.2f A", data.currentDouble),
-            "Power" to String.format(Locale.US, "%.2f W", data.powerDouble),
-            "Motor Power" to String.format(Locale.US, "%.2f W", data.motorPower),
-            "Battery" to "${data.batteryLevel}%",
-            "Temperature" to "${data.temperature}°C",
-            "Temperature 2" to "${data.temperature2}°C",
-            "CPU Temp" to "${data.cpuTemp}°C",
-            "IMU Temp" to "${data.imuTemp}°C",
-            "Angle" to String.format(Locale.US, "%.2f°", data.angle),
-            "Roll" to String.format(Locale.US, "%.2f°", data.roll),
-            "Ride Time" to data.rideTimeString,
-            "Riding Time" to data.ridingTimeString,
-            "Mode" to data.modeStr,
-            "Model" to data.model,
-            "Version" to data.version,
-            "Serial" to data.serial
-        )
-    }
+    val items = listOf(
+        "Speed" to formatSpeed(viewModel.speedDouble, useMph),
+        "Top Speed" to formatSpeed(viewModel.topSpeedDouble, useMph),
+        "Average Speed" to formatSpeed(viewModel.averageSpeedDouble, useMph),
+        "Average Riding Speed" to formatSpeed(viewModel.averageRidingSpeedDouble, useMph),
+        "Distance" to formatDistance(viewModel.distanceDouble, useMph),
+        "Wheel Distance" to formatDistance(viewModel.wheelDistanceDouble, useMph),
+        "User Distance" to formatDistance(viewModel.userDistanceDouble, useMph),
+        "Total Distance" to formatDistance(viewModel.totalDistanceDouble, useMph),
+        "Voltage" to String.format(Locale.US, "%.2f V", viewModel.voltageDouble),
+        "Voltage Sag" to String.format(Locale.US, "%.2f V", viewModel.voltageSagDouble),
+        "Current" to String.format(Locale.US, "%.2f A", viewModel.currentDouble),
+        "Power" to String.format(Locale.US, "%.2f W", viewModel.powerDouble),
+        "Motor Power" to String.format(Locale.US, "%.2f W", viewModel.motorPower),
+        "Battery" to "${viewModel.batteryLevel}%",
+        "Temperature" to "${viewModel.temperature}°C",
+        "Temperature 2" to "${viewModel.temperature2}°C",
+        "CPU Temp" to "${viewModel.cpuTemp}°C",
+        "IMU Temp" to "${viewModel.imuTemp}°C",
+        "Angle" to String.format(Locale.US, "%.2f°", viewModel.angle),
+        "Roll" to String.format(Locale.US, "%.2f°", viewModel.roll),
+        "Ride Time" to viewModel.rideTimeString,
+        "Riding Time" to viewModel.ridingTimeString,
+        "Mode" to viewModel.modeStr,
+        "Model" to viewModel.model,
+        "Version" to viewModel.version,
+        "Serial" to viewModel.serial
+    )
 
     Column(
         modifier = Modifier

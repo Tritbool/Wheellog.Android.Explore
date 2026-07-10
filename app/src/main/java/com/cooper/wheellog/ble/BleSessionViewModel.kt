@@ -88,21 +88,37 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun setupCallbacks() {
         eucBleClient.setConnectionCallback(object : ConnectionCallback() {
-            fun onConnectionStateChange(state: BLEConstants.ConnectionState) {
+            override fun onConnected() {
                 viewModelScope.launch {
-                    updateConnectionState(state)
+                    val device = eucBleClient.getConnectedDevice()
+                    if (device != null) updateConnectedDevice(device)
                 }
             }
 
-            fun onDeviceConnected(device: EUCDevice) {
+            override fun onDisconnected() {
                 viewModelScope.launch {
-                    updateConnectedDevice(device)
+                    updateDisconnectedState()
                 }
             }
 
-            fun onDeviceDisconnected(device: EUCDevice) {
+            override fun onConnectionFailed(error: BLEException) {
                 viewModelScope.launch {
-                    updateDisconnectedDevice(device)
+                    updateError(error.message ?: "Connection failed")
+                }
+            }
+
+            override fun onDeviceDiscovered(device: EUCDevice) {
+                viewModelScope.launch {
+                    addScanResult(device)
+                }
+            }
+
+            override fun onScanCompleted(devices: List<EUCDevice>) {
+                viewModelScope.launch {
+                    _sessionState.value = _sessionState.value.copy(
+                        isScanning = false,
+                        scanResults = devices
+                    )
                 }
             }
         })
@@ -116,20 +132,10 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         })
 
         eucBleClient.setErrorCallback(object : ErrorCallback {
-            fun onError(error: String) {
-                viewModelScope.launch {
-                    updateError(error)
-                }
-            }
-
-            fun onError(error: Throwable) {
-                viewModelScope.launch {
-                    updateError(error.message ?: "Unknown error")
-                }
-            }
-
             override fun onError(error: BLEException) {
-                TODO("Not yet implemented")
+                viewModelScope.launch {
+                    updateError(error.message ?: "Unknown BLE error")
+                }
             }
         })
     }
@@ -176,7 +182,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         Timber.i("Device connected: %s (%s)", device.name, device.address)
     }
 
-    private suspend fun updateDisconnectedDevice(device: EUCDevice) {
+    private suspend fun updateDisconnectedState() {
         wheelIsReady = false
         wheelAlarm = false
 
@@ -186,7 +192,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             lastData = null
         )
 
-        Timber.i("Device disconnected: %s (%s)", device.name, device.address)
+        Timber.i("Device disconnected")
     }
 
     private suspend fun updateTelemetryData(data: EUCData) {
@@ -415,7 +421,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun getLegacyPhaseCurrent(): Int {
-        return (_sessionState.value.lastData?.phaseCurrent ?: 0.0 * 100).toInt()
+        return ((_sessionState.value.lastData?.phaseCurrent ?: 0.0) * 100).toInt()
     }
 
     fun getLegacyBatteryLevel(): Int {
@@ -423,11 +429,11 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun getLegacyDistance(): Int {
-        return (_sessionState.value.wheelDistance ?: 0.0 * 1000).toInt()
+        return ((_sessionState.value.wheelDistance ?: 0.0) * 1000).toInt()
     }
 
     fun getLegacyTotalDistance(): Long {
-        return (_sessionState.value.totalDistance ?: 0.0 * 1000).toLong()
+        return ((_sessionState.value.totalDistance ?: 0.0) * 1000).toLong()
     }
 
     fun getLegacyRideTime(): Int {
@@ -587,7 +593,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             ?: _sessionState.value.lastData?.temperature2 ?: _sessionState.value.currentTemperature
     val cpuTemp: Int get() = _sessionState.value.cpuLoad ?: 0
     val imuTemp: Int get() = 0 // TODO: Implement IMU temperature
-    val temperature2: Int get() = (_sessionState.value.lastData?.temperature2 ?: 0.0 * 100).toInt()
+    val temperature2: Int get() = ((_sessionState.value.lastData?.temperature2 ?: 0.0) * 100).toInt()
 
     // Device info
     val name: String get() = _sessionState.value.deviceName

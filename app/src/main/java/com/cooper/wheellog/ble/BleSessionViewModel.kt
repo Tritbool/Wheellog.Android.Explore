@@ -366,6 +366,23 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Connect to a wheel by MAC address and optional device name.
+     * Creates an EUCDevice from the given parameters and initiates connection.
+     */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun connectByAddress(mac: String, name: String = "") {
+        viewModelScope.launch {
+            try {
+                val device = EUCDevice(address = mac, name = name)
+                eucBleClient.connect(device)
+                Timber.i("Connecting to device by address: %s", mac)
+            } catch (e: Exception) {
+                updateError(e.message ?: "Failed to connect to $mac")
+            }
+        }
+    }
+
     fun updateScanResults(devices: List<EUCDevice>) {
         viewModelScope.launch {
             _sessionState.value = _sessionState.value.copy(

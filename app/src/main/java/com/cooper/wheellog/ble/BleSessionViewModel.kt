@@ -546,7 +546,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val speedDouble: Double get() = _sessionState.value.currentSpeed
     val voltageDouble: Double get() = _sessionState.value.currentVoltage
     val currentDouble: Double get() = _sessionState.value.currentCurrent
-    val temperature: Int get() = getLegacyTemperature()
+    val temperature: Int get() = (_sessionState.value.currentTemperature * 100).toInt()
     val temperatureDouble: Double get() = _sessionState.value.currentTemperature
     val powerDouble: Double get() = _sessionState.value.currentPower
     val phaseCurrentDouble: Double get() = _sessionState.value.lastData?.phaseCurrent ?: 0.0
@@ -555,7 +555,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val roll: Double get() = _sessionState.value.lastData?.roll ?: 0.0
     
     // Battery and voltage
-    val batteryLevel: Int get() = getLegacyBatteryLevel()
+    val batteryLevel: Int get() = _sessionState.value.batteryLevel
     val batteryLowestLevel: Int get() = batteryLowest
     val voltageSagDouble: Double get() = voltageSag.toDouble() / 100
     
@@ -582,19 +582,19 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val temperature2: Int get() = (_sessionState.value.lastData?.temperature2 ?: 0.0 * 100).toInt()
     
     // Device info
-    val name: String get() = getName()
-    val model: String get() = getModel()
-    val version: String get() = getVersion()
-    val serial: String get() = getSerial()
-    val mac: String get() = getMac()
-    val manufacturer: String get() = getManufacturer()
+    val name: String get() = _sessionState.value.deviceName
+    val model: String get() = _sessionState.value.deviceModel
+    val version: String get() = _sessionState.value.firmwareVersion ?: "Unknown"
+    val serial: String get() = _sessionState.value.serialNumber ?: "Unknown"
+    val mac: String get() = _sessionState.value.deviceAddress
+    val manufacturer: String get() = _sessionState.value.deviceManufacturer
     
     // Status
-    val isConnected: Boolean get() = isConnected()
+    val isConnected: Boolean get() = _sessionState.value.isConnected
     val fanStatus: Int get() = _sessionState.value.fanStatus ?: 0
     val chargingStatus: Int get() = _sessionState.value.chargingStatus ?: 0
     val output: Int get() = 0 // TODO: Implement output calculation
-    val wheelAlarm: Boolean get() = getWheelAlarm()
+    val wheelAlarm: Boolean get() = wheelAlarm
     var bmsView: Boolean = false
     val error: String get() = _sessionState.value.lastError ?: ""
     

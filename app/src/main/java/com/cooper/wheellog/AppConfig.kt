@@ -270,13 +270,6 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue("show_clock", true)
         set(value) = setValue("show_clock", value)
 
-    var mibandFixRs: Boolean
-        get() = getValue(R.string.miband_fixrs_enable, false)
-        set(value) {
-            setValue(R.string.miband_fixrs_enable, value)
-            notifications.updateKostilTimer()
-        }
-
     fun getResId(resName: String?): Int {
         return if (resName == null || resName === "") {
             -1

@@ -11,7 +11,8 @@ object Constants {
     const val ACTION_LOGGING_SERVICE_TOGGLED = "com.cooper.wheellog.loggingServiceToggled"
     const val ACTION_RAW_LOGGING_TOGGLED = "com.cooper.wheellog.rawLoggingToggled"
     const val ACTION_PREFERENCE_RESET = "com.cooper.wheellog.preferenceReset"
-    const val ACTION_PEBBLE_AFFECTING_PREFERENCE_CHANGED = "com.cooper.wheellog.pebblePreferenceChanged"
+    const val ACTION_PEBBLE_AFFECTING_PREFERENCE_CHANGED =
+        "com.cooper.wheellog.pebblePreferenceChanged"
     const val ACTION_ALARM_TRIGGERED = "com.cooper.wheellog.alarmTriggered"
     const val ACTION_PEBBLE_APP_READY = "com.cooper.wheellog.pebbleAppReady"
     const val ACTION_PEBBLE_APP_SCREEN = "com.cooper.wheellog.pebbleAppScreen"
@@ -30,45 +31,63 @@ object Constants {
     const val NOTIFICATION_CHANNEL_ID_NOTIFICATION = "com.cooper.wheellog.Channel_Notification"
     const val notificationChannelName = "Notify"
     const val notificationChannelDescription = "Default Notify"
+
     @JvmField
     val KINGSONG_DESCRIPTER_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val KINGSONG_READ_CHARACTER_UUID = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val KINGSONG_SERVICE_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val GOTWAY_READ_CHARACTER_UUID = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val GOTWAY_SERVICE_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val INMOTION_DESCRIPTER_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val INMOTION_READ_CHARACTER_UUID = UUID.fromString("0000ffe4-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val INMOTION_SERVICE_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb")
     val INMOTION_WRITE_CHARACTER_UUID = UUID.fromString("0000ffe9-0000-1000-8000-00805f9b34fb")
     val INMOTION_WRITE_SERVICE_UUID = UUID.fromString("0000ffe5-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val NINEBOT_Z_SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e")
     val NINEBOT_Z_WRITE_CHARACTER_UUID = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e")
+
     @JvmField
     val NINEBOT_Z_READ_CHARACTER_UUID = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e")
+
     @JvmField
     val NINEBOT_Z_DESCRIPTER_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val INMOTION_V2_SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e")
     val INMOTION_V2_WRITE_CHARACTER_UUID = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e")
+
     @JvmField
     val INMOTION_V2_READ_CHARACTER_UUID = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e")
+
     @JvmField
     val INMOTION_V2_DESCRIPTER_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val NINEBOT_SERVICE_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb")
     val NINEBOT_WRITE_CHARACTER_UUID = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val NINEBOT_READ_CHARACTER_UUID = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val NINEBOT_DESCRIPTER_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+
     @JvmField
     val PEBBLE_APP_UUID = UUID.fromString("185c8ae9-7e72-451a-a1c7-8f1e81df9a3d")
     const val PEBBLE_KEY_READY = 11
@@ -96,6 +115,18 @@ object Constants {
 
     enum class WHEEL_TYPE {
         Unknown, KINGSONG, GOTWAY, NINEBOT, NINEBOT_Z, INMOTION, INMOTION_V2, VETERAN, GOTWAY_VIRTUAL
+    }
+
+    fun wheel_type_from_string(wt: String): WHEEL_TYPE {
+        return when (wt.lowercase()) {
+            "kingsong" -> WHEEL_TYPE.KINGSONG
+            "gotway", "gw", "begode", "eb", "extreme bull", "extreme_bull" -> WHEEL_TYPE.GOTWAY
+            "ninebot", "segway" -> WHEEL_TYPE.NINEBOT
+            "ninebot_z", "ninebotz" -> WHEEL_TYPE.NINEBOT_Z
+            "inmotion" -> WHEEL_TYPE.INMOTION
+            "leaperkim", "veteran" -> WHEEL_TYPE.VETERAN
+            else -> WHEEL_TYPE.Unknown
+        }
     }
 
     enum class PEBBLE_APP_SCREEN(val value: Int) {

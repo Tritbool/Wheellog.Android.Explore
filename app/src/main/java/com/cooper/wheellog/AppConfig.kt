@@ -214,10 +214,6 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue(R.string.auto_upload_ec, false)
         set(value) = setValue(R.string.auto_upload_ec, value)
 
-    var logLocationData: Boolean
-        get() = getValue(R.string.log_location_data, false)
-        set(value) = setValue(R.string.log_location_data, value)
-
     var ecUserId: String?
         get() = getValue(R.string.ec_user_id, null)
         set(value) = setValue(R.string.ec_user_id, value)

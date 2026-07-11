@@ -162,7 +162,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
             R.layout.main_view_main -> {
                 viewModel.bmsView = false
                 wheelView?.apply {
-                    setSpeed(viewModel.speed)
+                    setSpeed(viewModel.speed.toInt())
                     setBattery(viewModel.batteryLevel)
                     setBatteryLowest(viewModel.batteryLowestLevel)
                     setTemperature(viewModel.temperature)
@@ -175,7 +175,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     setPhaseCurrent(viewModel.phaseCurrentDouble)
                     setAverageSpeed(viewModel.averageRidingSpeedDouble)
                     setMaxPwm(viewModel.maxPwm)
-                    setMaxTemperature(viewModel.maxTemp)
+                    setMaxTemperature(viewModel.maxTemp.toInt())
                     setPwm(viewModel.calculatedPwm)
                     updateViewBlocksVisibility()
                     redrawTextBoxes()

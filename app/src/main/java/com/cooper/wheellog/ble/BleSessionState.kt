@@ -1,5 +1,6 @@
 package com.cooper.wheellog.ble
 
+import com.cooper.wheellog.utils.Constants.wheel_type_from_string
 import io.github.tritbool.euc.ble.core.BLEConstants
 import io.github.tritbool.euc.ble.models.EUCData
 import io.github.tritbool.euc.ble.models.EUCDevice
@@ -167,3 +168,6 @@ data class BleSessionState(
         val EMPTY = BleSessionState()
     }
 }
+
+fun BleSessionState.getWheelType(): com.cooper.wheellog.utils.Constants.WHEEL_TYPE =
+    wheel_type_from_string(deviceManufacturer)

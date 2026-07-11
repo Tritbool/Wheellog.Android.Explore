@@ -332,6 +332,122 @@ class AppConfig(var context: Context) : KoinComponent {
     var alarmsEnabled: Boolean
         get() = getValue("alarms_enabled", false)
         set(value) = setValue("alarms_enabled", value)
+
+    var pwmBasedAlarms: Boolean
+        get() = getValue(R.string.altered_alarms, false)
+        set(value) = setValue(R.string.altered_alarms, value)
+
+    var disablePhoneVibrate: Boolean
+        get() = getValue(R.string.disable_phone_vibrate, false)
+        set(value) = setValue(R.string.disable_phone_vibrate, value)
+
+    var disablePhoneBeep: Boolean
+        get() = getValue(R.string.disable_phone_beep, false)
+        set(value) = setValue(R.string.disable_phone_beep, value)
+
+    var useWheelBeepForAlarm: Boolean
+        get() = getValue(R.string.use_wheel_beep_for_alarm, false)
+        set(value) = setValue(R.string.use_wheel_beep_for_alarm, value)
+
+    var alarm1Speed: Int
+        get() = getValue(R.string.alarm_1_speed, 0)
+        set(value) = setValue(R.string.alarm_1_speed, value)
+
+    var alarm1Battery: Int
+        get() = getValue(R.string.alarm_1_battery, 0)
+        set(value) = setValue(R.string.alarm_1_battery, value)
+
+    var alarm2Speed: Int
+        get() = getValue(R.string.alarm_2_speed, 0)
+        set(value) = setValue(R.string.alarm_2_speed, value)
+
+    var alarm2Battery: Int
+        get() = getValue(R.string.alarm_2_battery, 0)
+        set(value) = setValue(R.string.alarm_2_battery, value)
+
+    var alarm3Speed: Int
+        get() = getValue(R.string.alarm_3_speed, 0)
+        set(value) = setValue(R.string.alarm_3_speed, value)
+
+    var alarm3Battery: Int
+        get() = getValue(R.string.alarm_3_battery, 0)
+        set(value) = setValue(R.string.alarm_3_battery, value)
+
+    var alarmCurrent: Int
+        get() = getValue(R.string.alarm_current, 0)
+        set(value) = setValue(R.string.alarm_current, value)
+
+    var alarmPhaseCurrent: Int
+        get() = getValue(R.string.alarm_phase_current, 0)
+        set(value) = setValue(R.string.alarm_phase_current, value)
+
+    var alarmBattery: Int
+        get() = getValue(R.string.alarm_battery, 0)
+        set(value) = setValue(R.string.alarm_battery, value)
+
+    var alarmWheel: Boolean
+        get() = getValue(R.string.alarm_wheel, false)
+        set(value) = setValue(R.string.alarm_wheel, value)
+
+    var alarmTemperature: Int
+        get() = getValue(R.string.alarm_temperature, 0)
+        set(value) = setValue(R.string.alarm_temperature, value)
+
+    var alarmMotorTemperature: Int
+        get() = getValue(R.string.alarm_motor_temperature, 0)
+        set(value) = setValue(R.string.alarm_motor_temperature, value)
+
+    var alarmFactor1: Int
+        get() = getValue(R.string.alarm_factor1, 80)
+        set(value) = setValue(R.string.alarm_factor1, value)
+
+    var alarmFactor2: Int
+        get() = getValue(R.string.alarm_factor2, 95)
+        set(value) = setValue(R.string.alarm_factor2, value)
+
+    var warningSpeed: Int
+        get() = getValue(R.string.warning_speed, 0)
+        set(value) = setValue(R.string.warning_speed, value)
+
+    var warningPwm: Int
+        get() = getValue(R.string.warning_pwm, 0)
+        set(value) = setValue(R.string.warning_pwm, value)
+
+    var warningSpeedPeriod: Int
+        get() = getValue(R.string.warning_speed_period, 0)
+        set(value) = setValue(R.string.warning_speed_period, value)
+
+    var hwPwm: Boolean
+        get() = getValue(R.string.hw_pwm, false)
+        set(value) = setValue(R.string.hw_pwm, value)
+
+    var rotationIsSet: Boolean
+        get() = getValue(R.string.rotation_set, false)
+        set(value) = setValue(R.string.rotation_set, value)
+
+    var rotationSpeed: Int
+        get() = getValue(R.string.rotation_speed, 500)
+        set(value) = setValue(R.string.rotation_speed, value)
+
+    var rotationVoltage: Int
+        get() = getValue(R.string.rotation_voltage, 840)
+        set(value) = setValue(R.string.rotation_voltage, value)
+
+    var useShortPwm: Boolean
+        get() = getValue(R.string.use_short_pwm, false)
+        set(value) = setValue(R.string.use_short_pwm, value)
+
+    var swapSpeedPwm: Boolean
+        get() = getValue(R.string.swap_speed_pwm, false)
+        set(value) = setValue(R.string.swap_speed_pwm, value)
+
+    var colorPwmStart: Int
+        get() = getValue(R.string.color_pwm_start, 60)
+        set(value) = setValue(R.string.color_pwm_start, value)
+
+    var colorPwmEnd: Int
+        get() = getValue(R.string.color_pwm_end, 90)
+        set(value) = setValue(R.string.color_pwm_end, value)
     //endregion
 
     fun getResId(resName: String?): Int {

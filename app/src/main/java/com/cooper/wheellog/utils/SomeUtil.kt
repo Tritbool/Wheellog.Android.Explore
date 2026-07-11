@@ -1,5 +1,4 @@
 package com.cooper.wheellog.utils
-import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.annotation.SuppressLint
 import android.content.*

@@ -1,5 +1,4 @@
 package com.cooper.wheellog.settings
-import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Column
@@ -12,9 +11,10 @@ import androidx.compose.ui.res.stringResource
 import com.cooper.wheellog.R
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.utils.Constants
+import org.koin.compose.koinInject
 
 @Composable
-fun tripScreen( ) {
+fun tripScreen(viewModel: BleSessionViewModel = koinInject()) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())

@@ -33,7 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.viewpager2.widget.ViewPager2
@@ -198,9 +198,9 @@ class MainActivity : AppCompatActivity() {
 
             // Notify logging service of connection state change
             val blessedState = if (state.isConnected)
-                com.welie.blessed.ConnectionState.CONNECTED
+                BLEConstants.ConnectionState.CONNECTED
             else
-                com.welie.blessed.ConnectionState.DISCONNECTED
+                BLEConstants.ConnectionState.DISCONNECTED
             loggingService?.updateConnectionState(blessedState)
 
             when (state.connectionState) {

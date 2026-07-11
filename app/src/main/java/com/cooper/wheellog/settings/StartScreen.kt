@@ -1,5 +1,4 @@
 package com.cooper.wheellog.settings
-import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.content.Context
 import android.content.Intent
@@ -43,6 +42,7 @@ fun startScreen(
     onSelect: (String) -> Unit = {},
 )
 {
+    val viewModel: com.cooper.wheellog.ble.BleSessionViewModel = koinInject()
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.SpaceBetween,
@@ -51,13 +51,13 @@ fun startScreen(
 
         var isSpecificVisible by remember {
             mutableStateOf(
-                viewModel?.wheelType != Constants.WHEEL_TYPE.Unknown
+                viewModel.wheelType != Constants.WHEEL_TYPE.Unknown
             )
         }
         systemBroadcastReceiver(systemAction = Constants.ACTION_WHEEL_MODEL_CHANGED) { intent ->
             if (intent?.action == Constants.ACTION_WHEEL_MODEL_CHANGED) {
                 isSpecificVisible =
-                    viewModel?.wheelType != Constants.WHEEL_TYPE.Unknown
+                    viewModel.wheelType != Constants.WHEEL_TYPE.Unknown
             }
         }
 

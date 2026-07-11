@@ -70,12 +70,16 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     private var voltageSag: Int = 20000
     private var wheelIsReady: Boolean = false
     private var wheelAlarm: Boolean = false
-    private var bmsView: Boolean = false
+    var bmsView: Boolean = false
+
+    // BMS data
+    val bms1 = com.cooper.wheellog.utils.SmartBms()
+    val bms2 = com.cooper.wheellog.utils.SmartBms()
 
     // ========== GRAPH DATA (for charts) ==========
     private val graphUpdateInterval = 1000L // milliseconds
     private var graphLastUpdateTime: Long = 0
-    private val xAxis = ArrayList<String>()
+    val xAxis = ArrayList<String>()
     val currentAxis = ArrayList<Float>()
     val speedAxis = ArrayList<Float>()
 
@@ -376,7 +380,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun connectByAddress(mac: String, name: String = "") {
         viewModelScope.launch {
             try {
-                val device = EUCDevice(address = mac, name = name)
+                val device = EUCDevice(address = mac, name = name, manufacturerId = "", rssi = 0)
                 eucBleClient.connect(device)
                 Timber.i("Connecting to device by address: %s", mac)
             } catch (e: Exception) {
@@ -671,6 +675,33 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
     // Motor power
     val motorPower: Double get() = _sessionState.value.currentPower
+
+    // Max values (for display)
+    val maxCurrentDouble: Double get() = sessionMaxCurrent
+    val maxPhaseCurrentDouble: Double get() = sessionMaxPhaseCurrent
+    val maxPowerDouble: Double get() = sessionMaxPower
+
+    // Stats placeholders (computed by other components)
+    val remainingDistance: Double get() = 0.0
+    val batteryPerKm: Double get() = 0.0
+    val avgVoltagePerCell: Double get() = 0.0
+
+    // Feature flags
+    val isVoltageTiltbackUnsupported: Boolean get() = false
+
+    // Legacy adapter placeholder (flashlight etc.)
+    val adapter: Any? get() = null
+
+    // Wheel alarm (public accessor)
+    val wheelAlarmState: Boolean get() = wheelAlarm
+
+    // CPU load
+    val cpuLoad: Int get() = _sessionState.value.cpuLoad ?: 0
+
+    // Beep via wheel
+    fun wheelBeep() {
+        // TODO: Implement via CommandType when available
+    }
 
     private fun formatRideTime(seconds: Long): String {
         val hours = seconds / 3600

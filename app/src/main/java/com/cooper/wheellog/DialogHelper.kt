@@ -69,7 +69,7 @@ object DialogHelper : KoinComponent {
 
     fun checkPWMIsSetAndShowAlert(context: Context) {
         val wd = viewModel
-        if (!wd.isWheelIsReady || wd.isHardwarePWM || appConfig.hwPwm || appConfig.rotationIsSet) {
+        if (!wd.isWheelReady() || appConfig.hwPwm || appConfig.rotationIsSet) {
             return
         }
         if (appConfig.rotationSpeed != 500 && appConfig.rotationVoltage != 840) {

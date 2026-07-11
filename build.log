@@ -7,749 +7,131 @@ To honour the JVM settings for this build a single-use Daemon process will be fo
 Daemon will be stopped at the end of the build 
 Reusing configuration cache.
 > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :app:preBuild UP-TO-DATE
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
 > Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
 > Task :app:preDebugBuild UP-TO-DATE
 > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:buildKotlinToolingMetadata
+> Task :app:generateReleaseResValues
 > Task :app:generateDebugResValues
 > Task :app:createDebugCompatibleScreenManifests
 > Task :app:generateDebugBuildConfig
-> Task :app:buildKotlinToolingMetadata
+> Task :app:generateReleaseBuildConfig
 > Task :app:generateDebugResources
 > Task :app:mapDebugSourceSetPaths
+> Task :app:extractProguardFiles
 > Task :app:extractDeepLinksDebug
-> Task :app:javaPreCompileDebug
 > Task :app:desugarDebugFileDependencies
+> Task :app:javaPreCompileDebug
 > Task :app:validateSigningDebug
-> Task :app:processDebugNavigationResources
 > Task :app:writeDebugAppMetadata
-> Task :app:compileDebugNavigationResources
-> Task :app:dataBindingMergeDependencyArtifactsDebug
 > Task :app:writeDebugSigningConfigVersions
-> Task :app:mergeDebugJniLibFolders
-> Task :app:mergeDebugAssets
+> Task :app:processDebugNavigationResources
+> Task :app:compileDebugNavigationResources
 > Task :app:mergeReleaseJniLibFolders
+> Task :app:mergeDebugAssets
+> Task :app:mergeDebugJniLibFolders
 > Task :app:compressDebugAssets
-> Task :app:generateReleaseResValues
-> Task :app:generateReleaseResources
 > Task :app:checkDebugAarMetadata
-> Task :app:generateReleaseBuildConfig
+> Task :app:generateReleaseResources
+> Task :app:dataBindingMergeDependencyArtifactsDebug
+> Task :app:dataBindingMergeDependencyArtifactsRelease
 > Task :app:checkDebugDuplicateClasses
 > Task :app:checkReleaseDuplicateClasses
-> Task :app:dataBindingMergeDependencyArtifactsRelease
 > Task :app:mapReleaseSourceSetPaths
+> Task :app:processReleaseNavigationResources
 > Task :app:checkReleaseAarMetadata
 > Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease
-> Task :app:processReleaseNavigationResources
 > Task :app:compileReleaseNavigationResources
-> Task :app:mergeLibDexDebug
-> Task :app:desugarReleaseFileDependencies
-> Task :app:javaPreCompileRelease
 > Task :app:mergeDebugNativeLibs
 > Task :app:mergeReleaseNativeLibs
+> Task :app:mergeLibDexDebug
+> Task :app:desugarReleaseFileDependencies
 > Task :app:mergeReleaseStartupProfile UP-TO-DATE
-
-> Task :app:processReleaseMainManifest
-/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/AndroidManifest.xml:24:5-99 Warning:
-	uses-permission#com.google.android.gms.permission.AD_ID was tagged at AndroidManifest.xml:24 to remove other declarations but no other declaration present
+> Task :app:javaPreCompileRelease
 
 > Task :app:processDebugMainManifest
 /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/AndroidManifest.xml:24:5-99 Warning:
 	uses-permission#com.google.android.gms.permission.AD_ID was tagged at AndroidManifest.xml:24 to remove other declarations but no other declaration present
 
-> Task :app:stripDebugDebugSymbols
-Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
-
 > Task :app:stripReleaseDebugSymbols
 Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
 
+> Task :app:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
+
+> Task :app:processReleaseMainManifest
+/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/AndroidManifest.xml:24:5-99 Warning:
+	uses-permission#com.google.android.gms.permission.AD_ID was tagged at AndroidManifest.xml:24 to remove other declarations but no other declaration present
+
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
-> Task :app:mergeReleaseArtProfile
 > Task :app:extractReleaseNativeSymbolTables
+> Task :app:mergeReleaseArtProfile
 > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
-> Task :app:extractProguardFiles
 > Task :app:writeReleaseAppMetadata
 > Task :app:writeReleaseSigningConfigVersions
 > Task :app:preDebugAndroidTestBuild SKIPPED
 > Task :app:generateDebugAndroidTestResValues
-> Task :app:preDebugUnitTestBuild UP-TO-DATE
 > Task :app:javaPreCompileDebugUnitTest
 > Task :app:extractReleaseVersionControlInfo
 
 > Task :app:processDebugUnitTestManifest
 /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/AndroidManifest.xml:24:5-99 Warning:
 	uses-permission#com.google.android.gms.permission.AD_ID was tagged at AndroidManifest.xml:24 to remove other declarations but no other declaration present
-/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/intermediates/tmp/manifest/test/debug/tempFile2ProcessTestManifest871723640908317522.xml:34:5-36:31 Warning:
-	uses-permission#com.google.android.gms.permission.AD_ID was tagged at tempFile2ProcessTestManifest871723640908317522.xml:34 to remove other declarations but no other declaration present
+/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/intermediates/tmp/manifest/test/debug/tempFile2ProcessTestManifest4602592996425506287.xml:34:5-36:31 Warning:
+	uses-permission#com.google.android.gms.permission.AD_ID was tagged at tempFile2ProcessTestManifest4602592996425506287.xml:34 to remove other declarations but no other declaration present
 
 > Task :app:collectReleaseDependencies
 > Task :app:sdkReleaseDependencyData
 > Task :app:processReleaseManifest
 > Task :app:processDebugManifest
-> Task :app:processDebugManifestForPackage
 > Task :app:processReleaseManifestForPackage
+> Task :app:processDebugManifestForPackage
 > Task :app:generateDebugGlobalSynthetics
 > Task :app:mergeDebugResources
-> Task :app:mergeReleaseResources
 > Task :app:dataBindingGenBaseClassesDebug
+> Task :app:mergeReleaseResources
 > Task :app:dataBindingGenBaseClassesRelease
-warn: removing resource com.cooper.wheellog:string/disable_phone_vibration_description without required default value.
-warn: removing resource com.cooper.wheellog:string/horn_mode_description without required default value.
-warn: removing resource com.cooper.wheellog:string/logging_error_network_disabled without required default value.
-
-warn: removing resource com.cooper.wheellog.debug:string/disable_phone_vibration_description without required default value.
-warn: removing resource com.cooper.wheellog.debug:string/horn_mode_description without required default value.
-warn: removing resource com.cooper.wheellog.debug:string/logging_error_network_disabled without required default value.
-
-> Task :app:processReleaseResources
 > Task :app:processDebugResources
+> Task :app:processReleaseResources
 > Task :app:packageDebugUnitTestForUnitTest
 > Task :app:generateDebugUnitTestConfig
 > Task :app:optimizeReleaseResources
 > Task :app:mergeExtDexRelease
 > Task :app:mergeExtDexDebug
-> Task :app:kspDebugKotlin
 > Task :app:kspReleaseKotlin
-
-> Task :app:compileDebugKotlin
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:72:17 Unresolved reference 'isWheelIsReady'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:72:38 Unresolved reference 'isHardwarePWM'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:72:65 Unresolved reference 'hwPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:72:84 Unresolved reference 'rotationIsSet'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:75:23 Unresolved reference 'rotationSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:75:57 Unresolved reference 'rotationVoltage'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:76:23 Unresolved reference 'rotationIsSet'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:211:29 Unresolved reference 'rotationSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:212:29 Unresolved reference 'rotationVoltage'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:214:35 Unresolved reference 'rotationIsSet'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:221:33 Unresolved reference 'rotationSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:222:33 Unresolved reference 'rotationVoltage'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:224:39 Unresolved reference 'rotationIsSet'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/LoggingService.kt:17:12 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/LoggingService.kt:35:48 Unresolved reference 'ConnectionState'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainActivity.kt:91:51 Cannot infer type for type parameter 'VM'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainActivity.kt:91:51 @Composable invocations can only happen from the context of a @Composable function
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainActivity.kt:201:21 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainActivity.kt:203:21 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainActivity.kt:551:16 Unresolved reference 'vibrate'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:163:27 Cannot access 'var bmsView: Boolean': it is private in 'com.cooper.wheellog.ble.BleSessionViewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:165:30 Argument type mismatch: actual type is 'Double', but 'Int' was expected.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:178:39 Argument type mismatch: actual type is 'Double', but 'Int' was expected.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:235:103 Unresolved reference 'cpuLoad'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:250:41 Cannot access 'val xAxis: ArrayList<String>': it is private in 'com.cooper.wheellog.ble.BleSessionViewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:310:27 Cannot access 'var bmsView: Boolean': it is private in 'com.cooper.wheellog.ble.BleSessionViewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:311:70 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:311:99 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:312:70 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:312:100 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:313:113 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:313:176 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:314:112 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:314:174 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:315:105 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:315:164 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:316:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:316:168 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:317:75 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:317:102 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:318:105 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:318:160 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:319:109 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:319:168 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:320:109 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:320:168 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:321:110 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:321:170 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:322:110 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:322:170 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:323:115 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:323:180 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:324:115 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:324:180 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:325:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:325:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:326:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:326:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:327:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:327:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:328:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:328:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:329:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:329:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:330:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:330:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:331:110 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:331:170 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:332:113 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:332:176 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:333:111 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:333:172 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:334:116 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:334:182 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:335:111 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:335:172 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:336:116 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:336:182 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:337:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:337:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:338:110 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:338:170 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:339:115 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:339:139 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:339:207 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:339:231 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:340:115 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:340:139 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:340:207 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:340:231 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:341:111 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:341:172 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:393:45 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:394:45 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:397:36 Operator '==' cannot be applied to 'BigInteger!' and 'Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:397:58 'infix' modifier is required on 'fun and(p0: BigInteger!): BigInteger!'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:397:62 Argument type mismatch: actual type is 'Int', but 'BigInteger!' was expected.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:398:36 Operator '==' cannot be applied to 'BigInteger!' and 'Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:398:58 'infix' modifier is required on 'fun and(p0: BigInteger!): BigInteger!'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:398:62 Argument type mismatch: actual type is 'Int', but 'BigInteger!' was expected.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:399:110 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:399:184 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:905:31 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:935:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:941:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:947:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:957:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:963:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:969:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:1022:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:1025:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:32:12 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:33:12 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:34:12 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:35:12 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:43:26 Unresolved reference 'BluetoothCentralManager'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:43:50 Type 'Lazy<uninferred ??? (Unknown type for type parameter T)>' has no method 'getValue(ScanActivity, KProperty1<ScanActivity, ??? (Unresolved qualified name: BluetoothCentralManager)>)', so it cannot serve as a delegate.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:43:53 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:43:53 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:44:9 Unresolved reference 'BluetoothCentralManager'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:48:11 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:48:17 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:48:19 Unresolved reference 'transport'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:48:31 Unresolved reference 'Transport'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:75:25 Unresolved reference 'isScanning'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:91:37 Unresolved reference 'isScanning'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:111:50 Unresolved reference 'BluetoothCentralManagerCallback'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:112:18 Unresolved reference 'BluetoothCentralManagerCallback'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:114:29 Unresolved reference 'BluetoothPeripheral'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:117:17 Unresolved reference 'BluetoothCentralManagerCallback'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:117:23 Unresolved reference 'onDiscoveredPeripheral'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:130:17 Unresolved reference 'stopScan'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:137:21 Unresolved reference 'isBluetoothEnabled'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:156:17 Unresolved reference 'close'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:174:21 Unresolved reference 'isScanning'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:175:21 Unresolved reference 'stopScan'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:228:21 Unresolved reference 'stopScan'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:229:21 Unresolved reference 'scanForPeripherals'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:235:21 Unresolved reference 'stopScan'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:379:55 No value passed for parameter 'manufacturerId'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:379:55 No value passed for parameter 'rssi'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/compose/SmartBmsScreen.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/compose/SmartBmsScreen.kt:10:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/compose/SmartBmsScreen.kt:14:42 Unresolved reference 'koinViewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/compose/SmartBmsScreen.kt:16:26 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/compose/SmartBmsScreen.kt:17:26 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:14:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:26:31 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:26:31 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:26:42 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:26:67 Unresolved reference 'pwmBasedAlarms'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:28:13 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:29:24 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:31:17 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:49:27 Unresolved reference 'pwmBasedAlarms'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:68:48 Unresolved reference 'disable_phone_vibration_description'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:69:37 Unresolved reference 'disablePhoneVibrate'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:71:27 Unresolved reference 'disablePhoneVibrate'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:76:48 Unresolved reference 'disable_phone_beep_description'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:77:37 Unresolved reference 'disablePhoneBeep'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:79:27 Unresolved reference 'disablePhoneBeep'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:85:37 Unresolved reference 'useWheelBeepForAlarm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:87:27 Unresolved reference 'useWheelBeepForAlarm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:90:17 Unresolved reference 'not' for operator '!'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:98:47 Unresolved reference 'alarm1Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:103:35 Unresolved reference 'alarm1Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:109:46 Unresolved reference 'alarm1Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:115:35 Unresolved reference 'alarm1Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:124:47 Unresolved reference 'alarm2Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:129:35 Unresolved reference 'alarm2Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:135:46 Unresolved reference 'alarm2Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:141:35 Unresolved reference 'alarm2Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:150:47 Unresolved reference 'alarm3Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:155:35 Unresolved reference 'alarm3Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:161:46 Unresolved reference 'alarm3Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:167:35 Unresolved reference 'alarm3Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:175:56 Unresolved reference 'hwPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:179:51 Unresolved reference 'rotationSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:185:39 Unresolved reference 'rotationSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:191:51 Unresolved reference 'rotationVoltage'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:197:39 Unresolved reference 'rotationVoltage'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:203:50 Unresolved reference 'powerFactor'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:208:39 Unresolved reference 'powerFactor'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:215:46 Unresolved reference 'alarmFactor1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:220:35 Unresolved reference 'alarmFactor1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:226:46 Unresolved reference 'alarmFactor2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:231:35 Unresolved reference 'alarmFactor2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:234:81 Unresolved reference 'warningSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:235:79 Unresolved reference 'warningPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:240:47 Unresolved reference 'warningSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:247:35 Unresolved reference 'warningSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:254:46 Unresolved reference 'warningPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:261:35 Unresolved reference 'warningPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:266:50 Unresolved reference 'warningSpeedPeriod'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:268:39 Unresolved reference 'warningSpeedPeriod'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:282:39 Unresolved reference 'warningSpeedPeriod'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:291:38 Unresolved reference 'alarmCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:296:27 Unresolved reference 'alarmCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:301:38 Unresolved reference 'alarmPhaseCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:306:27 Unresolved reference 'alarmPhaseCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:313:38 Unresolved reference 'alarmTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:318:27 Unresolved reference 'alarmTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:324:38 Unresolved reference 'alarmMotorTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:329:27 Unresolved reference 'alarmMotorTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:335:38 Unresolved reference 'alarmBattery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:340:27 Unresolved reference 'alarmBattery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:346:45 Unresolved reference 'alarmWheel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:348:31 Unresolved reference 'alarmWheel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:213:45 Unresolved reference 'icon_miband'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:213:85 Unresolved reference 'icon_miband'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:224:56 Unresolved reference 'start_pebble_service'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:225:57 Unresolved reference 'miband_desc'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:279:29 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:279:29 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:279:40 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:279:65 Unresolved reference 'useShortPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:287:27 Unresolved reference 'useShortPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:289:31 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:296:41 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:298:31 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:302:70 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:303:68 Unresolved reference 'colorPwmEnd'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:320:31 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:321:31 Unresolved reference 'colorPwmEnd'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:341:31 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:342:31 Unresolved reference 'colorPwmEnd'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:505:17 No value passed for parameter 'name'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/Components.kt:1101:35 Unresolved reference 'MenuAlarm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:33:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:54:17 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:60:21 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreenMigrated.kt:34:32 Unresolved reference 'getWheelType'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreenMigrated.kt:59:22 Unresolved reference 'getWheelType'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/TripScreen.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/TripScreen.kt:13:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/TripScreen.kt:27:13 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/TripScreen.kt:34:13 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/TripScreen.kt:41:13 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:101:38 Unresolved reference 'pwmBasedAlarms'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:117:29 Unresolved reference 'alarmFactor1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:119:41 Unresolved reference 'alarmFactor1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:119:76 Unresolved reference 'alarmFactor2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:119:109 Unresolved reference 'alarmFactor1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:127:40 Unresolved reference 'warningPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:128:48 Unresolved reference 'warningSpeedPeriod'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:133:46 Unresolved reference 'warningSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:144:42 Unresolved reference 'alarm1Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:144:65 Unresolved reference 'alarm1Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:149:27 Unresolved reference 'alarm2Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:150:27 Unresolved reference 'alarm2Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:157:27 Unresolved reference 'alarm3Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:158:27 Unresolved reference 'alarm3Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:182:42 Unresolved reference 'alarmTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:183:47 Unresolved reference 'alarmMotorTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:206:38 Unresolved reference 'alarmCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:207:43 Unresolved reference 'alarmPhaseCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:208:26 'operator' modifier is required on 'fun <T> Comparable<T>.compareTo(other: T): Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:208:47 Unresolved reference 'current'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:208:56 'operator' modifier is required on 'fun String.compareTo(other: String, ignoreCase: Boolean = ...): Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:215:38 'operator' modifier is required on 'fun <T> Comparable<T>.compareTo(other: T): Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:215:59 Unresolved reference 'phaseCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:215:73 'operator' modifier is required on 'fun String.compareTo(other: String, ignoreCase: Boolean = ...): Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:230:38 Unresolved reference 'alarmBattery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:246:36 Unresolved reference 'alarmWheel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:247:37 Cannot access 'var wheelAlarm: Boolean': it is private in 'com.cooper.wheellog.ble.BleSessionViewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:272:24 Unresolved reference 'disablePhoneVibrate'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:275:24 Unresolved reference 'disablePhoneBeep'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:290:13 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:290:26 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:290:27 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:290:37 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:290:39 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:291:13 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:291:26 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:291:27 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:291:33 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:291:34 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:293:5 Syntax error: Expecting a top level declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:314:1 Syntax error: Expecting a top level declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/AudioUtil.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/AudioUtil.kt:10:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/AudioUtil.kt:85:23 Unresolved reference 'useWheelBeepForAlarm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/SomeUtil.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/SomeUtil.kt:21:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/SomeUtil.kt:81:23 Unresolved reference 'wheelBeep'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:168:155 Unresolved reference 'maxCurrentDouble'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:169:160 Unresolved reference 'maxPhaseCurrentDouble'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:187:39 Unresolved reference 'maxPowerDouble'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:250:53 Unresolved reference 'remainingDistance'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:256:43 Unresolved reference 'remainingDistance'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:265:71 Unresolved reference 'batteryPerKm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:272:106 Unresolved reference 'avgVoltagePerCell'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:676:31 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:680:32 Unresolved reference 'colorPwmEnd'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:687:30 Unresolved reference 'colorPwmEnd'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:687:54 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:688:43 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:759:37 Unresolved reference 'alarm1Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:760:23 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:761:29 Unresolved reference 'pwmBasedAlarms'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:764:46 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:769:23 Unresolved reference 'useShortPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:771:28 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:802:50 Unresolved reference 'isVoltageTiltbackUnsupported'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:945:37 Unresolved reference 'alarm1Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:946:23 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:947:29 Unresolved reference 'pwmBasedAlarms'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:952:46 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:957:23 Unresolved reference 'useShortPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:959:28 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:990:50 Unresolved reference 'isVoltageTiltbackUnsupported'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:1132:27 Unresolved reference 'adapter'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:1150:24 Unresolved reference 'vibrate'.
-
-> Task :app:compileReleaseKotlin FAILED
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:72:17 Unresolved reference 'isWheelIsReady'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:72:38 Unresolved reference 'isHardwarePWM'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:72:65 Unresolved reference 'hwPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:72:84 Unresolved reference 'rotationIsSet'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:75:23 Unresolved reference 'rotationSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:75:57 Unresolved reference 'rotationVoltage'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:76:23 Unresolved reference 'rotationIsSet'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:211:29 Unresolved reference 'rotationSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:212:29 Unresolved reference 'rotationVoltage'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:214:35 Unresolved reference 'rotationIsSet'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:221:33 Unresolved reference 'rotationSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:222:33 Unresolved reference 'rotationVoltage'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:224:39 Unresolved reference 'rotationIsSet'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/LoggingService.kt:17:12 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/LoggingService.kt:35:48 Unresolved reference 'ConnectionState'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainActivity.kt:91:51 Cannot infer type for type parameter 'VM'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainActivity.kt:91:51 @Composable invocations can only happen from the context of a @Composable function
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainActivity.kt:201:21 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainActivity.kt:203:21 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainActivity.kt:551:16 Unresolved reference 'vibrate'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:163:27 Cannot access 'var bmsView: Boolean': it is private in 'com.cooper.wheellog.ble.BleSessionViewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:165:30 Argument type mismatch: actual type is 'Double', but 'Int' was expected.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:178:39 Argument type mismatch: actual type is 'Double', but 'Int' was expected.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:235:103 Unresolved reference 'cpuLoad'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:250:41 Cannot access 'val xAxis: ArrayList<String>': it is private in 'com.cooper.wheellog.ble.BleSessionViewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:310:27 Cannot access 'var bmsView: Boolean': it is private in 'com.cooper.wheellog.ble.BleSessionViewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:311:70 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:311:99 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:312:70 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:312:100 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:313:113 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:313:176 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:314:112 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:314:174 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:315:105 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:315:164 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:316:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:316:168 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:317:75 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:317:102 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:318:105 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:318:160 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:319:109 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:319:168 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:320:109 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:320:168 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:321:110 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:321:170 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:322:110 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:322:170 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:323:115 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:323:180 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:324:115 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:324:180 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:325:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:325:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:326:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:326:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:327:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:327:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:328:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:328:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:329:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:329:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:330:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:330:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:331:110 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:331:170 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:332:113 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:332:176 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:333:111 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:333:172 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:334:116 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:334:182 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:335:111 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:335:172 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:336:116 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:336:182 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:337:108 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:337:166 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:338:110 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:338:170 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:339:115 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:339:139 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:339:207 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:339:231 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:340:115 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:340:139 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:340:207 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:340:231 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:341:111 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:341:172 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:393:45 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:394:45 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:397:36 Operator '==' cannot be applied to 'BigInteger!' and 'Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:397:58 'infix' modifier is required on 'fun and(p0: BigInteger!): BigInteger!'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:397:62 Argument type mismatch: actual type is 'Int', but 'BigInteger!' was expected.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:398:36 Operator '==' cannot be applied to 'BigInteger!' and 'Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:398:58 'infix' modifier is required on 'fun and(p0: BigInteger!): BigInteger!'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:398:62 Argument type mismatch: actual type is 'Int', but 'BigInteger!' was expected.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:399:110 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:399:184 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:905:31 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:935:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:941:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:947:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:957:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:963:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:969:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:1022:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:1025:35 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:32:12 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:33:12 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:34:12 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:35:12 Unresolved reference 'welie'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:43:26 Unresolved reference 'BluetoothCentralManager'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:43:50 Type 'Lazy<uninferred ??? (Unknown type for type parameter T)>' has no method 'getValue(ScanActivity, KProperty1<ScanActivity, ??? (Unresolved qualified name: BluetoothCentralManager)>)', so it cannot serve as a delegate.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:43:53 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:43:53 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:44:9 Unresolved reference 'BluetoothCentralManager'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:48:11 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:48:17 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:48:19 Unresolved reference 'transport'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:48:31 Unresolved reference 'Transport'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:75:25 Unresolved reference 'isScanning'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:91:37 Unresolved reference 'isScanning'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:111:50 Unresolved reference 'BluetoothCentralManagerCallback'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:112:18 Unresolved reference 'BluetoothCentralManagerCallback'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:114:29 Unresolved reference 'BluetoothPeripheral'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:117:17 Unresolved reference 'BluetoothCentralManagerCallback'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:117:23 Unresolved reference 'onDiscoveredPeripheral'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:130:17 Unresolved reference 'stopScan'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:137:21 Unresolved reference 'isBluetoothEnabled'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:156:17 Unresolved reference 'close'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:174:21 Unresolved reference 'isScanning'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:175:21 Unresolved reference 'stopScan'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:228:21 Unresolved reference 'stopScan'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:229:21 Unresolved reference 'scanForPeripherals'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:235:21 Unresolved reference 'stopScan'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:379:55 No value passed for parameter 'manufacturerId'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:379:55 No value passed for parameter 'rssi'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/compose/SmartBmsScreen.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/compose/SmartBmsScreen.kt:10:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/compose/SmartBmsScreen.kt:14:42 Unresolved reference 'koinViewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/compose/SmartBmsScreen.kt:16:26 Unresolved reference 'bms1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/compose/SmartBmsScreen.kt:17:26 Unresolved reference 'bms2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:14:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:26:31 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:26:31 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:26:42 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:26:67 Unresolved reference 'pwmBasedAlarms'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:28:13 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:29:24 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:31:17 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:49:27 Unresolved reference 'pwmBasedAlarms'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:68:48 Unresolved reference 'disable_phone_vibration_description'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:69:37 Unresolved reference 'disablePhoneVibrate'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:71:27 Unresolved reference 'disablePhoneVibrate'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:76:48 Unresolved reference 'disable_phone_beep_description'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:77:37 Unresolved reference 'disablePhoneBeep'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:79:27 Unresolved reference 'disablePhoneBeep'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:85:37 Unresolved reference 'useWheelBeepForAlarm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:87:27 Unresolved reference 'useWheelBeepForAlarm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:90:17 Unresolved reference 'not' for operator '!'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:98:47 Unresolved reference 'alarm1Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:103:35 Unresolved reference 'alarm1Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:109:46 Unresolved reference 'alarm1Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:115:35 Unresolved reference 'alarm1Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:124:47 Unresolved reference 'alarm2Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:129:35 Unresolved reference 'alarm2Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:135:46 Unresolved reference 'alarm2Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:141:35 Unresolved reference 'alarm2Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:150:47 Unresolved reference 'alarm3Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:155:35 Unresolved reference 'alarm3Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:161:46 Unresolved reference 'alarm3Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:167:35 Unresolved reference 'alarm3Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:175:56 Unresolved reference 'hwPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:179:51 Unresolved reference 'rotationSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:185:39 Unresolved reference 'rotationSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:191:51 Unresolved reference 'rotationVoltage'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:197:39 Unresolved reference 'rotationVoltage'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:203:50 Unresolved reference 'powerFactor'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:208:39 Unresolved reference 'powerFactor'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:215:46 Unresolved reference 'alarmFactor1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:220:35 Unresolved reference 'alarmFactor1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:226:46 Unresolved reference 'alarmFactor2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:231:35 Unresolved reference 'alarmFactor2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:234:81 Unresolved reference 'warningSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:235:79 Unresolved reference 'warningPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:240:47 Unresolved reference 'warningSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:247:35 Unresolved reference 'warningSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:254:46 Unresolved reference 'warningPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:261:35 Unresolved reference 'warningPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:266:50 Unresolved reference 'warningSpeedPeriod'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:268:39 Unresolved reference 'warningSpeedPeriod'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:282:39 Unresolved reference 'warningSpeedPeriod'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:291:38 Unresolved reference 'alarmCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:296:27 Unresolved reference 'alarmCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:301:38 Unresolved reference 'alarmPhaseCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:306:27 Unresolved reference 'alarmPhaseCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:313:38 Unresolved reference 'alarmTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:318:27 Unresolved reference 'alarmTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:324:38 Unresolved reference 'alarmMotorTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:329:27 Unresolved reference 'alarmMotorTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:335:38 Unresolved reference 'alarmBattery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:340:27 Unresolved reference 'alarmBattery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:346:45 Unresolved reference 'alarmWheel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:348:31 Unresolved reference 'alarmWheel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:213:45 Unresolved reference 'icon_miband'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:213:85 Unresolved reference 'icon_miband'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:224:56 Unresolved reference 'start_pebble_service'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:225:57 Unresolved reference 'miband_desc'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:279:29 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:279:29 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:279:40 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:279:65 Unresolved reference 'useShortPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:287:27 Unresolved reference 'useShortPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:289:31 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:296:41 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:298:31 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:302:70 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:303:68 Unresolved reference 'colorPwmEnd'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:320:31 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:321:31 Unresolved reference 'colorPwmEnd'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:341:31 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:342:31 Unresolved reference 'colorPwmEnd'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/ApplicationScreen.kt:505:17 No value passed for parameter 'name'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/Components.kt:1101:35 Unresolved reference 'MenuAlarm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:33:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:54:17 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:60:21 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreenMigrated.kt:34:32 Unresolved reference 'getWheelType'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreenMigrated.kt:59:22 Unresolved reference 'getWheelType'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/TripScreen.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/TripScreen.kt:13:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/TripScreen.kt:27:13 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/TripScreen.kt:34:13 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/TripScreen.kt:41:13 Unresolved reference 'viewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:101:38 Unresolved reference 'pwmBasedAlarms'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:117:29 Unresolved reference 'alarmFactor1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:119:41 Unresolved reference 'alarmFactor1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:119:76 Unresolved reference 'alarmFactor2'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:119:109 Unresolved reference 'alarmFactor1'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:127:40 Unresolved reference 'warningPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:128:48 Unresolved reference 'warningSpeedPeriod'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:133:46 Unresolved reference 'warningSpeed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:144:42 Unresolved reference 'alarm1Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:144:65 Unresolved reference 'alarm1Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:149:27 Unresolved reference 'alarm2Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:150:27 Unresolved reference 'alarm2Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:157:27 Unresolved reference 'alarm3Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:158:27 Unresolved reference 'alarm3Battery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:182:42 Unresolved reference 'alarmTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:183:47 Unresolved reference 'alarmMotorTemperature'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:206:38 Unresolved reference 'alarmCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:207:43 Unresolved reference 'alarmPhaseCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:208:26 'operator' modifier is required on 'fun <T> Comparable<T>.compareTo(other: T): Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:208:47 Unresolved reference 'current'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:208:56 'operator' modifier is required on 'fun String.compareTo(other: String, ignoreCase: Boolean = ...): Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:215:38 'operator' modifier is required on 'fun <T> Comparable<T>.compareTo(other: T): Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:215:59 Unresolved reference 'phaseCurrent'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:215:73 'operator' modifier is required on 'fun String.compareTo(other: String, ignoreCase: Boolean = ...): Int'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:230:38 Unresolved reference 'alarmBattery'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:246:36 Unresolved reference 'alarmWheel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:247:37 Cannot access 'var wheelAlarm: Boolean': it is private in 'com.cooper.wheellog.ble.BleSessionViewModel'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:272:24 Unresolved reference 'disablePhoneVibrate'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:275:24 Unresolved reference 'disablePhoneBeep'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:290:13 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:290:26 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:290:27 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:290:37 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:290:39 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:291:13 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:291:26 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:291:27 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:291:33 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:291:34 Syntax error: Expecting member declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:293:5 Syntax error: Expecting a top level declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:314:1 Syntax error: Expecting a top level declaration.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/AudioUtil.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/AudioUtil.kt:10:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/AudioUtil.kt:85:23 Unresolved reference 'useWheelBeepForAlarm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/SomeUtil.kt:2:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/SomeUtil.kt:21:32 Conflicting import: imported name 'BleSessionViewModel' is ambiguous.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/SomeUtil.kt:81:23 Unresolved reference 'wheelBeep'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:168:155 Unresolved reference 'maxCurrentDouble'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:169:160 Unresolved reference 'maxPhaseCurrentDouble'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:187:39 Unresolved reference 'maxPowerDouble'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:250:53 Unresolved reference 'remainingDistance'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:256:43 Unresolved reference 'remainingDistance'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:265:71 Unresolved reference 'batteryPerKm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:272:106 Unresolved reference 'avgVoltagePerCell'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:676:31 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:680:32 Unresolved reference 'colorPwmEnd'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:687:30 Unresolved reference 'colorPwmEnd'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:687:54 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:688:43 Unresolved reference 'colorPwmStart'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:759:37 Unresolved reference 'alarm1Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:760:23 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:761:29 Unresolved reference 'pwmBasedAlarms'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:764:46 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:769:23 Unresolved reference 'useShortPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:771:28 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:802:50 Unresolved reference 'isVoltageTiltbackUnsupported'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:945:37 Unresolved reference 'alarm1Speed'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:946:23 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:947:29 Unresolved reference 'pwmBasedAlarms'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:952:46 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:957:23 Unresolved reference 'useShortPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:959:28 Unresolved reference 'swapSpeedPwm'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:990:50 Unresolved reference 'isVoltageTiltbackUnsupported'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:1132:27 Unresolved reference 'adapter'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:1150:24 Unresolved reference 'vibrate'.
+> Task :app:kspDebugKotlin
 
 > Task :app:compileDebugKotlin FAILED
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:202:50 Unresolved reference 'powerFactor'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:207:39 Unresolved reference 'powerFactor'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:35:29 Unresolved reference 'Timer'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:37:37 Unresolved reference 'TimerTask'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:40:33 Unresolved reference 'TimerTask'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:41:25 Unresolved reference 'TimerTask'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:22 Unresolved reference 'Timer'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:30 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:36 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:78:13 Unresolved reference 'scheduleAtFixedRate'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:1132:36 Unresolved reference 'switchFlashlight'.
+
+> Task :app:compileReleaseKotlin FAILED
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:202:50 Unresolved reference 'powerFactor'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:207:39 Unresolved reference 'powerFactor'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:35:29 Unresolved reference 'Timer'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:37:37 Unresolved reference 'TimerTask'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:40:33 Unresolved reference 'TimerTask'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:41:25 Unresolved reference 'TimerTask'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:22 Unresolved reference 'Timer'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:30 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:36 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:78:13 Unresolved reference 'scheduleAtFixedRate'.
+e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:1132:36 Unresolved reference 'switchFlashlight'.
 
 [Incubating] Problems report is available at: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/build/reports/problems/problems-report.html
 

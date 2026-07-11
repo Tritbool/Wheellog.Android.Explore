@@ -6,132 +6,213 @@ WARNING: Restricted methods will be blocked in a future release unless native ac
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
 Reusing configuration cache.
+> Task :app:preBuild UP-TO-DATE
+> Task :app:generateReleaseAssets UP-TO-DATE
 > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
 > Task :app:generateDebugAssets UP-TO-DATE
-> Task :app:generateReleaseAssets UP-TO-DATE
-> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
 > Task :app:preReleaseBuild UP-TO-DATE
 > Task :app:preDebugUnitTestBuild UP-TO-DATE
-> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:preDebugAndroidTestBuild SKIPPED
 > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
 > Task :app:buildKotlinToolingMetadata
-> Task :app:generateReleaseResValues
-> Task :app:generateDebugResValues
-> Task :app:createDebugCompatibleScreenManifests
 > Task :app:generateDebugBuildConfig
-> Task :app:generateReleaseBuildConfig
-> Task :app:generateDebugResources
-> Task :app:mapDebugSourceSetPaths
 > Task :app:extractProguardFiles
-> Task :app:extractDeepLinksDebug
-> Task :app:desugarDebugFileDependencies
-> Task :app:javaPreCompileDebug
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
 > Task :app:validateSigningDebug
 > Task :app:writeDebugAppMetadata
-> Task :app:writeDebugSigningConfigVersions
-> Task :app:processDebugNavigationResources
-> Task :app:compileDebugNavigationResources
-> Task :app:mergeReleaseJniLibFolders
-> Task :app:mergeDebugAssets
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
 > Task :app:mergeDebugJniLibFolders
 > Task :app:compressDebugAssets
-> Task :app:checkDebugAarMetadata
+> Task :app:desugarDebugFileDependencies
+> Task :app:generateReleaseResValues
 > Task :app:generateReleaseResources
-> Task :app:dataBindingMergeDependencyArtifactsDebug
+> Task :app:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :app:mergeReleaseJniLibFolders
+> Task :app:writeDebugSigningConfigVersions
 > Task :app:dataBindingMergeDependencyArtifactsRelease
-> Task :app:checkDebugDuplicateClasses
-> Task :app:checkReleaseDuplicateClasses
+> Task :app:generateReleaseBuildConfig
 > Task :app:mapReleaseSourceSetPaths
-> Task :app:processReleaseNavigationResources
-> Task :app:checkReleaseAarMetadata
+> Task :app:checkReleaseDuplicateClasses
 > Task :app:createReleaseCompatibleScreenManifests
+> Task :app:checkDebugDuplicateClasses
+> Task :app:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
 > Task :app:extractDeepLinksRelease
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processReleaseNavigationResources
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:checkReleaseAarMetadata
 > Task :app:compileReleaseNavigationResources
-> Task :app:mergeDebugNativeLibs
-> Task :app:mergeReleaseNativeLibs
-> Task :app:mergeLibDexDebug
 > Task :app:desugarReleaseFileDependencies
 > Task :app:mergeReleaseStartupProfile UP-TO-DATE
+> Task :app:mergeDebugNativeLibs
+> Task :app:mergeReleaseNativeLibs
 > Task :app:javaPreCompileRelease
 
-> Task :app:processDebugMainManifest
-/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/AndroidManifest.xml:24:5-99 Warning:
-	uses-permission#com.google.android.gms.permission.AD_ID was tagged at AndroidManifest.xml:24 to remove other declarations but no other declaration present
+> Task :app:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
 
 > Task :app:stripReleaseDebugSymbols
 Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
 
-> Task :app:stripDebugDebugSymbols
-Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so. Run with --info option to learn more.
+> Task :app:mergeLibDexDebug
+> Task :app:mergeReleaseAssets
+> Task :app:compressReleaseAssets
+> Task :app:extractReleaseNativeSymbolTables
+> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:writeReleaseAppMetadata
+> Task :app:writeReleaseSigningConfigVersions
+> Task :app:generateDebugAndroidTestResValues UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :app:mergeReleaseArtProfile
+> Task :app:extractReleaseVersionControlInfo
+> Task :app:processDebugUnitTestManifest UP-TO-DATE
 
 > Task :app:processReleaseMainManifest
 /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/AndroidManifest.xml:24:5-99 Warning:
 	uses-permission#com.google.android.gms.permission.AD_ID was tagged at AndroidManifest.xml:24 to remove other declarations but no other declaration present
 
-> Task :app:mergeReleaseAssets
-> Task :app:compressReleaseAssets
-> Task :app:extractReleaseNativeSymbolTables
-> Task :app:mergeReleaseArtProfile
-> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
-> Task :app:writeReleaseAppMetadata
-> Task :app:writeReleaseSigningConfigVersions
-> Task :app:preDebugAndroidTestBuild SKIPPED
-> Task :app:generateDebugAndroidTestResValues
-> Task :app:javaPreCompileDebugUnitTest
-> Task :app:extractReleaseVersionControlInfo
-
-> Task :app:processDebugUnitTestManifest
-/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/AndroidManifest.xml:24:5-99 Warning:
-	uses-permission#com.google.android.gms.permission.AD_ID was tagged at AndroidManifest.xml:24 to remove other declarations but no other declaration present
-/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/intermediates/tmp/manifest/test/debug/tempFile2ProcessTestManifest4602592996425506287.xml:34:5-36:31 Warning:
-	uses-permission#com.google.android.gms.permission.AD_ID was tagged at tempFile2ProcessTestManifest4602592996425506287.xml:34 to remove other declarations but no other declaration present
-
 > Task :app:collectReleaseDependencies
 > Task :app:sdkReleaseDependencyData
+> Task :app:processDebugResources UP-TO-DATE
+> Task :app:packageDebugUnitTestForUnitTest UP-TO-DATE
+> Task :app:generateDebugUnitTestConfig UP-TO-DATE
 > Task :app:processReleaseManifest
-> Task :app:processDebugManifest
 > Task :app:processReleaseManifestForPackage
-> Task :app:processDebugManifestForPackage
 > Task :app:generateDebugGlobalSynthetics
-> Task :app:mergeDebugResources
-> Task :app:dataBindingGenBaseClassesDebug
 > Task :app:mergeReleaseResources
 > Task :app:dataBindingGenBaseClassesRelease
-> Task :app:processDebugResources
 > Task :app:processReleaseResources
-> Task :app:packageDebugUnitTestForUnitTest
-> Task :app:generateDebugUnitTestConfig
 > Task :app:optimizeReleaseResources
-> Task :app:mergeExtDexRelease
 > Task :app:mergeExtDexDebug
-> Task :app:kspReleaseKotlin
 > Task :app:kspDebugKotlin
+> Task :app:kspReleaseKotlin
+> Task :app:mergeExtDexRelease
 
-> Task :app:compileDebugKotlin FAILED
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:202:50 Unresolved reference 'powerFactor'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:207:39 Unresolved reference 'powerFactor'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:35:29 Unresolved reference 'Timer'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:37:37 Unresolved reference 'TimerTask'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:40:33 Unresolved reference 'TimerTask'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:41:25 Unresolved reference 'TimerTask'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:22 Unresolved reference 'Timer'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:30 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:36 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:78:13 Unresolved reference 'scheduleAtFixedRate'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:1132:36 Unresolved reference 'switchFlashlight'.
+> Task :app:compileDebugKotlin
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:246:18 'static fun fromHtml(p0: String!): Spanned!' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:1062:17 This is a delicate API and its use requires care. Make sure you fully read and understand documentation of the declaration that is marked as a delicate API.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:127:49 'static fun getDefaultAdapter(): BluetoothAdapter!' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:212:81 'static field LOCATION_MODE: String' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:207:19 Unnecessary safe call on a non-null receiver of type 'Double'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:213:19 Unnecessary safe call on a non-null receiver of type 'Double'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:219:21 Unnecessary safe call on a non-null receiver of type 'Double'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:270:41 Unnecessary safe call on a non-null receiver of type 'Double'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:271:37 Unnecessary safe call on a non-null receiver of type 'Double'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/data/TripDatabase.kt:19:34 The corresponding parameter in the supertype 'Migration' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/data/TripDatabase.kt:31:34 The corresponding parameter in the supertype 'Migration' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/di/BleModule.kt:18:5 'fun <reified T : ViewModel> Module.viewModel(qualifier: Qualifier? = ..., noinline definition: Scope.(ParametersHolder) -> T): KoinDefinition<T>' is deprecated. Moved ViewModel DSL package. Remove old imports and use org.koin.core.module.dsl.*.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/Components.kt:75:39 'val Icons.Rounded.KeyboardArrowRight: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Rounded.KeyboardArrowRight.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/Components.kt:893:13 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/Components.kt:927:52 'val Icons.Filled.Login: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Login.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/MainScreen.kt:42:36 'fun mediumTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/MainScreen.kt:50:52 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:124:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:137:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:178:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:190:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:202:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:227:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/AudioUtil.kt:84:47 Condition is always 'true'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/SomeUtil.kt:75:13 Condition is always 'false'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/SomeUtil.kt:146:69 Unchecked cast of 'Serializable?' to 'T (of fun <T : Serializable?> Intent.getSerializable)'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/TripAdapter.kt:124:38 'val adapterPosition: Int' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:45:13 'lateinit' is unnecessary: definitely initialized in constructors.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:110:34 'constructor(): Handler' is deprecated. Deprecated in Java.
 
-> Task :app:compileReleaseKotlin FAILED
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:202:50 Unresolved reference 'powerFactor'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/AlarmScreen.kt:207:39 Unresolved reference 'powerFactor'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:35:29 Unresolved reference 'Timer'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:37:37 Unresolved reference 'TimerTask'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:40:33 Unresolved reference 'TimerTask'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:41:25 Unresolved reference 'TimerTask'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:22 Unresolved reference 'Timer'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:30 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:77:36 Cannot infer type for type parameter 'T'. Specify it explicitly.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/Alarms.kt:78:13 Unresolved reference 'scheduleAtFixedRate'.
-e: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:1132:36 Unresolved reference 'switchFlashlight'.
+> Task :app:processDebugJavaRes UP-TO-DATE
+
+> Task :app:compileReleaseKotlin
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/DialogHelper.kt:246:18 'static fun fromHtml(p0: String!): Spanned!' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/MainPageAdapter.kt:1062:17 This is a delicate API and its use requires care. Make sure you fully read and understand documentation of the declaration that is marked as a delicate API.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:127:49 'static fun getDefaultAdapter(): BluetoothAdapter!' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ScanActivity.kt:212:81 'static field LOCATION_MODE: String' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:207:19 Unnecessary safe call on a non-null receiver of type 'Double'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:213:19 Unnecessary safe call on a non-null receiver of type 'Double'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:219:21 Unnecessary safe call on a non-null receiver of type 'Double'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:270:41 Unnecessary safe call on a non-null receiver of type 'Double'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/ble/BleSessionViewModel.kt:271:37 Unnecessary safe call on a non-null receiver of type 'Double'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/data/TripDatabase.kt:19:34 The corresponding parameter in the supertype 'Migration' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/data/TripDatabase.kt:31:34 The corresponding parameter in the supertype 'Migration' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/di/BleModule.kt:18:5 'fun <reified T : ViewModel> Module.viewModel(qualifier: Qualifier? = ..., noinline definition: Scope.(ParametersHolder) -> T): KoinDefinition<T>' is deprecated. Moved ViewModel DSL package. Remove old imports and use org.koin.core.module.dsl.*.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/Components.kt:75:39 'val Icons.Rounded.KeyboardArrowRight: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Rounded.KeyboardArrowRight.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/Components.kt:893:13 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/Components.kt:927:52 'val Icons.Filled.Login: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Login.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/MainScreen.kt:42:36 'fun mediumTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/MainScreen.kt:50:52 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:124:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:137:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:178:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:190:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:202:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/settings/StartScreen.kt:227:29 'static fun startActivity(p0: Context, p1: Intent, p2: Bundle?): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/AudioUtil.kt:84:47 Condition is always 'true'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/SomeUtil.kt:75:13 Condition is always 'false'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/utils/SomeUtil.kt:146:69 Unchecked cast of 'Serializable?' to 'T (of fun <T : Serializable?> Intent.getSerializable)'.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/TripAdapter.kt:124:38 'val adapterPosition: Int' is deprecated. Deprecated in Java.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:45:13 'lateinit' is unnecessary: definitely initialized in constructors.
+w: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/views/WheelView.kt:110:34 'constructor(): Handler' is deprecated. Deprecated in Java.
+
+> Task :app:processReleaseJavaRes
+
+> Task :app:compileReleaseJavaWithJavac FAILED
+/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/release/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:16: error: package org.osmdroid.views does not exist
+import org.osmdroid.views.MapView;
+                         ^
+/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/release/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:23: error: cannot find symbol
+  public final MapView mapView;
+               ^
+  symbol:   class MapView
+  location: class MapFragmentBinding
+/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/release/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:25: error: cannot find symbol
+  private MapFragmentBinding(@NonNull LinearLayout rootView, @NonNull MapView mapView) {
+                                                                      ^
+  symbol:   class MapView
+  location: class MapFragmentBinding
+/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/release/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:58: error: cannot find symbol
+      MapView mapView = ViewBindings.findChildViewById(rootView, id);
+      ^
+  symbol:   class MapView
+  location: class MapFragmentBinding
+Note: /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/LocaleManager.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+4 errors
+
+> Task :app:compileDebugJavaWithJavac FAILED
+/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/debug/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:16: error: package org.osmdroid.views does not exist
+import org.osmdroid.views.MapView;
+                         ^
+/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/debug/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:23: error: cannot find symbol
+  public final MapView mapView;
+               ^
+  symbol:   class MapView
+  location: class MapFragmentBinding
+/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/debug/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:25: error: cannot find symbol
+  private MapFragmentBinding(@NonNull LinearLayout rootView, @NonNull MapView mapView) {
+                                                                      ^
+  symbol:   class MapView
+  location: class MapFragmentBinding
+/Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/debug/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:58: error: cannot find symbol
+      MapView mapView = ViewBindings.findChildViewById(rootView, id);
+      ^
+  symbol:   class MapView
+  location: class MapFragmentBinding
+Note: /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/LocaleManager.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+4 errors
+
+> Task :app:mergeDebugJavaResource
+> Task :app:mergeReleaseJavaResource
 
 [Incubating] Problems report is available at: file:///Users/tritbool/StudioProjects/Wheellog.Android.Explore/build/reports/problems/problems-report.html
 
@@ -140,31 +221,67 @@ FAILURE: Build completed with 2 failures.
 1: Task failed with an exception.
 -----------
 * What went wrong:
-Execution failed for task ':app:compileDebugKotlin'.
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
-   > Compilation error. See log for more details
+Execution failed for task ':app:compileDebugJavaWithJavac'.
+> Compilation failed; see the compiler output below.
+  Note: /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/LocaleManager.java uses or overrides a deprecated API.
+  Note: Recompile with -Xlint:deprecation for details.
+  /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/debug/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:23: error: cannot find symbol
+    public final MapView mapView;
+                 ^
+    symbol:   class MapView
+    location: class MapFragmentBinding
+  /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/debug/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:25: error: cannot find symbol
+    private MapFragmentBinding(@NonNull LinearLayout rootView, @NonNull MapView mapView) {
+                                                                        ^
+    symbol:   class MapView
+    location: class MapFragmentBinding
+  /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/debug/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:58: error: cannot find symbol
+        MapView mapView = ViewBindings.findChildViewById(rootView, id);
+        ^
+    symbol:   class MapView
+    location: class MapFragmentBinding
+  /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/debug/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:16: error: package org.osmdroid.views does not exist
+  import org.osmdroid.views.MapView;
+                           ^
+  4 errors
 
 * Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
+> Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
 ==============================================================================
 
 2: Task failed with an exception.
 -----------
 * What went wrong:
-Execution failed for task ':app:compileReleaseKotlin'.
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
-   > Compilation error. See log for more details
+Execution failed for task ':app:compileReleaseJavaWithJavac'.
+> Compilation failed; see the compiler output below.
+  Note: /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/src/main/java/com/cooper/wheellog/LocaleManager.java uses or overrides a deprecated API.
+  Note: Recompile with -Xlint:deprecation for details.
+  /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/release/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:23: error: cannot find symbol
+    public final MapView mapView;
+                 ^
+    symbol:   class MapView
+    location: class MapFragmentBinding
+  /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/release/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:25: error: cannot find symbol
+    private MapFragmentBinding(@NonNull LinearLayout rootView, @NonNull MapView mapView) {
+                                                                        ^
+    symbol:   class MapView
+    location: class MapFragmentBinding
+  /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/release/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:58: error: cannot find symbol
+        MapView mapView = ViewBindings.findChildViewById(rootView, id);
+        ^
+    symbol:   class MapView
+    location: class MapFragmentBinding
+  /Users/tritbool/StudioProjects/Wheellog.Android.Explore/app/build/generated/data_binding_base_class_source_out/release/out/com/cooper/wheellog/databinding/MapFragmentBinding.java:16: error: package org.osmdroid.views does not exist
+  import org.osmdroid.views.MapView;
+                           ^
+  4 errors
 
 * Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
+> Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
 ==============================================================================
 
-BUILD FAILED in 16s
-75 actionable tasks: 74 executed, 1 up-to-date
+BUILD FAILED in 17s
+81 actionable tasks: 57 executed, 24 up-to-date
 Configuration cache entry reused.

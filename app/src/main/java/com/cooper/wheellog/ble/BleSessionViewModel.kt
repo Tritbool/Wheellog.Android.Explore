@@ -593,7 +593,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             ?: _sessionState.value.lastData?.temperature2 ?: _sessionState.value.currentTemperature
     val cpuTemp: Int get() = _sessionState.value.cpuLoad ?: 0
     val imuTemp: Int get() = 0 // TODO: Implement IMU temperature
-    val temperature2: Int get() = ((_sessionState.value.lastData?.temperature2 ?: 0.0) * 100).toInt()
+    val temperature2: Int
+        get() = ((_sessionState.value.lastData?.temperature2 ?: 0.0) * 100).toInt()
 
     // Device info
     val name: String get() = _sessionState.value.deviceName
@@ -602,6 +603,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val serial: String get() = _sessionState.value.serialNumber ?: "Unknown"
     val mac: String get() = _sessionState.value.deviceAddress
     val manufacturer: String get() = _sessionState.value.deviceManufacturer
+    val getMac: String get() = _sessionState.value.deviceAddress
+
 
     // Status
     val isConnected: Boolean get() = _sessionState.value.isConnected

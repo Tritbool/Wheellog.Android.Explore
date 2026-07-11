@@ -169,7 +169,7 @@ class MainActivity : AppCompatActivity() {
         when (connectionState) {
             BLEConstants.ConnectionState.CONNECTED -> {
                 pagerAdapter.configureSecondDisplay()
-                val mac = viewModel.getMac()
+                val mac = viewModel.getMac
                 if (mac.isNotEmpty()) {
                     appConfig.lastMac = mac
                 }

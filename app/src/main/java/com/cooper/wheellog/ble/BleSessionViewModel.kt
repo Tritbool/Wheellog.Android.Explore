@@ -46,7 +46,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val sessionState: StateFlow<BleSessionState> = _sessionState.asStateFlow()
 
     // EucBleClient instance - the single source of truth for BLE operations
-    private val eucBleClient: EucBleClient by lazy {
+    // Renamed to _eucBleClient to avoid JVM clash with public fun getEucBleClient()
+    private val _eucBleClient: EucBleClient by lazy {
         EucBleClient(application).apply {
             initialize()
             setupCallbacks()
@@ -93,10 +94,10 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun setupCallbacks() {
-        eucBleClient.setConnectionCallback(object : ConnectionCallback() {
+        _eucBleClient.setConnectionCallback(object : ConnectionCallback() {
             override fun onConnected() {
                 viewModelScope.launch {
-                    val device = eucBleClient.getConnectedDevice()
+                    val device = _eucBleClient.getConnectedDevice()
                     if (device != null) updateConnectedDevice(device)
                 }
             }
@@ -129,7 +130,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             }
         })
 
-        eucBleClient.setDataCallback(object : DataCallback {
+        _eucBleClient.setDataCallback(object : DataCallback {
             override fun onDataReceived(data: EUCData) {
                 viewModelScope.launch {
                     updateTelemetryData(data)
@@ -137,7 +138,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             }
         })
 
-        eucBleClient.setErrorCallback(object : ErrorCallback {
+        _eucBleClient.setErrorCallback(object : ErrorCallback {
             override fun onError(error: BLEException) {
                 viewModelScope.launch {
                     updateError(error.message ?: "Unknown BLE error")
@@ -320,7 +321,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun startScan() {
         viewModelScope.launch {
             try {
-                eucBleClient.startScan()
+                _eucBleClient.startScan()
                 _sessionState.value = _sessionState.value.copy(
                     isScanning = true,
                     scanResults = emptyList(),
@@ -337,7 +338,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun stopScan() {
         viewModelScope.launch {
             try {
-                eucBleClient.stopScan()
+                _eucBleClient.stopScan()
                 _sessionState.value = _sessionState.value.copy(
                     isScanning = false
                 )
@@ -352,7 +353,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun connect(device: EUCDevice) {
         viewModelScope.launch {
             try {
-                eucBleClient.connect(device)
+                _eucBleClient.connect(device)
                 Timber.i("Connecting to device: %s", device.address)
             } catch (e: Exception) {
                 updateError(e.message ?: "Failed to connect")
@@ -364,7 +365,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun disconnect() {
         viewModelScope.launch {
             try {
-                eucBleClient.disconnect()
+                _eucBleClient.disconnect()
                 Timber.i("Disconnecting from device")
             } catch (e: Exception) {
                 updateError(e.message ?: "Failed to disconnect")
@@ -381,7 +382,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             try {
                 val device = EUCDevice(address = mac, name = name, manufacturerId = -1, rssi = 0)
-                eucBleClient.connect(device)
+                _eucBleClient.connect(device)
                 Timber.i("Connecting to device by address: %s", mac)
             } catch (e: Exception) {
                 updateError(e.message ?: "Failed to connect to $mac")
@@ -416,15 +417,15 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun getEucBleClient(): EucBleClient = eucBleClient
+    fun getEucBleClient(): EucBleClient = _eucBleClient
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun sendCommand(commandType: CommandType, value: Any = Unit) {
-        eucBleClient.sendCommand(commandType, value)
+        _eucBleClient.sendCommand(commandType, value)
     }
 
     fun isCommandSupported(commandType: CommandType): Boolean {
-        return eucBleClient.getCommandSupport(commandType) == CommandSupport.SUPPORTED
+        return _eucBleClient.getCommandSupport(commandType) == CommandSupport.SUPPORTED
     }
 
     // ========== WHEEL DATA COMPATIBILITY ==========
@@ -491,40 +492,6 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun getWheelAlarm(): Boolean {
         return wheelAlarm
     }
-
-    fun isConnected(): Boolean {
-        return _sessionState.value.isConnected
-    }
-
-    fun getMac(): String {
-        return _sessionState.value.deviceAddress
-    }
-
-    fun getName(): String {
-        return _sessionState.value.deviceName
-    }
-
-    fun getModel(): String {
-        return _sessionState.value.deviceModel
-    }
-
-    fun getVersion(): String {
-        return _sessionState.value.firmwareVersion ?: "Unknown"
-    }
-
-    fun getSerial(): String {
-        return _sessionState.value.serialNumber ?: "Unknown"
-    }
-
-    fun getManufacturer(): String {
-        return _sessionState.value.deviceManufacturer
-    }
-
-    // ========== GRAPH DATA ACCESS ==========
-
-    fun getXAxis(): ArrayList<String> = xAxis
-    fun getCurrentAxis(): ArrayList<Float> = currentAxis
-    fun getSpeedAxis(): ArrayList<Float> = speedAxis
 
     // ========== SESSION MANAGEMENT ==========
 
@@ -642,8 +609,6 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val chargingStatus: Int get() = _sessionState.value.chargingStatus ?: 0
     val output: Int get() = 0 // TODO: Implement output calculation
 
-    //val wheelAlarm: Boolean get() = wheelAlarm
-    //var bmsView: Boolean = false
     val error: String get() = _sessionState.value.lastError ?: ""
 
     // Time
@@ -655,11 +620,6 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val modeStr: String get() = _sessionState.value.lastData?.mode ?: ""
     val protoVer: String get() = "" // TODO: Implement protocol version
     val chargeTime: String get() = "00:00" // TODO: Implement charge time
-
-    // Graph data
-    //val xAxis: ArrayList<String> get() = this.xAxis
-    //val currentAxis: ArrayList<Float> get() = this.currentAxis
-    //val speedAxis: ArrayList<Float> get() = this.speedAxis
 
     // Wheel type (computed from manufacturer)
     val wheelType: com.cooper.wheellog.utils.Constants.WHEEL_TYPE
@@ -719,7 +679,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
         viewModelScope.launch {
             try {
-                eucBleClient.cleanup()
+                _eucBleClient.cleanup()
                 Timber.i("BleSessionViewModel cleanup completed")
             } catch (e: Exception) {
                 Timber.e("Error during cleanup: %s", e.message)

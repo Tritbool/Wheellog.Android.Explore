@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <queries>
         <package android:name="com.garmin.android.apps.connectmobile" />
     </queries>
@@ -10,18 +11,31 @@
         android:required="true" />
 
     <permission android:name="${applicationId}.permission" />
-    <uses-permission android:name="${applicationId}.permission" />
-    <uses-permission android:name="android.permission.BLUETOOTH"
+
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
         android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
+    <uses-permission
+        android:name="android.permission.ACCESS_COARSE_LOCATION"
+        android:maxSdkVersion="30" />
+
+    <uses-permission android:name="${applicationId}.permission" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.POST_NO********IONS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+    <uses-permission
+        android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
@@ -34,7 +48,9 @@
     <uses-permission android:name="com.samsung.accessory.permission.ACCESSORY_FRAMEWORK" />
     <uses-permission android:name="com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY" />
     <uses-permission android:name="com.samsung.WATCH_APP_TYPE.Companion" />
+
     <uses-permission-sdk-23 android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
 
@@ -55,10 +71,11 @@
         android:supportsRtl="true"
         android:theme="@style/OriginalTheme"
         tools:targetApi="n">
-        <activity android:name=".SplashActivity"
-            android:theme="@style/SplashTheme"
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
             android:noHistory="true"
-            android:exported="true">
+            android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -66,9 +83,9 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:supportsPictureInPicture="true"
             android:configChanges="smallestScreenSize|screenLayout|orientation|screenSize"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:supportsPictureInPicture="true">
             <layout
                 android:defaultWidth="200dp"
                 android:defaultHeight="400dp"

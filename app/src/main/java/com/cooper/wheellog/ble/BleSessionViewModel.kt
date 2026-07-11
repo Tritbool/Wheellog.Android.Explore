@@ -18,7 +18,10 @@ import io.github.tritbool.euc.ble.models.EUCData
 import io.github.tritbool.euc.ble.models.EUCDevice
 import io.github.tritbool.euc.ble.protocols.CommandSupport
 import io.github.tritbool.euc.ble.protocols.CommandType
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,7 +51,13 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     // EucBleClient instance - the single source of truth for BLE operations
     // Renamed to _eucBleClient to avoid JVM clash with public fun getEucBleClient()
     private val _eucBleClient: EucBleClient by lazy {
-        val client = EucBleClient(application)
+        val handler = CoroutineExceptionHandler { _, throwable ->
+            viewModelScope.launch { updateError(throwable.message ?: "BLE internal error") }
+        }
+        val client = EucBleClient(
+            application,
+            coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob() + handler)
+        )
         client.initialize()
         setupCallbacks(client)
         client

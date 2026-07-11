@@ -2,17 +2,12 @@ package com.cooper.wheellog
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.LocationManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
-import android.provider.Settings.SettingNotFoundException
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
@@ -95,10 +90,6 @@ class ScanActivity: AppCompatActivity() {
             flags = flags and WindowManager.LayoutParams.FLAG_DIM_BEHIND.inv()
         }
         alertDialog.show()
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && !isLocationEnabled(this)) {
-            val myIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-            startActivity(myIntent)
-        }
 
         // Observe scan results from ViewModel
         lifecycleScope.launch {
@@ -198,22 +189,6 @@ class ScanActivity: AppCompatActivity() {
             pb!!.visibility = View.GONE
             scanTitle!!.setText(R.string.devices)
             macLayout.visibility = View.VISIBLE
-        }
-    }
-
-    private fun isLocationEnabled(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            // This is new method provided in API 28
-            val lm = context.getSystemService(LOCATION_SERVICE) as LocationManager
-            lm.isLocationEnabled
-        } else {
-            // This is Deprecated in API 28
-            val locationMode = try {
-                Settings.Secure.getInt(context.contentResolver, Settings.Secure.LOCATION_MODE)
-            } catch (e: SettingNotFoundException) {
-                e.printStackTrace()
-            }
-            locationMode != Settings.Secure.LOCATION_MODE_OFF
         }
     }
 }

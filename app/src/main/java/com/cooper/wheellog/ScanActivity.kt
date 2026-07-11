@@ -2,7 +2,6 @@ package com.cooper.wheellog
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -25,28 +24,22 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
+import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.databinding.ActivityScanBinding
 import com.cooper.wheellog.utils.PermissionsUtil
 import com.cooper.wheellog.utils.StringUtil
-import com.cooper.wheellog.utils.StringUtil.toHexStringRaw
-import com.welie.blessed.BluetoothCentralManager
-import com.welie.blessed.BluetoothCentralManagerCallback
-import com.welie.blessed.BluetoothPeripheral
-import com.welie.blessed.Transport
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
 
 class ScanActivity: AppCompatActivity() {
     private val appConfig: AppConfig by inject()
+    private val viewModel: BleSessionViewModel by viewModel()
     private var mDeviceListAdapter: DeviceListAdapter? = null
-    private val central: BluetoothCentralManager by lazy {
-        BluetoothCentralManager(
-            this,
-            bluetoothCentralManagerCallback,
-            Handler(Looper.getMainLooper())
-        ).apply { transport = Transport.LE }
-    }
     private var pb: ProgressBar? = null
     private var scanTitle: TextView? = null
     // Stops scanning after 10 seconds.
@@ -72,7 +65,7 @@ class ScanActivity: AppCompatActivity() {
                 binding.lastMacText.errorIconDrawable = null
                 return@setEndIconOnClickListener
             }
-            if (central.isScanning) {
+            if (viewModel.sessionState.value.isScanning) {
                 scanLeDevice(false)
             }
             val intent = Intent()
@@ -88,7 +81,7 @@ class ScanActivity: AppCompatActivity() {
                 .setOnKeyListener { dialogInterface: DialogInterface, keycode: Int, keyEvent: KeyEvent ->
                     if (keycode == KeyEvent.KEYCODE_BACK && keyEvent.action == KeyEvent.ACTION_UP &&
                             !keyEvent.isCanceled) {
-                        if (central.isScanning) {
+                        if (viewModel.sessionState.value.isScanning) {
                             scanLeDevice(false)
                         }
                         dialogInterface.cancel()
@@ -106,35 +99,33 @@ class ScanActivity: AppCompatActivity() {
             val myIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             startActivity(myIntent)
         }
-    }
 
-    private val bluetoothCentralManagerCallback: BluetoothCentralManagerCallback =
-        object : BluetoothCentralManagerCallback() {
-            override fun onDiscoveredPeripheral(
-                peripheral: BluetoothPeripheral,
-                scanResult: ScanResult
-            ) {
-                super.onDiscoveredPeripheral(peripheral, scanResult)
-                val scanRecord = scanResult.scanRecord?.bytes ?: byteArrayOf()
-                if (scanResult.scanRecord != null) {
-                    val manufacturerData = findManufacturerData(scanRecord) // 4e421300000000ec
-                    runOnUiThread {
-                        mDeviceListAdapter!!.addDevice(scanResult.device, manufacturerData)
-                        mDeviceListAdapter!!.notifyDataSetChanged()
+        // Observe scan results from ViewModel
+        lifecycleScope.launch {
+            viewModel.sessionState.collectLatest { state ->
+                runOnUiThread {
+                    state.scanResults.forEach { device ->
+                        mDeviceListAdapter?.addDevice(device, "")
+                        mDeviceListAdapter?.notifyDataSetChanged()
                     }
                 }
             }
         }
+    }
 
     private fun close () {
-        central.stopScan()
+        if (viewModel.sessionState.value.isScanning) {
+            @SuppressLint("MissingPermission")
+            val ignored = runCatching { viewModel.stopScan() }
+        }
         alertDialog.dismiss()
         finish()
     }
 
     override fun onResume() {
         super.onResume()
-        if (central.isBluetoothEnabled) {
+        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        if (bluetoothAdapter?.isEnabled == true) {
             if (!PermissionsUtil.checkBlePermissions(this)) {
                 if (PermissionsUtil.isMaxBleReq) {
                     killMe()
@@ -153,7 +144,6 @@ class ScanActivity: AppCompatActivity() {
     }
 
     private fun killMe() {
-        central.close()
         alertDialog.dismiss()
         finish()
     }
@@ -171,8 +161,8 @@ class ScanActivity: AppCompatActivity() {
 
     @SuppressLint("MissingPermission")
     private val onItemClickListener = OnItemClickListener { _, _, i, _ ->
-        if (central.isScanning) {
-            central.stopScan()
+        if (viewModel.sessionState.value.isScanning) {
+            viewModel.stopScan()
         }
         val device = mDeviceListAdapter!!.getDevice(i)
         val deviceAddress = device.address
@@ -192,47 +182,19 @@ class ScanActivity: AppCompatActivity() {
         close()
     }
 
-    private infix fun Byte.eq(i: Int): Boolean = this == i.toByte()
-
-    private fun findManufacturerData(scanRecord: ByteArray): String {
-        var index = 0
-        var result = ""
-        while (index < scanRecord.size) {
-            val length = scanRecord[index++]
-            // Done once we run out of records
-            val toIndex = index + length
-            if (length eq 0 || toIndex > scanRecord.size) {
-                break
-            }
-            val type = scanRecord[index]
-            // Done if our record isn't a valid type
-            if (type eq 0) {
-                break
-            }
-            val data = scanRecord.copyOfRange(index + 1, toIndex)
-
-            // Advance
-            index = toIndex
-            if (type eq -1) {
-                result = toHexStringRaw(data)
-            }
-        }
-        Timber.i("Found data: %s", result)
-        return result
-    }
-
+    @SuppressLint("MissingPermission")
     private fun scanLeDevice(enable: Boolean) {
         if (enable) {
             // Stops scanning after a pre-defined scan period.
             scanPeriodHandler.postDelayed({ scanLeDevice(false) }, scanPeriod)
-            central.stopScan()
-            central.scanForPeripherals()
+            viewModel.stopScan()
+            viewModel.startScan()
             pb!!.visibility = View.VISIBLE
             scanTitle!!.setText(R.string.scanning)
             macLayout.visibility = View.GONE
         } else {
             scanPeriodHandler.removeCallbacksAndMessages(null)
-            central.stopScan()
+            viewModel.stopScan()
             pb!!.visibility = View.GONE
             scanTitle!!.setText(R.string.devices)
             macLayout.visibility = View.VISIBLE

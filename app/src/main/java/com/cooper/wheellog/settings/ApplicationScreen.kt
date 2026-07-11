@@ -500,11 +500,6 @@ fun applicationScreen(
             ) {
                 appConfig.detectBatteryOptimization = it
             }
-
-            switchPref(
-                showDiv = false,
-            ) {
-            }
         }
     }
 }

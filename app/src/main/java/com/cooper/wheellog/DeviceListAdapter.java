@@ -1,7 +1,5 @@
 package com.cooper.wheellog;
 
-import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothDevice;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,10 +13,12 @@ import org.koin.java.KoinJavaComponent;
 
 import java.util.ArrayList;
 
+import io.github.tritbool.euc.ble.models.EUCDevice;
+
 // Adapter for holding devices found through scanning.
 public class DeviceListAdapter extends BaseAdapter {
     private final AppConfig appConfig = KoinJavaComponent.get(AppConfig.class);
-    private final ArrayList<BluetoothDevice> mLeDevices;
+    private final ArrayList<EUCDevice> mLeDevices;
     private final ArrayList<String> mLeAdvDatas;
     private final LayoutInflater mInflator;
 
@@ -34,30 +34,26 @@ public class DeviceListAdapter extends BaseAdapter {
         mInflator = appCompatActivity.getLayoutInflater();
     }
 
-    public void addDevice(BluetoothDevice device, String advData) {
+    public void addDevice(EUCDevice device, String advData) {
         if (!appConfig.getShowUnknownDevices()) {
-            @SuppressLint("MissingPermission")
             String deviceName = device.getName();
             if (deviceName == null || deviceName.length() == 0)
                 return;
         }
 
-        if(!mLeDevices.contains(device)) {
+        if (!mLeDevices.contains(device)) {
             mLeDevices.add(device);
             mLeAdvDatas.add(advData);
         }
     }
 
-    public BluetoothDevice getDevice(int position) {
+    public EUCDevice getDevice(int position) {
         return mLeDevices.get(position);
     }
 
     public String getAdvData(int position) {
         return mLeAdvDatas.get(position);
     }
-//    public void clear() {
-//        mLeDevices.clear();
-//    }
 
     @Override
     public int getCount() {
@@ -88,8 +84,7 @@ public class DeviceListAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) view.getTag();
         }
 
-        BluetoothDevice device = mLeDevices.get(i);
-        @SuppressLint("MissingPermission")
+        EUCDevice device = mLeDevices.get(i);
         final String deviceName = device.getName();
         if (deviceName != null && deviceName.length() > 0)
             viewHolder.deviceName.setText(deviceName);

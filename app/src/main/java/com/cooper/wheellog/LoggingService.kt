@@ -14,7 +14,7 @@ import com.cooper.wheellog.utils.FileUtil
 import com.cooper.wheellog.utils.NotificationUtil
 // import com.cooper.wheellog.utils.ParserLogToWheelData - REMOVED: Use EUCData parser
 import com.cooper.wheellog.utils.PermissionsUtil.checkExternalFilePermission
-import com.welie.blessed.ConnectionState
+import io.github.tritbool.euc.ble.core.BLEConstants
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
 import timber.log.Timber
@@ -32,7 +32,7 @@ class LoggingService : Service() {
     private lateinit var fileUtil: FileUtil
     private var ioState = CoroutineScope(Dispatchers.IO + Job())
 
-    fun updateConnectionState(connectionState: ConnectionState) {}
+    fun updateConnectionState(connectionState: BLEConstants.ConnectionState) {}
 
     private val mBinder: IBinder = LocalBinder()
 

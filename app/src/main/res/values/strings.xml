@@ -585,4 +585,11 @@
     <string name="import_log">Import exits log</string>
     <string name="create_test_log">Create new test log</string>
     <string name="permisson_error">Permission error</string>
+    <string name="icon_miband">Mi Band</string>
+    <string name="start_pebble_service">Watch</string>
+    <string name="miband_desc">Mi Band</string>
+    <string name="disable_phone_vibration_description">Disable phone vibration for alarms</string>
+    <string name="disable_phone_beep_description">Disable phone beep for alarms</string>
+    <string name="horn_mode_description">Horn mode</string>
+    <string name="logging_error_network_disabled">Network is disabled</string>
 </resources>

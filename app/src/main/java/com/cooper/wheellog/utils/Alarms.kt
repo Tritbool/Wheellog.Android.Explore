@@ -18,7 +18,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.component.inject
 import timber.log.Timber
-import java.util.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -205,14 +204,14 @@ object Alarms: KoinComponent {
         }
         val alarmCurrent = appConfig.alarmCurrent * 100
         val alarmPhaseCurrent = appConfig.alarmPhaseCurrent * 100
-        if (alarmCurrent > 0 && abs(viewModel.current) >= alarmCurrent) {
+        if (alarmCurrent > 0 && abs(viewModel.currentDouble) >= alarmCurrent) {
             raiseAlarm(
                 ALARM_TYPE.CURRENT,
                 viewModel.currentDouble,
                 mContext
             )
             currentAlarmExecuting.value = true
-        } else if (alarmPhaseCurrent > 0 && abs(viewModel.phaseCurrent) >= alarmPhaseCurrent) {
+        } else if (alarmPhaseCurrent > 0 && abs(viewModel.phaseCurrentDouble) >= alarmPhaseCurrent) {
             raiseAlarm(
                 ALARM_TYPE.CURRENT,
                 viewModel.phaseCurrentDouble,
@@ -244,7 +243,7 @@ object Alarms: KoinComponent {
             return true
         }
         val alarmWheel = appConfig.alarmWheel
-        if (alarmWheel && viewModel.wheelAlarm) {
+        if (alarmWheel && viewModel.wheelAlarmState) {
             raiseAlarm(
                     ALARM_TYPE.WHEEL,
                     viewModel.calculatedPwm,
@@ -282,14 +281,9 @@ object Alarms: KoinComponent {
             }
         }
         mContext.sendBroadcast(intent)
-                    String.format(
-                            Locale.US,
-                            mContext.getString(R.string.alarm_text_wheel_v)
-                    )
-            }
-            notifications.alarmText = miText
-            notifications.update()
-        }
+        val alarmText = alarmType.toString()
+        notifications.alarmText = alarmText
+        notifications.update()
     }
 
     fun vibrate(mContext: Context, pattern: LongArray) {

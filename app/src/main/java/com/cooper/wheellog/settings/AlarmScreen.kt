@@ -1,5 +1,4 @@
 package com.cooper.wheellog.settings
-import com.cooper.wheellog.ble.BleSessionViewModel
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -17,7 +16,7 @@ import com.cooper.wheellog.utils.MathsUtil
 import org.koin.compose.koinInject
 
 @Composable
-fun alarmScreen(appConfig: AppConfig = koinInject()) {
+fun alarmScreen(appConfig: AppConfig = koinInject(), viewModel: BleSessionViewModel = koinInject()) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())

@@ -1,5 +1,4 @@
 package com.cooper.wheellog.compose
-import com.cooper.wheellog.ble.BleSessionViewModel
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -8,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cooper.wheellog.ble.BleSessionViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SmartBmsScreen() {

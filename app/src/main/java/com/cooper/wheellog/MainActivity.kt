@@ -198,9 +198,9 @@ class MainActivity : AppCompatActivity() {
 
             // Notify logging service of connection state change
             val blessedState = if (state.isConnected)
-                com.welie.blessed.ConnectionState.CONNECTED
+                BLEConstants.ConnectionState.CONNECTED
             else
-                com.welie.blessed.ConnectionState.DISCONNECTED
+                BLEConstants.ConnectionState.DISCONNECTED
             loggingService?.updateConnectionState(blessedState)
 
             when (state.connectionState) {

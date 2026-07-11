@@ -1130,16 +1130,19 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
     private val gestureDetector = GestureDetector(
         context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
-                val supportsLightToggle = viewModel.isCommandSupported(CommandType.LIGHT_ON) ||
-                    viewModel.isCommandSupported(CommandType.LIGHT_OFF)
-                if (supportsLightToggle) {
+                val supportsLightOn = viewModel.isCommandSupported(CommandType.LIGHT_ON)
+                val supportsLightOff = viewModel.isCommandSupported(CommandType.LIGHT_OFF)
+                if (supportsLightOn || supportsLightOff) {
                     val lightIsEnabled = viewModel.sessionState.value.lightMode?.let { it != 1 }
                         ?: appConfig.lightEnabled
-                    val enableLight = !lightIsEnabled
-                    appConfig.lightEnabled = enableLight
-                    viewModel.sendCommand(
-                        if (enableLight) CommandType.LIGHT_ON else CommandType.LIGHT_OFF
-                    )
+                    val command = when {
+                        lightIsEnabled && supportsLightOff -> CommandType.LIGHT_OFF
+                        !lightIsEnabled && supportsLightOn -> CommandType.LIGHT_ON
+                        supportsLightOn -> CommandType.LIGHT_ON
+                        else -> CommandType.LIGHT_OFF
+                    }
+                    appConfig.lightEnabled = command == CommandType.LIGHT_ON
+                    viewModel.sendCommand(command)
                 }
                 return super.onDoubleTap(e)
             }

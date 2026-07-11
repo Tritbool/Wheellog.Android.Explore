@@ -425,6 +425,10 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue(R.string.rotation_set, false)
         set(value) = setValue(R.string.rotation_set, value)
 
+    var powerFactor: Int
+        get() = getValue(R.string.power_factor, 90)
+        set(value) = setValue(R.string.power_factor, value)
+
     var rotationSpeed: Int
         get() = getValue(R.string.rotation_speed, 500)
         set(value) = setValue(R.string.rotation_speed, value)

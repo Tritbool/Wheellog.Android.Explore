@@ -22,6 +22,7 @@ import com.cooper.wheellog.utils.SomeUtil
 import com.cooper.wheellog.utils.SomeUtil.getColorEx
 import com.cooper.wheellog.utils.StringUtil.toTempString
 import com.cooper.wheellog.utils.ThemeManager
+import io.github.tritbool.euc.ble.protocols.CommandType
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import timber.log.Timber
@@ -1129,7 +1130,17 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
     private val gestureDetector = GestureDetector(
         context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
-                viewModel.adapter?.switchFlashlight()
+                val supportsLightToggle = viewModel.isCommandSupported(CommandType.LIGHT_ON) ||
+                    viewModel.isCommandSupported(CommandType.LIGHT_OFF)
+                if (supportsLightToggle) {
+                    val lightIsEnabled = viewModel.sessionState.value.lightMode?.let { it != 1 }
+                        ?: appConfig.lightEnabled
+                    val enableLight = !lightIsEnabled
+                    appConfig.lightEnabled = enableLight
+                    viewModel.sendCommand(
+                        if (enableLight) CommandType.LIGHT_ON else CommandType.LIGHT_OFF
+                    )
+                }
                 return super.onDoubleTap(e)
             }
 

@@ -380,7 +380,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun connectByAddress(mac: String, name: String = "") {
         viewModelScope.launch {
             try {
-                val device = EUCDevice(address = mac, name = name, manufacturerId = "", rssi = 0)
+                val device = EUCDevice(address = mac, name = name, manufacturerId = -1, rssi = 0)
                 eucBleClient.connect(device)
                 Timber.i("Connecting to device by address: %s", mac)
             } catch (e: Exception) {

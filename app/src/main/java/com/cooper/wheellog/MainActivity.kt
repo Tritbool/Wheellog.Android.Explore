@@ -1,5 +1,6 @@
 package com.cooper.wheellog
 
+import android.Manifest
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.app.ActivityManager
@@ -22,8 +23,10 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
@@ -92,7 +95,8 @@ class MainActivity : AppCompatActivity() {
     private var settingsNavHostController: NavHostController? = null
 
     // Current connection state, derived from sessionState observation
-    private var mConnectionState: BLEConstants.ConnectionState = BLEConstants.ConnectionState.DISCONNECTED
+    private var mConnectionState: BLEConstants.ConnectionState =
+        BLEConstants.ConnectionState.DISCONNECTED
 
     // Logging service
     private var loggingService: LoggingService? = null
@@ -141,9 +145,12 @@ class MainActivity : AppCompatActivity() {
         super.onUserLeaveHint()
         if (appConfig.usePipMode
             && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-            && !this.isInPictureInPictureMode) {
+            && !this.isInPictureInPictureMode
+        ) {
             when (appConfig.pipBlock) {
-                getString(R.string.consumption) -> speedModel.title = getString(R.string.consumption)
+                getString(R.string.consumption) -> speedModel.title =
+                    getString(R.string.consumption)
+
                 else -> speedModel.title = getString(R.string.speed)
             }
             try {
@@ -171,6 +178,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 hideSnackBar()
             }
+
             BLEConstants.ConnectionState.DISCONNECTED -> {
                 if (mConnectionState == BLEConstants.ConnectionState.CONNECTED) {
                     showSnackBar(getString(R.string.connection_lost_at), Snackbar.LENGTH_INDEFINITE)
@@ -179,6 +187,7 @@ class MainActivity : AppCompatActivity() {
                     volumeKeyController.setActive(false)
                 }
             }
+
             else -> {}
         }
         mConnectionState = connectionState
@@ -213,9 +222,11 @@ class MainActivity : AppCompatActivity() {
                     }
                     notifications.notificationMessageId = R.string.connected
                 }
+
                 BLEConstants.ConnectionState.DISCONNECTED -> {
                     notifications.notificationMessageId = R.string.disconnected
                 }
+
                 else -> {}
             }
             notifications.update()
@@ -245,7 +256,9 @@ class MainActivity : AppCompatActivity() {
             // Update PiP if active
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isInPictureInPictureMode) {
                 when (appConfig.pipBlock) {
-                    getString(R.string.consumption) -> speedModel.value.floatValue = Calculator.whByKm.toFloat()
+                    getString(R.string.consumption) -> speedModel.value.floatValue =
+                        Calculator.whByKm.toFloat()
+
                     else -> speedModel.value.floatValue = (viewModel.speedDouble).toFloat()
                 }
                 pipView.invalidate()
@@ -284,6 +297,7 @@ class MainActivity : AppCompatActivity() {
                 miLogging!!.isEnabled = true
                 miLogging!!.icon!!.alpha = 255
             }
+
             BLEConstants.ConnectionState.DISCONNECTED -> {
                 miWheel!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuWheelOff))
                 miWheel!!.setTitle(R.string.connect_to_wheel)
@@ -297,6 +311,7 @@ class MainActivity : AppCompatActivity() {
                     miLogging!!.icon!!.alpha = 64
                 }
             }
+
             else -> {
                 // Connecting / scanning state - show searching animation
                 miWheel!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuWheelSearch))
@@ -344,7 +359,30 @@ class MainActivity : AppCompatActivity() {
         pagerAdapter.registerAdapterDataObserver(indicator.adapterDataObserver)
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.settingsView.visibility == View.VISIBLE) {
+                    if (settingsNavHostController?.previousBackStackEntry == null) {
+                        toggleSettings()
+                    } else {
+                        settingsNavHostController?.navigateUp()
+                    }
+                } else if (doubleBackToExitPressedOnce) {
+                    finish()
+                } else {
+                    doubleBackToExitPressedOnce = true
+                    showSnackBar(R.string.back_to_exit)
+                    Handler(Looper.getMainLooper()).postDelayed(
+                        { doubleBackToExitPressedOnce = false },
+                        2000
+                    )
+                }
+            }
+        })
+
         if (onDestroyProcess) {
             Process.killProcess(Process.myPid())
             return
@@ -474,8 +512,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        val ordinal = savedInstanceState.getInt("connectionState", BLEConstants.ConnectionState.DISCONNECTED.ordinal)
-        mConnectionState = BLEConstants.ConnectionState.entries.getOrElse(ordinal) { BLEConstants.ConnectionState.DISCONNECTED }
+        val ordinal = savedInstanceState.getInt(
+            "connectionState",
+            BLEConstants.ConnectionState.DISCONNECTED.ordinal
+        )
+        mConnectionState =
+            BLEConstants.ConnectionState.entries.getOrElse(ordinal) { BLEConstants.ConnectionState.DISCONNECTED }
         setMenuIconStates()
     }
 
@@ -547,6 +589,7 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         Alarms.vibrate(this, longArrayOf(0, 30, 40))
         return when (item.itemId) {
@@ -554,10 +597,12 @@ class MainActivity : AppCompatActivity() {
                 startScanActivity()
                 true
             }
+
             R.id.miWheel -> {
                 toggleConnectToWheel()
                 true
             }
+
             R.id.miLogging -> {
                 if (LoggingService.isInstanceCreated() && appConfig.continueThisDayLog) {
                     val dialog = AlertDialog.Builder(this)
@@ -600,15 +645,18 @@ class MainActivity : AppCompatActivity() {
                 }
                 true
             }
+
             R.id.miReset -> {
                 viewModel.resetMaxValues()
                 showSnackBar(getString(R.string.reset_extremum_values_title))
                 true
             }
+
             R.id.miSettings -> {
                 toggleSettings()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -639,28 +687,32 @@ class MainActivity : AppCompatActivity() {
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         return when (keyCode) {
-            KeyEvent.KEYCODE_BACK -> {
-                if (binding.settingsView.visibility == View.VISIBLE) {
-                    if (settingsNavHostController != null) {
-                        if (settingsNavHostController?.previousBackStackEntry == null) {
-                            toggleSettings()
-                        } else {
-                            settingsNavHostController?.navigateUp()
-                        }
-                    } else {
-                        toggleSettings()
-                    }
-                    return true
-                }
-                if (doubleBackToExitPressedOnce) {
-                    finish()
-                    return true
-                }
-                doubleBackToExitPressedOnce = true
-                showSnackBar(R.string.back_to_exit)
-                Handler(Looper.getMainLooper()).postDelayed({ doubleBackToExitPressedOnce = false }, 2000)
-                true
-            }
+            /*            KeyEvent.KEYCODE_BACK -> {
+                            if (binding.settingsView.visibility == View.VISIBLE) {
+                                if (settingsNavHostController != null) {
+                                    if (settingsNavHostController?.previousBackStackEntry == null) {
+                                        toggleSettings()
+                                    } else {
+                                        settingsNavHostController?.navigateUp()
+                                    }
+                                } else {
+                                    toggleSettings()
+                                }
+                                return true
+                            }
+                            if (doubleBackToExitPressedOnce) {
+                                finish()
+                                return true
+                            }
+                            doubleBackToExitPressedOnce = true
+                            showSnackBar(R.string.back_to_exit)
+                            Handler(Looper.getMainLooper()).postDelayed(
+                                { doubleBackToExitPressedOnce = false },
+                                2000
+                            )
+                            true
+                        }*/
+
             else -> super.onKeyDown(keyCode, event)
         }
     }
@@ -724,6 +776,7 @@ class MainActivity : AppCompatActivity() {
     }
     //endregion
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun connectToLastDevice() {
         val lastMac = appConfig.lastMac
         if (checkBlePermissions(this, RESULT_REQUEST_PERMISSIONS_BT) && lastMac.isNotEmpty()) {
@@ -733,6 +786,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun toggleConnectToWheel() {
         if (mConnectionState == BLEConstants.ConnectionState.CONNECTED) {
             if (checkBlePermissions(this, RESULT_REQUEST_PERMISSIONS_BT)) {
@@ -743,6 +797,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @androidx.annotation.RequiresPermission(
+        android.Manifest.permission.BLUETOOTH_CONNECT
+    )
     private fun startScanActivity() {
         if (checkBlePermissions(this, RESULT_REQUEST_PERMISSIONS_BT)) {
             scanLauncher.launch(Intent(this@MainActivity, ScanActivity::class.java))
@@ -751,6 +808,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -769,16 +827,19 @@ class MainActivity : AppCompatActivity() {
      * Replaces the legacy mCoreBroadcastReceiver for notification button handling.
      */
     private val mNotificationButtonReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 Constants.NOTIFICATION_BUTTON_CONNECTION -> {
                     toggleConnectToWheel()
                     notifications.update()
                 }
+
                 Constants.NOTIFICATION_BUTTON_LOGGING -> {
                     toggleLogging()
                     notifications.update()
                 }
+
                 Constants.NOTIFICATION_BUTTON_BEEP -> playBeep()
                 Constants.ACTION_PREFERENCE_RESET -> {
                     Timber.i("Reset battery lowest")
@@ -788,59 +849,68 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val scanLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            val mac = result.data?.getStringExtra("MAC") ?: ""
-            val name = result.data?.getStringExtra("NAME") ?: ""
-            Timber.i("Device selected MAC = %s, Name = %s", mac, name)
-            viewModel.fullReset()
-            pagerAdapter.updateScreen(true)
-            setMenuIconStates()
-            if (mac.isNotEmpty() && checkBlePermissions(this, RESULT_REQUEST_PERMISSIONS_BT)) {
-                viewModel.connectByAddress(mac, name)
-            }
-        } else {
-            Timber.i("Scan device selection cancelled.")
-        }
-    }
+    @Suppress("MissingPermission")
+    private val scanLauncher =
 
-    private val enableBleLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK && mBluetoothAdapter!!.isEnabled) {
-            connectToLastDevice()
-        } else {
-            Toast.makeText(this, R.string.bluetooth_required, Toast.LENGTH_LONG).show()
-            finish()
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+
+            if (result.resultCode == RESULT_OK) {
+                val mac = result.data?.getStringExtra("MAC") ?: ""
+                val name = result.data?.getStringExtra("NAME") ?: ""
+                Timber.i("Device selected MAC = %s, Name = %s", mac, name)
+                viewModel.fullReset()
+                pagerAdapter.updateScreen(true)
+                setMenuIconStates()
+
+                if (mac.isNotEmpty() && checkBlePermissions(this, RESULT_REQUEST_PERMISSIONS_BT)) {
+                    viewModel.connectByAddress(mac, name)
+                }
+            } else {
+                Timber.i("Scan device selection cancelled.")
+            }
         }
-    }
+
+    @Suppress("MissingPermission")
+    private val enableBleLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK && mBluetoothAdapter!!.isEnabled) {
+                connectToLastDevice()
+            } else {
+                Toast.makeText(this, R.string.bluetooth_required, Toast.LENGTH_LONG).show()
+                finish()
+            }
+        }
 
     // File import via Android content picker
-    val getCsvResults = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri>? ->
-        uris?.let {
-            CoroutineScope(Dispatchers.IO + Job()).launch {
-                for (uri in it) {
-                    contentResolver.apply {
-                        query(uri, null, null, null, null)?.use { cursor ->
-                            val nameIndex = cursor.getColumnIndex(MediaStore.Downloads.DISPLAY_NAME)
-                            cursor.moveToFirst()
-                            cursor.getString(nameIndex)
-                        }?.let { fileName ->
-                            openInputStream(uri)?.use { stream ->
-                                val fileUtil = FileUtil(this@MainActivity)
-                                fileUtil.prepareFile(fileName, "manual")
-                                fileUtil.writeAllStream(stream)
-                                fileUtil.close()
+    val getCsvResults =
+        registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri>? ->
+            uris?.let {
+                CoroutineScope(Dispatchers.IO + Job()).launch {
+                    for (uri in it) {
+                        contentResolver.apply {
+                            query(uri, null, null, null, null)?.use { cursor ->
+                                val nameIndex =
+                                    cursor.getColumnIndex(MediaStore.Downloads.DISPLAY_NAME)
+                                cursor.moveToFirst()
+                                cursor.getString(nameIndex)
+                            }?.let { fileName ->
+                                openInputStream(uri)?.use { stream ->
+                                    val fileUtil = FileUtil(this@MainActivity)
+                                    fileUtil.prepareFile(fileName, "manual")
+                                    fileUtil.writeAllStream(stream)
+                                    fileUtil.close()
+                                }
                             }
                         }
                     }
-                }
-                withContext(Dispatchers.Main) {
-                    if (::pagerAdapter.isInitialized) {
-                        pagerAdapter.updatePageOfTrips()
+                    withContext(Dispatchers.Main) {
+                        if (::pagerAdapter.isInitialized) {
+                            pagerAdapter.updatePageOfTrips()
+                        }
                     }
                 }
             }
         }
-    }
 
     private fun makeNotificationIntentFilter(): IntentFilter {
         return IntentFilter().apply {

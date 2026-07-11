@@ -48,10 +48,10 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     // EucBleClient instance - the single source of truth for BLE operations
     // Renamed to _eucBleClient to avoid JVM clash with public fun getEucBleClient()
     private val _eucBleClient: EucBleClient by lazy {
-        EucBleClient(application).apply {
-            initialize()
-            setupCallbacks()
-        }
+        val client = EucBleClient(application)
+        client.initialize()
+        setupCallbacks(client)
+        client
     }
 
     // ========== SESSION STATISTICS ==========
@@ -93,11 +93,11 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         startRidingTimerControl()
     }
 
-    private fun setupCallbacks() {
-        _eucBleClient.setConnectionCallback(object : ConnectionCallback() {
+    private fun setupCallbacks(client: EucBleClient) {
+        client.setConnectionCallback(object : ConnectionCallback() {
             override fun onConnected() {
                 viewModelScope.launch {
-                    val device = _eucBleClient.getConnectedDevice()
+                    val device = client.getConnectedDevice()
                     if (device != null) updateConnectedDevice(device)
                 }
             }
@@ -130,7 +130,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             }
         })
 
-        _eucBleClient.setDataCallback(object : DataCallback {
+        client.setDataCallback(object : DataCallback {
             override fun onDataReceived(data: EUCData) {
                 viewModelScope.launch {
                     updateTelemetryData(data)
@@ -138,7 +138,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             }
         })
 
-        _eucBleClient.setErrorCallback(object : ErrorCallback {
+        client.setErrorCallback(object : ErrorCallback {
             override fun onError(error: BLEException) {
                 viewModelScope.launch {
                     updateError(error.message ?: "Unknown BLE error")

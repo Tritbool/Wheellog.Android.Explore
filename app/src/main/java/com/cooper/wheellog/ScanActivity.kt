@@ -97,9 +97,7 @@ class ScanActivity: AppCompatActivity() {
         // Observe scan results from ViewModel
         lifecycleScope.launch {
             viewModel.sessionState.collectLatest { state ->
-                state.scanResults.forEach { device ->
-                    mDeviceListAdapter?.addDevice(device, "")
-                }
+                mDeviceListAdapter?.setDevices(state.scanResults)
                 mDeviceListAdapter?.notifyDataSetChanged()
             }
         }

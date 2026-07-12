@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import io.github.tritbool.euc.ble.models.EUCDevice;
 
@@ -34,6 +35,15 @@ public class DeviceListAdapter extends BaseAdapter {
         if (!mLeDevices.contains(device)) {
             mLeDevices.add(device);
             mLeAdvDatas.add(advData);
+        }
+    }
+
+    public void setDevices(List<EUCDevice> devices) {
+        mLeDevices.clear();
+        mLeAdvDatas.clear();
+        for (EUCDevice device : devices) {
+            mLeDevices.add(device);
+            mLeAdvDatas.add("");
         }
     }
 

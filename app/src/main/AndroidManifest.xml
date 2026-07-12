@@ -81,6 +81,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ScanActivity" />
         <activity
             android:name=".MainActivity"
             android:configChanges="smallestScreenSize|screenLayout|orientation|screenSize"

@@ -153,10 +153,6 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue(R.string.use_stop_music, false)
         set(value) = setValue(R.string.use_stop_music, value)
 
-    var showUnknownDevices: Boolean
-        get() = getValue(R.string.show_unknown_devices, false)
-        set(value) = setValue(R.string.show_unknown_devices, value)
-
     var useBeepOnSingleTap: Boolean
         get() = getValue(R.string.beep_on_single_tap, false)
         set(value) = setValue(R.string.beep_on_single_tap, value)

@@ -407,14 +407,6 @@ fun applicationScreen(
 
         group(name = stringResource(R.string.connection_category_title)) {
             switchPref(
-                name = stringResource(R.string.show_unknown_devices_title),
-                desc = stringResource(R.string.show_unknown_devices_description),
-                default = appConfig.showUnknownDevices,
-            ) {
-                appConfig.showUnknownDevices = it
-            }
-
-            switchPref(
                 name = stringResource(R.string.use_reconnect_title),
                 desc = stringResource(R.string.use_reconnect_description),
                 default = appConfig.useReconnect,

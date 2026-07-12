@@ -199,8 +199,6 @@
 
     <!-- Fuzzy -->
     <string name="charging_power_description">"A로 나타낸 충전 전류"</string>
-    <string name="show_unknown_devices_title">"이름 없이 블루투스 표시"</string>
-    <string name="show_unknown_devices_description">"블루투스 장치를 표시할 때 이름을 나타내지 않습니다"</string>
     <string name="connect_beep_title">"연결 소리"</string>
     <string name="connect_beep_description">"휠 연결 시 발생될 소리"</string>
     <string name="enable_alarms_title">"경고 활성화"</string>

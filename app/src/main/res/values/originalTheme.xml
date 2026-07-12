@@ -106,6 +106,13 @@
         <item name="android:itemBackground">@android:color/white</item>
     </style>
 
+    <style name="OriginalTheme.Transparent" parent="@style/OriginalTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
     <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@drawable/splash_bg</item>
         <item name="android:windowNoTitle">true</item>

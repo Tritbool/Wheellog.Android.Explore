@@ -104,6 +104,12 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun setupCallbacks(client: EucBleClient) {
         client.setConnectionCallback(object : ConnectionCallback() {
+            override fun onConnecting() {
+                viewModelScope.launch {
+                    updateConnectionState(BLEConstants.ConnectionState.CONNECTING)
+                }
+            }
+
             override fun onConnected() {
                 viewModelScope.launch {
                     val device = client.getConnectedDevice()

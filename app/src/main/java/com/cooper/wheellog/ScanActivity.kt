@@ -16,6 +16,7 @@ import android.widget.AdapterView.OnItemClickListener
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -85,23 +86,34 @@ class ScanActivity: AppCompatActivity() {
                     false
                 }
                 .create()
-        window.attributes = alertDialog.window?.attributes?.apply {
-            gravity = Gravity.TOP
-            flags = flags and WindowManager.LayoutParams.FLAG_DIM_BEHIND.inv()
-        }
         alertDialog.show()
+        // Position the dialog at the top of the screen without dimming, so MainActivity remains
+        // visible behind the transparent ScanActivity window.
+        alertDialog.window?.apply {
+            setGravity(Gravity.TOP)
+            clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        }
 
         // Observe scan results from ViewModel
         lifecycleScope.launch {
             viewModel.sessionState.collectLatest { state ->
-                runOnUiThread {
-                    state.scanResults.forEach { device ->
-                        mDeviceListAdapter?.addDevice(device, "")
-                        mDeviceListAdapter?.notifyDataSetChanged()
-                    }
+                state.scanResults.forEach { device ->
+                    mDeviceListAdapter?.addDevice(device, "")
                 }
+                mDeviceListAdapter?.notifyDataSetChanged()
             }
         }
+
+        // Safety-net: handle back via the Activity dispatcher in case the dialog key listener
+        // is not reached (e.g. hardware back on some launchers).
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (viewModel.sessionState.value.isScanning) {
+                    scanLeDevice(false)
+                }
+                close()
+            }
+        })
     }
 
     private fun close () {

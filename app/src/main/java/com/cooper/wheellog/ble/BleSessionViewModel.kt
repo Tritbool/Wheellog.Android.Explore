@@ -338,12 +338,12 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun startScan() {
         viewModelScope.launch {
             try {
-                _eucBleClient.startScan()
                 _sessionState.value = _sessionState.value.copy(
                     isScanning = true,
                     scanResults = emptyList(),
                     lastError = null
                 )
+                _eucBleClient.startScan()
                 Timber.i("BLE scan started")
             } catch (e: Exception) {
                 updateError(e.message ?: "Failed to start scan")

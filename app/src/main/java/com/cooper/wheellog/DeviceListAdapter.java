@@ -8,16 +8,12 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.koin.core.component.KoinComponent;
-import org.koin.java.KoinJavaComponent;
-
 import java.util.ArrayList;
 
 import io.github.tritbool.euc.ble.models.EUCDevice;
 
 // Adapter for holding devices found through scanning.
 public class DeviceListAdapter extends BaseAdapter {
-    private final AppConfig appConfig = KoinJavaComponent.get(AppConfig.class);
     private final ArrayList<EUCDevice> mLeDevices;
     private final ArrayList<String> mLeAdvDatas;
     private final LayoutInflater mInflator;
@@ -35,12 +31,6 @@ public class DeviceListAdapter extends BaseAdapter {
     }
 
     public void addDevice(EUCDevice device, String advData) {
-        if (!appConfig.getShowUnknownDevices()) {
-            String deviceName = device.getName();
-            if (deviceName == null || deviceName.length() == 0)
-                return;
-        }
-
         if (!mLeDevices.contains(device)) {
             mLeDevices.add(device);
             mLeAdvDatas.add(advData);

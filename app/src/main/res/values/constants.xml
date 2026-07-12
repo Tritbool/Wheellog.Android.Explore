@@ -143,7 +143,6 @@
     <string name="use_stop_music" translatable="false">use_stop_music</string>
     <string name="battery_capacity" translatable="false">battery_capacity</string>
     <string name="charging_power" translatable="false">charging_power</string>
-    <string name="show_unknown_devices" translatable="false">show_unknown_devices</string>
     <string name="connect_beep" translatable="false">connect_beep</string>
     <string name="max_speed" translatable="false">max_speed</string>
     <string name="use_ratio" translatable="false">use_ratio</string>

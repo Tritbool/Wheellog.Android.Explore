@@ -196,8 +196,6 @@
     <string name="battery_capacity_description">Ємність батареї у Вт/г</string>
     <string name="charging_power_title">Струм заряду</string>
     <string name="charging_power_description">Струм заряду в А</string>
-    <string name="show_unknown_devices_title">Пристрої без назви</string>
-    <string name="show_unknown_devices_description">Показати пристрої Bluetooth без назви</string>
     <string name="connect_beep_title">Звук підключення</string>
     <string name="connect_beep_description">Звук при підключенні до колеса</string>
     <string name="warning_pwm_title">Попереднє попередження PWM</string>

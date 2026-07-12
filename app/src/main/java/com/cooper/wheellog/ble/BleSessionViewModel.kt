@@ -2,6 +2,8 @@ package com.cooper.wheellog.ble
 
 import android.Manifest
 import android.app.Application
+import android.bluetooth.BluetoothManager
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
@@ -390,13 +392,27 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
     /**
      * Connect to a wheel by MAC address and optional device name.
-     * Creates an EUCDevice from the given parameters and initiates connection.
+     * Resolves the BluetoothDevice from the MAC address so the library can
+     * establish the GATT connection without a NullPointerException.
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun connectByAddress(mac: String, name: String = "") {
         viewModelScope.launch {
             try {
-                val device = EUCDevice(address = mac, name = name, manufacturerId = -1, rssi = 0)
+                val bluetoothManager = getApplication<Application>()
+                    .getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+                val bluetoothDevice = bluetoothManager?.adapter?.getRemoteDevice(mac)
+                if (bluetoothDevice == null) {
+                    updateError("Bluetooth not available — cannot connect to $mac")
+                    return@launch
+                }
+                val device = EUCDevice(
+                    bluetoothDevice = bluetoothDevice,
+                    address = mac,
+                    name = name,
+                    manufacturerId = -1,
+                    rssi = 0
+                )
                 _eucBleClient.connect(device)
                 Timber.i("Connecting to device by address: %s", mac)
             } catch (e: Exception) {

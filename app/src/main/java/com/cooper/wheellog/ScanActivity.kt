@@ -14,6 +14,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.AdapterView.OnItemClickListener
+import android.widget.AdapterView.OnItemLongClickListener
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -27,6 +28,7 @@ import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.databinding.ActivityScanBinding
 import com.cooper.wheellog.utils.PermissionsUtil
 import com.cooper.wheellog.utils.StringUtil
+import io.github.tritbool.euc.ble.models.EUCDevice
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -55,6 +57,7 @@ class ScanActivity : AppCompatActivity() {
         scanTitle = binding.scanTitle
         mDeviceListAdapter = DeviceListAdapter(this)
         binding.list.onItemClickListener = onItemClickListener
+        binding.list.onItemLongClickListener = onItemLongClickListener
         binding.list.adapter = mDeviceListAdapter
         macLayout = binding.lastMacText
         binding.lastMacText.editText!!.setText(appConfig.lastMac)
@@ -189,6 +192,49 @@ class ScanActivity : AppCompatActivity() {
         // Set password for inmotion
         appConfig.passwordForWheel = ""
         close()
+    }
+
+    /**
+     * Long-press on a discovered device opens a protocol picker so the user can force a specific
+     * protocol before connecting, bypassing auto-detection entirely.
+     */
+    @SuppressLint("MissingPermission")
+    private val onItemLongClickListener = OnItemLongClickListener { _, _, i, _ ->
+        if (viewModel.sessionState.value.isScanning) {
+            viewModel.stopScan()
+        }
+        val device = mDeviceListAdapter!!.getDevice(i)
+        showProtocolPickerDialog(device)
+        true
+    }
+
+    private fun showProtocolPickerDialog(device: EUCDevice) {
+        val candidates = viewModel.getAvailableProtocols()
+        val deviceLabel = device.name?.takeIf { it.isNotBlank() } ?: device.address
+        val title = getString(R.string.protocol_force_for_device, deviceLabel)
+
+        val labels = candidates.map { it.manufacturer }
+        val items = (listOf(getString(R.string.protocol_select_auto)) + labels).toTypedArray()
+
+        AlertDialog.Builder(this, R.style.OriginalTheme_Dialog_Alert)
+            .setTitle(title)
+            .setItems(items) { _, which ->
+                val intent = Intent()
+                intent.putExtra("MAC", device.address)
+                intent.putExtra("NAME", device.name)
+                if (which > 0) {
+                    // User picked a specific protocol (index 0 = auto, 1+ = candidates)
+                    intent.putExtra("PROTOCOL_ID", candidates[which - 1].id)
+                    Timber.i("Forcing protocol %s for device %s", candidates[which - 1].id, device.address)
+                }
+                appConfig.lastMac = device.address
+                appConfig.advDataForWheel = ""
+                appConfig.passwordForWheel = ""
+                setResult(RESULT_OK, intent)
+                close()
+            }
+            .setNegativeButton(R.string.protocol_cancel, null)
+            .show()
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)

@@ -2,6 +2,7 @@ package com.cooper.wheellog.ble
 
 import com.cooper.wheellog.utils.Constants.wheel_type_from_string
 import io.github.tritbool.euc.ble.core.BLEConstants
+import io.github.tritbool.euc.ble.core.ProtocolCandidate
 import io.github.tritbool.euc.ble.models.EUCData
 import io.github.tritbool.euc.ble.models.EUCDevice
 
@@ -37,7 +38,11 @@ data class BleSessionState(
     val sessionRideTime: Long? = null,
     
     // Timestamp of last data update
-    val lastDataTimestamp: Long? = null
+    val lastDataTimestamp: Long? = null,
+
+    // Protocol selection — populated when auto-detection fails in AUTO_WITH_MANUAL_FALLBACK mode
+    val protocolSelectionRequired: Boolean = false,
+    val protocolCandidates: List<ProtocolCandidate> = emptyList()
 ) {
     // Helper properties for UI binding
     val isConnected: Boolean

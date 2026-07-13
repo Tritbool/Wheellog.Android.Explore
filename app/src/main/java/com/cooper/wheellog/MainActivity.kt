@@ -98,6 +98,9 @@ class MainActivity : AppCompatActivity() {
     private var mConnectionState: BLEConstants.ConnectionState =
         BLEConstants.ConnectionState.DISCONNECTED
 
+    // Dialog shown when protocol auto-detection fails
+    private var protocolSelectionDialog: AlertDialog? = null
+
     // Logging service
     private var loggingService: LoggingService? = null
     private val mLoggingServiceConnection: ServiceConnection = object : ServiceConnection {
@@ -232,6 +235,15 @@ class MainActivity : AppCompatActivity() {
             notifications.update()
         }
 
+        // Protocol auto-detection failed — show picker so the user can select manually
+        if (state.protocolSelectionRequired && state.protocolCandidates.isNotEmpty()
+            && protocolSelectionDialog?.isShowing != true) {
+            showProtocolSelectionDialog(state)
+        } else if (!state.protocolSelectionRequired && protocolSelectionDialog?.isShowing == true) {
+            protocolSelectionDialog?.dismiss()
+            protocolSelectionDialog = null
+        }
+
         // Data updates
         if (state.lastDataTimestamp != null) {
             // Update logging
@@ -267,6 +279,33 @@ class MainActivity : AppCompatActivity() {
             // Update the pager
             pagerAdapter.updateScreen(false)
         }
+    }
+
+    @Suppress("MissingPermission")
+    private fun showProtocolSelectionDialog(state: BleSessionState) {
+        // Dismiss any previously shown protocol dialog to avoid stacking
+        protocolSelectionDialog?.dismiss()
+
+        val candidates = state.protocolCandidates
+        val labels = candidates.map { candidate ->
+            if (candidate.matchedByMetadata) "${candidate.manufacturer} ★" else candidate.manufacturer
+        }.toTypedArray()
+
+        protocolSelectionDialog = AlertDialog.Builder(this, R.style.OriginalTheme_Dialog_Alert)
+            .setTitle(R.string.protocol_select_title)
+            .setMessage(R.string.protocol_auto_detection_failed)
+            .setItems(labels) { _, which ->
+                val selectedId = candidates[which].id
+                Timber.i("User manually selected protocol: %s", selectedId)
+                viewModel.selectProtocol(selectedId)
+                protocolSelectionDialog = null
+            }
+            .setNegativeButton(R.string.protocol_cancel) { _, _ ->
+                viewModel.dismissProtocolSelection()
+                protocolSelectionDialog = null
+            }
+            .setCancelable(false)
+            .show()
     }
 
     private fun setMenuIconStates() {
@@ -489,6 +528,8 @@ class MainActivity : AppCompatActivity() {
     public override fun onPause() {
         super.onPause()
         isPaused = true
+        protocolSelectionDialog?.dismiss()
+        protocolSelectionDialog = null
     }
 
     override fun onStart() {
@@ -857,12 +898,18 @@ class MainActivity : AppCompatActivity() {
             if (result.resultCode == RESULT_OK) {
                 val mac = result.data?.getStringExtra("MAC") ?: ""
                 val name = result.data?.getStringExtra("NAME") ?: ""
-                Timber.i("Device selected MAC = %s, Name = %s", mac, name)
+                val protocolId = result.data?.getStringExtra("PROTOCOL_ID")
+                Timber.i("Device selected MAC = %s, Name = %s, Protocol = %s", mac, name, protocolId ?: "auto")
                 viewModel.fullReset()
                 pagerAdapter.updateScreen(true)
                 setMenuIconStates()
 
                 if (mac.isNotEmpty() && checkBlePermissions(this, RESULT_REQUEST_PERMISSIONS_BT)) {
+                    if (protocolId != null) {
+                        viewModel.forceProtocol(protocolId)
+                    } else {
+                        viewModel.clearForcedProtocol()
+                    }
                     viewModel.connectByAddress(mac, name)
                 }
             } else {

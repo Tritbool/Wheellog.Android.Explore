@@ -15,6 +15,8 @@ import io.github.tritbool.euc.ble.core.BLEConstants
 import io.github.tritbool.euc.ble.core.ConnectionCallback
 import io.github.tritbool.euc.ble.core.DataCallback
 import io.github.tritbool.euc.ble.core.ErrorCallback
+import io.github.tritbool.euc.ble.core.ProtocolCandidate
+import io.github.tritbool.euc.ble.core.ProtocolSelectionMode
 import io.github.tritbool.euc.ble.exceptions.BLEException
 import io.github.tritbool.euc.ble.models.EUCData
 import io.github.tritbool.euc.ble.models.EUCDevice
@@ -143,6 +145,16 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                         isScanning = false,
                         scanResults = devices
                     )
+                }
+            }
+
+            override fun onProtocolSelectionRequired(candidates: List<ProtocolCandidate>) {
+                viewModelScope.launch {
+                    _sessionState.value = _sessionState.value.copy(
+                        protocolSelectionRequired = true,
+                        protocolCandidates = candidates
+                    )
+                    Timber.i("Protocol auto-detection failed, %d candidates available", candidates.size)
                 }
             }
         })
@@ -394,11 +406,18 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
      * Connect to a wheel by MAC address and optional device name.
      * Resolves the BluetoothDevice from the MAC address so the library can
      * establish the GATT connection without a NullPointerException.
+     *
+     * Unless the protocol selection mode is already FORCED (e.g. the caller has pre-selected
+     * a protocol via [forceProtocol]), this switches to AUTO_WITH_MANUAL_FALLBACK so that the
+     * user is prompted to pick a protocol manually if auto-detection fails.
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun connectByAddress(mac: String, name: String = "") {
         viewModelScope.launch {
             try {
+                if (_eucBleClient.getProtocolSelectionMode() != ProtocolSelectionMode.FORCED) {
+                    _eucBleClient.setProtocolSelectionMode(ProtocolSelectionMode.AUTO_WITH_MANUAL_FALLBACK)
+                }
                 val bluetoothManager = getApplication<Application>()
                     .getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
                 val bluetoothDevice = bluetoothManager?.adapter?.getRemoteDevice(mac)
@@ -449,6 +468,64 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun getEucBleClient(): EucBleClient = _eucBleClient
+
+    // ========== PROTOCOL SELECTION ==========
+
+    /**
+     * Returns all protocols registered in the BLE client, with scoring metadata.
+     * Can be called at any time (before or during connection) to populate a protocol picker UI.
+     */
+    fun getAvailableProtocols(): List<ProtocolCandidate> = _eucBleClient.getProtocolCandidates()
+
+    /**
+     * Force a specific protocol by ID before connecting.
+     * Sets the selection mode to FORCED so the library skips auto-detection entirely.
+     * Call [clearForcedProtocol] to revert to automatic detection.
+     */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun forceProtocol(protocolId: String): Boolean {
+        return _eucBleClient.forceProtocol(protocolId)
+    }
+
+    /**
+     * Clear any previously forced protocol and revert to automatic detection.
+     */
+    fun clearForcedProtocol() {
+        _eucBleClient.clearForcedProtocol()
+    }
+
+    /**
+     * Manually select a protocol when auto-detection has failed
+     * (i.e. after [BleSessionState.protocolSelectionRequired] becomes true).
+     * Clears the [BleSessionState.protocolSelectionRequired] flag on success.
+     */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun selectProtocol(protocolId: String): Boolean {
+        val result = _eucBleClient.selectProtocol(protocolId)
+        if (result) {
+            viewModelScope.launch {
+                _sessionState.value = _sessionState.value.copy(
+                    protocolSelectionRequired = false,
+                    protocolCandidates = emptyList()
+                )
+            }
+            Timber.i("Protocol manually selected: %s", protocolId)
+        }
+        return result
+    }
+
+    /**
+     * Dismiss the protocol selection prompt without choosing a protocol.
+     * The wheel will remain connected but without an active decoder.
+     */
+    fun dismissProtocolSelection() {
+        viewModelScope.launch {
+            _sessionState.value = _sessionState.value.copy(
+                protocolSelectionRequired = false,
+                protocolCandidates = emptyList()
+            )
+        }
+    }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun sendCommand(commandType: CommandType, value: Any = Unit) {

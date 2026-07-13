@@ -26,7 +26,10 @@
     <uses-permission
         android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.POST_NO********IONS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -81,7 +84,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ScanActivity" android:theme="@style/OriginalTheme.Transparent" />
+        <activity
+            android:name=".ScanActivity"
+            android:theme="@style/OriginalTheme.Transparent" />
         <activity
             android:name=".MainActivity"
             android:configChanges="smallestScreenSize|screenLayout|orientation|screenSize"

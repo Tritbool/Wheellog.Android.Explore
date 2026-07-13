@@ -1,5 +1,6 @@
 package com.cooper.wheellog;
 
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import io.github.tritbool.euc.ble.models.EUCDevice;
@@ -38,10 +41,25 @@ public class DeviceListAdapter extends BaseAdapter {
         }
     }
 
+
     public void setDevices(List<EUCDevice> devices) {
         mLeDevices.clear();
         mLeAdvDatas.clear();
-        for (EUCDevice device : devices) {
+
+        List<EUCDevice> sorted = new ArrayList<>(devices);
+        Collections.sort(sorted, new Comparator<EUCDevice>() {
+            @Override
+            public int compare(EUCDevice a, EUCDevice b) {
+                String aa = a.getAddress();
+                String bb = b.getAddress();
+                if (aa == null && bb == null) return 0;
+                if (aa == null) return -1;
+                if (bb == null) return 1;
+                return aa.compareTo(bb);
+            }
+        });
+
+        for (EUCDevice device : sorted) {
             mLeDevices.add(device);
             mLeAdvDatas.add("");
         }

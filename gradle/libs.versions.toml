@@ -23,7 +23,7 @@ gridlayout        = "1.1.0"
 preference        = "1.2.1"
 constraintlayout  = "2.2.1"
 legacy-support    = "1.0.0"
-euc-ble           = "0.0.5"
+euc-ble           = "0.0.7"
 # test
 junit             = "4.13.2"
 truth             = "1.4.5"

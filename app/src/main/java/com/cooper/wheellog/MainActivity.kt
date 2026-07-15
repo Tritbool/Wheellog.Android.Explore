@@ -59,7 +59,7 @@ import com.cooper.wheellog.utils.SomeUtil.playBeep
 import com.cooper.wheellog.views.PiPView
 import com.google.android.material.snackbar.Snackbar
 import io.github.tritbool.euc.ble.core.BLEConstants
-import io.github.tritbool.euc.ble.core.ProtocolCandidate
+import io.github.tritbool.euc.ble.protocols.EUCProtocol
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -286,7 +286,7 @@ class MainActivity : AppCompatActivity() {
         // Dismiss any previously shown protocol dialog to avoid stacking
         protocolSelectionDialog?.dismiss()
 
-        val candidates = resolveProtocolCandidates(state)
+        val candidates = state.protocolCandidates.ifEmpty { viewModel.getAvailableProtocols() }
         if (candidates.isEmpty()) {
             Timber.w("Protocol selection requested but no protocol candidates available")
             viewModel.dismissProtocolSelection()
@@ -299,7 +299,7 @@ class MainActivity : AppCompatActivity() {
             .setTitle(R.string.protocol_select_title)
             .setMessage(R.string.protocol_auto_detection_failed)
             .setItems(labels) { _, which ->
-                val selectedId = candidates[which].id
+                val selectedId = candidates[which].javaClass.simpleName
                 Timber.i("User manually selected protocol: %s", selectedId)
                 viewModel.selectProtocol(selectedId)
                 protocolSelectionDialog = null
@@ -312,30 +312,12 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun resolveProtocolCandidates(state: BleSessionState): List<ProtocolCandidate> {
-        val merged = (state.protocolCandidates + viewModel.getAvailableProtocols())
-            .distinctBy { it.id }
-
-        if (merged.isEmpty()) return emptyList()
-
-        val metadataMatches = merged.filter { it.matchedByMetadata }
-        val preferred = if (metadataMatches.isNotEmpty()) metadataMatches else merged
-
-        return preferred.sortedBy { candidate ->
-            candidate.manufacturer.ifBlank { candidate.id }.lowercase(Locale.ROOT)
-        }
-    }
-
-    private fun buildProtocolLabels(candidates: List<ProtocolCandidate>): Array<String> {
-        val baseLabels = candidates.map { candidate ->
-            candidate.manufacturer.ifBlank { candidate.id }
-        }
-        val duplicates = baseLabels.groupingBy { it }.eachCount()
-
+    private fun buildProtocolLabels(candidates: List<EUCProtocol>): Array<String> {
+        val baseLabels = candidates.map { it.manufacturer }
+        val counts = baseLabels.groupingBy { it }.eachCount()
         return candidates.mapIndexed { index, candidate ->
-            val baseLabel = baseLabels[index]
-            val withId = if ((duplicates[baseLabel] ?: 0) > 1) "$baseLabel (${candidate.id})" else baseLabel
-            if (candidate.matchedByMetadata) "$withId ★" else withId
+            val label = baseLabels[index]
+            if ((counts[label] ?: 0) > 1) "$label (${candidate.javaClass.simpleName})" else label
         }.toTypedArray()
     }
 

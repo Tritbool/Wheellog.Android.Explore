@@ -2,9 +2,9 @@ package com.cooper.wheellog.ble
 
 import com.cooper.wheellog.utils.Constants.wheel_type_from_string
 import io.github.tritbool.euc.ble.core.BLEConstants
-import io.github.tritbool.euc.ble.core.ProtocolCandidate
 import io.github.tritbool.euc.ble.models.EUCData
 import io.github.tritbool.euc.ble.models.EUCDevice
+import io.github.tritbool.euc.ble.protocols.EUCProtocol
 
 /**
  * State class representing the current BLE session state for the UI.
@@ -42,7 +42,7 @@ data class BleSessionState(
 
     // Protocol selection — populated when auto-detection fails in AUTO_WITH_MANUAL_FALLBACK mode
     val protocolSelectionRequired: Boolean = false,
-    val protocolCandidates: List<ProtocolCandidate> = emptyList()
+    val protocolCandidates: List<EUCProtocol> = emptyList()
 ) {
     // Helper properties for UI binding
     val isConnected: Boolean

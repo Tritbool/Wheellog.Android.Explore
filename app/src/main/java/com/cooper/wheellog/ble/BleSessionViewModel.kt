@@ -15,13 +15,14 @@ import io.github.tritbool.euc.ble.core.BLEConstants
 import io.github.tritbool.euc.ble.core.ConnectionCallback
 import io.github.tritbool.euc.ble.core.DataCallback
 import io.github.tritbool.euc.ble.core.ErrorCallback
-import io.github.tritbool.euc.ble.core.ProtocolCandidate
+import io.github.tritbool.euc.ble.core.ProtocolSelection
 import io.github.tritbool.euc.ble.core.ProtocolSelectionMode
 import io.github.tritbool.euc.ble.exceptions.BLEException
 import io.github.tritbool.euc.ble.models.EUCData
 import io.github.tritbool.euc.ble.models.EUCDevice
 import io.github.tritbool.euc.ble.protocols.CommandSupport
 import io.github.tritbool.euc.ble.protocols.CommandType
+import io.github.tritbool.euc.ble.protocols.EUCProtocol
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -148,13 +149,23 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 }
             }
 
-            override fun onProtocolSelectionRequired(candidates: List<ProtocolCandidate>) {
+            override fun onProtocolSelectionRequired(protocols: List<EUCProtocol>) {
                 viewModelScope.launch {
                     _sessionState.value = _sessionState.value.copy(
                         protocolSelectionRequired = true,
-                        protocolCandidates = candidates
+                        protocolCandidates = protocols
                     )
-                    Timber.i("Protocol auto-detection failed, %d candidates available", candidates.size)
+                    Timber.i("Protocol auto-detection failed, %d candidates available", protocols.size)
+                }
+            }
+
+            override fun onProtocolSelected(selection: ProtocolSelection) {
+                viewModelScope.launch {
+                    _sessionState.value = _sessionState.value.copy(
+                        protocolSelectionRequired = false,
+                        protocolCandidates = emptyList()
+                    )
+                    Timber.i("Protocol selected: %s (reason: %s)", selection.manufacturer, selection.reason)
                 }
             }
         })
@@ -472,19 +483,21 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     // ========== PROTOCOL SELECTION ==========
 
     /**
-     * Returns all protocols registered in the BLE client, with scoring metadata.
+     * Returns all protocols registered in the BLE client.
      * Can be called at any time (before or during connection) to populate a protocol picker UI.
      */
-    fun getAvailableProtocols(): List<ProtocolCandidate> = _eucBleClient.getProtocolCandidates()
+    fun getAvailableProtocols(): List<EUCProtocol> = _eucBleClient.getRegisteredProtocols()
 
     /**
-     * Force a specific protocol by ID before connecting.
+     * Force a specific protocol by class name before connecting.
      * Sets the selection mode to FORCED so the library skips auto-detection entirely.
      * Call [clearForcedProtocol] to revert to automatic detection.
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun forceProtocol(protocolId: String): Boolean {
-        return _eucBleClient.forceProtocol(protocolId)
+        val protocol = _eucBleClient.getRegisteredProtocols().find { it.javaClass.simpleName == protocolId }
+            ?: return false
+        return _eucBleClient.forceProtocol(protocol)
     }
 
     /**
@@ -501,7 +514,10 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun selectProtocol(protocolId: String): Boolean {
-        val result = _eucBleClient.selectProtocol(protocolId)
+        val protocol = _sessionState.value.protocolCandidates.find { it.javaClass.simpleName == protocolId }
+            ?: _eucBleClient.getRegisteredProtocols().find { it.javaClass.simpleName == protocolId }
+            ?: return false
+        val result = _eucBleClient.selectProtocol(protocol)
         if (result) {
             viewModelScope.launch {
                 _sessionState.value = _sessionState.value.copy(

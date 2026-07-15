@@ -224,8 +224,8 @@ class ScanActivity : AppCompatActivity() {
                 intent.putExtra("NAME", device.name)
                 if (which > 0) {
                     // User picked a specific protocol (index 0 = auto, 1+ = candidates)
-                    intent.putExtra("PROTOCOL_ID", candidates[which - 1].id)
-                    Timber.i("Forcing protocol %s for device %s", candidates[which - 1].id, device.address)
+                    intent.putExtra("PROTOCOL_ID", candidates[which - 1].javaClass.simpleName)
+                    Timber.i("Forcing protocol %s for device %s", candidates[which - 1].javaClass.simpleName, device.address)
                 }
                 appConfig.lastMac = device.address
                 appConfig.advDataForWheel = ""

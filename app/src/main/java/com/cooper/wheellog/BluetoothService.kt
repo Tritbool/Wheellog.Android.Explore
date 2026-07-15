@@ -142,6 +142,20 @@ class BluetoothService: Service() {
                     Timber.i("Disconnected")
                     broadcastConnectionUpdate()
                 }
+
+                fun applyManualProtocol(adapterName: String): Boolean {
+                    if (adapterName.isBlank()) {
+                        return false
+                    }
+                    val recognized = WheelData.getInstance().connectWithManualAdapter(adapterName)
+                    WheelData.getInstance().isConnected = recognized
+                    if (recognized) {
+                        sendBroadcast(Intent(Constants.ACTION_WHEEL_TYPE_RECOGNIZED))
+                    } else {
+                        disconnect()
+                    }
+                    return recognized
+                }
                 // Broadcast RAW logging paused if active
                 if (fileUtilRawData != null && !fileUtilRawData!!.isNull) {
                     val serviceIntent = Intent(Constants.ACTION_RAW_LOGGING_TOGGLED)
@@ -196,7 +210,12 @@ class BluetoothService: Service() {
                     sendBroadcast(Intent(Constants.ACTION_WHEEL_TYPE_RECOGNIZED))
                 } else {
                     Timber.e("Wheel is not recognised")
-                    disconnect()
+                    val manualSelectionIntent = Intent(Constants.ACTION_WHEEL_PROTOCOL_SELECTION_REQUIRED)
+                    manualSelectionIntent.putExtra(
+                        Constants.INTENT_EXTRA_PROTOCOL_OPTIONS,
+                        WheelData.getInstance().manualProtocolOptions
+                    )
+                    sendBroadcast(manualSelectionIntent)
                 }
             }
 
@@ -539,11 +558,6 @@ class BluetoothService: Service() {
                         System.arraycopy(cmd, i4 * 20, buf, 0, 20)
                         if (!wheelConnection!!.writeCharacteristic(characteristic, buf, WriteType.WITHOUT_RESPONSE)) {
                             return false
-                        }
-                        try {
-                            Thread.sleep(20)
-                        } catch (e: InterruptedException) {
-                            e.printStackTrace()
                         }
                         i4++
                     }

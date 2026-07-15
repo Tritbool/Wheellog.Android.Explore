@@ -276,6 +276,7 @@ class MainActivity : AppCompatActivity() {
                     showSnackBar(intent.getStringExtra(Constants.INTENT_EXTRA_NEWS), 1500)
                 }
                 Constants.ACTION_WHEEL_TYPE_RECOGNIZED -> {}
+                Constants.ACTION_WHEEL_PROTOCOL_SELECTION_REQUIRED -> showProtocolSelectionDialog(intent)
                 Constants.ACTION_WHEEL_MODEL_CHANGED -> pagerAdapter.configureSmartBmsDisplay()
                 Constants.ACTION_ALARM_TRIGGERED -> {
                     val alarmType = intent.getSerializable(Constants.INTENT_EXTRA_ALARM_TYPE, ALARM_TYPE::class.java)?.value ?: 0
@@ -1157,6 +1158,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun showProtocolSelectionDialog(intent: Intent) {
+        val options = intent.getStringArrayExtra(Constants.INTENT_EXTRA_PROTOCOL_OPTIONS)
+            ?.toList()
+            ?.filter { it.isNotBlank() }
+            ?: WheelData.getInstance().manualProtocolOptions.toList()
+
+        if (options.isEmpty()) {
+            bluetoothService?.disconnect()
+            return
+        }
+
+        val labels = options.map {
+            when (it.uppercase(Locale.US)) {
+                "INMOTION_V2" -> "Inmotion V2"
+                "NINEBOT_Z" -> "Ninebot Z"
+                else -> it.lowercase(Locale.US).replaceFirstChar { c -> c.uppercase() }
+            }
+        }
+
+        AlertDialog.Builder(this, R.style.OriginalTheme_Dialog_Alert)
+            .setTitle(R.string.select_wheel_protocol)
+            .setMessage(R.string.wheel_protocol_not_detected)
+            .setItems(labels.toTypedArray()) { _, which ->
+                val selectedProtocol = options[which]
+                val applied = bluetoothService?.applyManualProtocol(selectedProtocol) == true
+                if (!applied) {
+                    showSnackBar(R.string.wheel_protocol_apply_failed)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel) { _, _ ->
+                bluetoothService?.disconnect()
+            }
+            .show()
+    }
+
     private fun startScanActivity() {
         if (checkBlePermissions(this, RESULT_REQUEST_PERMISSIONS_BT)) {
             scanLauncher.launch(Intent(this@MainActivity, ScanActivity::class.java))
@@ -1260,6 +1296,7 @@ class MainActivity : AppCompatActivity() {
         intentFilter.addAction(Constants.ACTION_WHEEL_TYPE_CHANGED)
         intentFilter.addAction(Constants.ACTION_WHEEL_NEWS_AVAILABLE)
         intentFilter.addAction(Constants.ACTION_WHEEL_IS_READY)
+        intentFilter.addAction(Constants.ACTION_WHEEL_PROTOCOL_SELECTION_REQUIRED)
         return intentFilter
     }
 

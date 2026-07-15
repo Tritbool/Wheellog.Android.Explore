@@ -59,6 +59,7 @@ import com.cooper.wheellog.utils.SomeUtil.playBeep
 import com.cooper.wheellog.views.PiPView
 import com.google.android.material.snackbar.Snackbar
 import io.github.tritbool.euc.ble.core.BLEConstants
+import io.github.tritbool.euc.ble.core.ProtocolCandidate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -236,8 +237,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Protocol auto-detection failed — show picker so the user can select manually
-        if (state.protocolSelectionRequired && state.protocolCandidates.isNotEmpty()
-            && protocolSelectionDialog?.isShowing != true) {
+        if (state.protocolSelectionRequired && protocolSelectionDialog?.isShowing != true) {
             showProtocolSelectionDialog(state)
         } else if (!state.protocolSelectionRequired && protocolSelectionDialog?.isShowing == true) {
             protocolSelectionDialog?.dismiss()
@@ -286,10 +286,14 @@ class MainActivity : AppCompatActivity() {
         // Dismiss any previously shown protocol dialog to avoid stacking
         protocolSelectionDialog?.dismiss()
 
-        val candidates = state.protocolCandidates
-        val labels = candidates.map { candidate ->
-            if (candidate.matchedByMetadata) "${candidate.manufacturer} ★" else candidate.manufacturer
-        }.toTypedArray()
+        val candidates = resolveProtocolCandidates(state)
+        if (candidates.isEmpty()) {
+            Timber.w("Protocol selection requested but no protocol candidates available")
+            viewModel.dismissProtocolSelection()
+            return
+        }
+
+        val labels = buildProtocolLabels(candidates)
 
         protocolSelectionDialog = AlertDialog.Builder(this, R.style.OriginalTheme_Dialog_Alert)
             .setTitle(R.string.protocol_select_title)
@@ -306,6 +310,33 @@ class MainActivity : AppCompatActivity() {
             }
             .setCancelable(false)
             .show()
+    }
+
+    private fun resolveProtocolCandidates(state: BleSessionState): List<ProtocolCandidate> {
+        val merged = (state.protocolCandidates + viewModel.getAvailableProtocols())
+            .distinctBy { it.id }
+
+        if (merged.isEmpty()) return emptyList()
+
+        val metadataMatches = merged.filter { it.matchedByMetadata }
+        val preferred = if (metadataMatches.isNotEmpty()) metadataMatches else merged
+
+        return preferred.sortedBy { candidate ->
+            candidate.manufacturer.ifBlank { candidate.id }.lowercase(Locale.ROOT)
+        }
+    }
+
+    private fun buildProtocolLabels(candidates: List<ProtocolCandidate>): Array<String> {
+        val baseLabels = candidates.map { candidate ->
+            candidate.manufacturer.ifBlank { candidate.id }
+        }
+        val duplicates = baseLabels.groupingBy { it }.eachCount()
+
+        return candidates.mapIndexed { index, candidate ->
+            val baseLabel = baseLabels[index]
+            val withId = if ((duplicates[baseLabel] ?: 0) > 1) "$baseLabel (${candidate.id})" else baseLabel
+            if (candidate.matchedByMetadata) "$withId ★" else withId
+        }.toTypedArray()
     }
 
     private fun setMenuIconStates() {

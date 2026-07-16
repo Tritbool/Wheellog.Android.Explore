@@ -162,10 +162,11 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
             R.layout.main_view_main -> {
                 viewModel.bmsView = false
                 wheelView?.apply {
-                    setSpeed(viewModel.speed.toInt())
+                    // WheelView expects speed in 0.1 km/h units and temperature in °C.
+                    setSpeed((viewModel.speedDouble * 10).toInt())
                     setBattery(viewModel.batteryLevel)
                     setBatteryLowest(viewModel.batteryLowestLevel)
-                    setTemperature(viewModel.temperature)
+                    setTemperature(viewModel.temperatureDouble.toInt())
                     setRideTime(viewModel.ridingTimeString)
                     setTopSpeed(viewModel.topSpeedDouble)
                     setDistance(viewModel.distanceDouble)

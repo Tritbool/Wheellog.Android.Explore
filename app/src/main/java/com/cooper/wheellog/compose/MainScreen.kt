@@ -6,9 +6,15 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import com.cooper.wheellog.AppConfig
+import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.views.WheelView
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 enum class Page { Main, Params, Trips, Events, BMS }
 
@@ -38,15 +44,42 @@ fun MainScreen() {
 
 
 @Composable
-fun LegacyMainView() {
+fun LegacyMainView(viewModel: BleSessionViewModel = koinViewModel()) {
+    val state by viewModel.sessionState.collectAsState()
+    val appConfig: AppConfig = koinInject()
+
     AndroidView(
-        factory = { ctx ->
-            WheelView(ctx, null).apply {
-                setSpeed(696)
-                setPwm(12.3)
-                setVoltage(76.5)
+        factory = { ctx -> WheelView(ctx, null) },
+        update = { view ->
+            // Bind the update block to session state emissions so telemetry refreshes the view.
+            state.lastDataTimestamp
+
+            view.apply {
+                setSpeed((viewModel.speedDouble * 10).toInt())
+                setBattery(viewModel.batteryLevel)
+                setBatteryLowest(viewModel.batteryLowestLevel)
+                setTemperature(viewModel.temperatureDouble.toInt())
+                setRideTime(viewModel.ridingTimeString)
+                setTopSpeed(viewModel.topSpeedDouble)
+                setDistance(viewModel.distanceDouble)
+                setTotalDistance(viewModel.totalDistanceDouble)
+                setVoltage(viewModel.voltageDouble)
+                setCurrent(viewModel.currentDouble)
+                setPhaseCurrent(viewModel.phaseCurrentDouble)
+                setAverageSpeed(viewModel.averageRidingSpeedDouble)
+                setMaxPwm(viewModel.maxPwm)
+                setMaxTemperature(viewModel.maxTemp.toInt())
+                setPwm(viewModel.calculatedPwm)
+                updateViewBlocksVisibility()
+                redrawTextBoxes()
+                invalidate()
+
+                var profileName = appConfig.profileName
+                if (profileName.trim { it <= ' ' } == "") {
+                    profileName = if (viewModel.model == "") viewModel.name else viewModel.model
+                }
+                setWheelModel(profileName)
             }
-        },
-        update = { view -> /* обновить при рекомпозиции */ }
+        }
     )
 }

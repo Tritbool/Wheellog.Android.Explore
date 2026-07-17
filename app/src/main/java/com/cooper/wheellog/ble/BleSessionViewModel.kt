@@ -155,7 +155,10 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                         protocolSelectionRequired = true,
                         protocolCandidates = protocols
                     )
-                    Timber.i("Protocol auto-detection failed, %d candidates available", protocols.size)
+                    Timber.i(
+                        "Protocol auto-detection failed, %d candidates available",
+                        protocols.size
+                    )
                 }
             }
 
@@ -165,7 +168,11 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                         protocolSelectionRequired = false,
                         protocolCandidates = emptyList()
                     )
-                    Timber.i("Protocol selected: %s (reason: %s)", selection.manufacturer, selection.reason)
+                    Timber.i(
+                        "Protocol selected: %s (reason: %s)",
+                        selection.manufacturer,
+                        selection.reason
+                    )
                 }
             }
         })
@@ -346,8 +353,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         )
 
         Timber.d(
-            "Telemetry updated: speed=%.2f, voltage=%.2f, current=%.2f",
-            data.speed, data.voltage, data.current
+            "Telemetry updated: manufacturer=%s, model =%s, speed=%.2f, voltage=%.2f, current=%.2f, pwm=%.2f",
+            data.manufacturer, data.model, data.speed, data.voltage, data.current, data.pwm
         )
     }
 
@@ -500,8 +507,9 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun forceProtocol(protocolId: String): Boolean {
-        val protocol = _eucBleClient.getRegisteredProtocols().find { it.javaClass.simpleName == protocolId }
-            ?: return false
+        val protocol =
+            _eucBleClient.getRegisteredProtocols().find { it.javaClass.simpleName == protocolId }
+                ?: return false
         return _eucBleClient.forceProtocol(protocol)
     }
 
@@ -519,9 +527,11 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun selectProtocol(protocolId: String): Boolean {
-        val protocol = _sessionState.value.protocolCandidates.find { it.javaClass.simpleName == protocolId }
-            ?: _eucBleClient.getRegisteredProtocols().find { it.javaClass.simpleName == protocolId }
-            ?: return false
+        val protocol =
+            _sessionState.value.protocolCandidates.find { it.javaClass.simpleName == protocolId }
+                ?: _eucBleClient.getRegisteredProtocols()
+                    .find { it.javaClass.simpleName == protocolId }
+                ?: return false
         val result = _eucBleClient.selectProtocol(protocol)
         if (result) {
             viewModelScope.launch {

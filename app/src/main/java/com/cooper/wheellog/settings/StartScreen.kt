@@ -15,7 +15,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,15 +24,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.BuildConfig
 import com.cooper.wheellog.LocaleManager
 import com.cooper.wheellog.R
 import com.cooper.wheellog.ble.BleSessionViewModel
-import com.cooper.wheellog.WheelLog
+import com.cooper.wheellog.ble.getWheelType
 import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.ThemeIconEnum
 import com.cooper.wheellog.utils.ThemeManager
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
@@ -42,24 +43,14 @@ fun startScreen(
     onSelect: (String) -> Unit = {},
 )
 {
-    val viewModel: com.cooper.wheellog.ble.BleSessionViewModel = koinInject()
+    val viewModel: BleSessionViewModel = koinViewModel()
+    val sessionState by viewModel.sessionState.collectAsStateWithLifecycle()
+    val isSpecificVisible = sessionState.getWheelType() != Constants.WHEEL_TYPE.Unknown
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         val context: Context = LocalContext.current
-
-        var isSpecificVisible by remember {
-            mutableStateOf(
-                viewModel.wheelType != Constants.WHEEL_TYPE.Unknown
-            )
-        }
-        systemBroadcastReceiver(systemAction = Constants.ACTION_WHEEL_MODEL_CHANGED) { intent ->
-            if (intent?.action == Constants.ACTION_WHEEL_MODEL_CHANGED) {
-                isSpecificVisible =
-                    viewModel.wheelType != Constants.WHEEL_TYPE.Unknown
-            }
-        }
 
         clickablePref(
             name = stringResource(R.string.speed_settings_title),

@@ -19,7 +19,7 @@ import org.koin.compose.koinInject
 enum class Page { Main, Params, Trips, Events, BMS }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(appConfig: AppConfig = koinInject()) {
     val pages = listOf( Page.Main, Page.Params, Page.Trips, Page.Events, Page.BMS )
     val pagerState = rememberPagerState(pageCount = { pages.size })
 
@@ -29,9 +29,8 @@ fun MainScreen() {
                 state = pagerState,
                 beyondViewportPageCount = pages.size // все страницы кешируются и не перерендериваются
             ) { index ->
-                // Our page content
                 when (pages[index]) {
-                    Page.Main -> LegacyMainView()
+                    Page.Main -> if (appConfig.useComposeUI) MainPageScreen() else LegacyMainView()
                     Page.Params -> ParamsListScreen()
                     Page.Trips -> TripsScreen()
                     Page.Events -> EventsScreen()

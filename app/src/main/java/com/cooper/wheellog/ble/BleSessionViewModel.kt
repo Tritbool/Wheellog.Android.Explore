@@ -193,6 +193,9 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 delay(1000L.milliseconds)
                 if (_sessionState.value.isConnected && (getLegacySpeed() > ridingSpeedThreshold)) {
                     ridingTime++
+                    _sessionState.value = _sessionState.value.copy(
+                        sessionRidingTimeSec = ridingTime.toLong()
+                    )
                 }
             }
         }
@@ -336,6 +339,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             sessionTopSpeed = sessionTopSpeed.takeIf { it > 0 },
             sessionMaxPower = sessionMaxPower.takeIf { it > 0 },
             sessionMaxCurrent = sessionMaxCurrent.takeIf { it > 0 },
+            sessionMaxPwm = sessionMaxPwm.takeIf { it > 0 },
+            sessionBatteryLowest = batteryLowest.takeIf { it < 101 },
             sessionDistance = sessionDistance?.takeIf { it > 0 },
             sessionRideTime = sessionRideTime
         )
@@ -639,6 +644,9 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 sessionTopSpeed = null,
                 sessionMaxPower = null,
                 sessionMaxCurrent = null,
+                sessionMaxPwm = null,
+                sessionBatteryLowest = null,
+                sessionRidingTimeSec = null,
                 sessionDistance = null,
                 sessionRideTime = null
             )

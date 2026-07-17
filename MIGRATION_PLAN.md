@@ -48,7 +48,34 @@ Migrer WheelLog pour qu'il devienne un client UI pur, avec toute la logique mét
 - [x] Créer `BleSessionViewModel.kt` - ViewModel avec `EucBleClient` et StateFlow
 - [x] Créer `WheelDataExtensions.kt` - Couche de compatibilité pour la migration
 
+### Phase 1.5: Dashboard Compose-First (✅ Complété)
+- [x] Étendre `BleSessionState` avec `sessionMaxPwm`, `sessionBatteryLowest`, `sessionRidingTimeSec`
+- [x] Créer `DashboardUiState` — source de vérité unique pour l'écran dashboard
+- [x] Créer `DashboardMapper` — fonction pure `BleSessionState + AppConfig → DashboardUiState`
+- [x] Créer `DashboardViewModel` — expose `StateFlow<DashboardUiState>` + `toggleDisplayMode()`
+- [x] Créer `DashboardGauge` — Canvas Compose remplaçant `WheelView` (arcs, texte, animation)
+- [x] Mettre à jour `MainPageScreen` pour utiliser `DashboardViewModel` + `DashboardGauge`
+- [x] Activer le feature flag `AppConfig.useComposeUI = true` (fallback `WheelView` conservé)
+- [x] Enregistrer `dashboardModule` dans Koin
+- [x] Tests unitaires : `DashboardMapperTest`, `DashboardViewModelTest`
+- [x] ADR : `docs/adr/001-compose-first-dashboard.md`, `docs/adr/002-koin-di.md`
+
+**Flux de données dashboard :**
+```
+EUCData (BLE lib)
+   └─► BleSessionViewModel (StateFlow<BleSessionState>)
+              └─► DashboardViewModel (combine + map via DashboardMapper)
+                        └─► StateFlow<DashboardUiState>
+                                  └─► DashboardGauge  ──►  pixels on screen
+```
+
+**Suppression legacy (après stabilisation) :**
+- Supprimer `WheelView.kt` et les layouts XML associés
+- Supprimer `LegacyMainView()` de `MainScreen.kt`
+- Supprimer `AppConfig.useComposeUI` flag
+
 ### Phase 2: Migration des Composants Principaux
+
 
 #### 2.1 MainActivity.kt (Priorité: HAUTE)
 **Dépendances actuelles:**

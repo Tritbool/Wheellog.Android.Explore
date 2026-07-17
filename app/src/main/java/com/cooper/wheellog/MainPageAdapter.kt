@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.view.*
 import android.widget.TextView
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.gridlayout.widget.GridLayout
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,6 +19,8 @@ import com.cooper.wheellog.utils.StringUtil.toTempString
 import com.cooper.wheellog.utils.ThemeManager
 import com.cooper.wheellog.views.TripAdapter
 import com.cooper.wheellog.ble.BleSessionViewModel
+import com.cooper.wheellog.compose.MainPageScreen
+import com.cooper.wheellog.ui.theme.AppTheme
 import com.cooper.wheellog.views.WheelView
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
@@ -36,6 +40,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     private var xAxisLabels = ArrayList<String>()
 
     var wheelView: WheelView? = null
+    private var mainComposeView: ComposeView? = null
     private var chart1: LineChart? = null
     var position: Int = -1
     private var pagesView = LinkedHashMap<Int, View?>()
@@ -96,6 +101,23 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         when (pages[position]) {
             R.layout.main_view_main -> {
                 wheelView = view.findViewById(R.id.wheelView)
+                mainComposeView = view.findViewById(R.id.mainPageComposeView)
+                if (appConfig.useComposeUI) {
+                    wheelView?.visibility = View.GONE
+                    mainComposeView?.apply {
+                        visibility = View.VISIBLE
+                        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                        setContent {
+                            AppTheme {
+                                MainPageScreen()
+                            }
+                        }
+                    }
+                    wheelView = null
+                } else {
+                    mainComposeView?.visibility = View.GONE
+                    wheelView?.visibility = View.VISIBLE
+                }
             }
             R.layout.main_view_params_list -> {
                 createSecondPage()

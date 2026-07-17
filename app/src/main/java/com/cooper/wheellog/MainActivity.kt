@@ -24,13 +24,10 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.*
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -45,7 +42,6 @@ import com.cooper.wheellog.ble.BleSessionState
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.DialogHelper.checkAndShowPrivatePolicyDialog
 import com.cooper.wheellog.DialogHelper.checkBatteryOptimizationsAndShowAlert
-import com.cooper.wheellog.compose.MainScreen
 import com.cooper.wheellog.databinding.ActivityMainBinding
 import com.cooper.wheellog.settings.mainScreen
 import com.cooper.wheellog.ui.theme.AppTheme
@@ -446,16 +442,7 @@ class MainActivity : AppCompatActivity() {
         volumeControlStream = AudioManager.STREAM_MUSIC
 
         binding = ActivityMainBinding.inflate(layoutInflater)
-
-        if (appConfig.useComposeUI) {
-            setContent {
-                AppTheme {
-                    MainScreen()
-                }
-            }
-        } else {
-            setContentView(binding.root)
-        }
+        setContentView(binding.root)
 
         createPager()
         pipView = binding.pipView

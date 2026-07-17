@@ -1,5 +1,7 @@
 package com.cooper.wheellog.feature.dashboard
 
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Path as AndroidPath
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -16,9 +18,11 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -28,7 +32,9 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toSp
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 // ── Arc geometry constants (match legacy WheelView) ──────────────────────────
@@ -170,18 +176,22 @@ fun DashboardGauge(
             DisplayMode.SPEED -> state.speedDisplay
             DisplayMode.PWM -> state.pwm.roundToInt().toString()
         }
-        val mainFontSize = (iaDiameter / 3.8f).coerceAtLeast(12f).sp
         val mainTextColor = when {
             state.displayMode == DisplayMode.PWM -> pwmColor
             state.alarmLevel == AlarmLevel.CRITICAL -> COLOR_ALARM_CRITICAL
             state.alarmLevel == AlarmLevel.WARN -> COLOR_ALARM_WARN
             else -> COLOR_SPEED_TEXT
         }
-        val mainLayout = textMeasurer.measure(
+        val mainLayout = measureFittedText(
+            textMeasurer = textMeasurer,
             text = mainTextStr,
-            style = TextStyle(color = mainTextColor, fontSize = mainFontSize, fontWeight = FontWeight.Bold)
+            color = mainTextColor,
+            fontWeight = FontWeight.Bold,
+            maxFontPx = iaDiameter / 4.6f,
+            targetWidthPx = iaDiameter * 0.72f,
+            targetHeightPx = iaDiameter * 0.34f
         )
-        val mainTop = cy - mainLayout.size.height / 2f - iaDiameter * 0.04f
+        val mainTop = cy - mainLayout.size.height / 2f - iaDiameter * 0.02f
         drawText(mainLayout, topLeft = Offset(cx - mainLayout.size.width / 2f, mainTop))
 
         // ── Sub-label (unit or short PWM string) ────────────────────────────
@@ -193,6 +203,37 @@ fun DashboardGauge(
         )
         val subTop = mainTop + mainLayout.size.height + iaDiameter * 0.01f
         drawText(subLayout, topLeft = Offset(cx - subLayout.size.width / 2f, subTop))
+
+        if (state.isConnected) {
+            drawArcLabel(
+                text = state.batteryDisplay,
+                cx = cx,
+                cy = cy,
+                rotationDegrees = ARC_START_ANGLE + batterySeg * SEGMENT_STEP - 180f,
+                textX = innerRect.left - innerStrokeWidth / 2f,
+                textY = cy,
+                color = COLOR_LABEL,
+                textSizePx = innerStrokeWidth * 0.6f
+            )
+            drawArcLabel(
+                text = state.temperatureDisplay,
+                cx = cx,
+                cy = cy,
+                rotationDegrees = 143.5f + tempThreshold * SEGMENT_STEP,
+                textX = innerRect.right + innerStrokeWidth / 2f,
+                textY = cy,
+                color = COLOR_LABEL,
+                textSizePx = innerStrokeWidth * 0.6f
+            )
+            if (state.wheelModel.isNotBlank()) {
+                drawWheelModelLabel(
+                    text = state.wheelModel,
+                    rect = innerRect,
+                    padding = innerStrokeWidth * 0.35f,
+                    textSizePx = innerStrokeWidth * 0.36f
+                )
+            }
+        }
     }
 }
 
@@ -270,6 +311,84 @@ private fun buildSubLabel(state: DashboardUiState, pwmColor: Color): Pair<String
 
         // Default: just the unit label
         else -> state.speedUnit to COLOR_LABEL
+    }
+}
+
+private fun DrawScope.measureFittedText(
+    textMeasurer: TextMeasurer,
+    text: String,
+    color: Color,
+    fontWeight: FontWeight? = null,
+    maxFontPx: Float,
+    targetWidthPx: Float,
+    targetHeightPx: Float
+) = run {
+    var fontPx = maxFontPx.coerceAtLeast(12f)
+    var layout = textMeasurer.measure(
+        text = text,
+        style = TextStyle(color = color, fontSize = fontPx.toSp(), fontWeight = fontWeight)
+    )
+    val widthScale = targetWidthPx / layout.size.width.coerceAtLeast(1)
+    val heightScale = targetHeightPx / layout.size.height.coerceAtLeast(1)
+    val fitScale = min(widthScale, heightScale)
+    if (fitScale < 1f) {
+        fontPx = (fontPx * fitScale * 0.98f).coerceAtLeast(12f)
+        layout = textMeasurer.measure(
+            text = text,
+            style = TextStyle(color = color, fontSize = fontPx.toSp(), fontWeight = fontWeight)
+        )
+    }
+    layout
+}
+
+private fun DrawScope.drawArcLabel(
+    text: String,
+    cx: Float,
+    cy: Float,
+    rotationDegrees: Float,
+    textX: Float,
+    textY: Float,
+    color: Color,
+    textSizePx: Float
+) {
+    drawIntoCanvas { canvas ->
+        val nativeCanvas = canvas.nativeCanvas
+        val paint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+            this.color = color.toArgb()
+            textAlign = AndroidPaint.Align.CENTER
+            textSize = textSizePx
+        }
+        nativeCanvas.save()
+        nativeCanvas.rotate(rotationDegrees, cx, cy)
+        nativeCanvas.drawText(text, textX, textY, paint)
+        nativeCanvas.restore()
+    }
+}
+
+private fun DrawScope.drawWheelModelLabel(
+    text: String,
+    rect: Rect,
+    padding: Float,
+    textSizePx: Float
+) {
+    drawIntoCanvas { canvas ->
+        val nativeCanvas = canvas.nativeCanvas
+        val paint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+            color = COLOR_LABEL.toArgb()
+            textAlign = AndroidPaint.Align.CENTER
+            textSize = textSizePx
+        }
+        val path = AndroidPath().apply {
+            addArc(
+                rect.left + padding,
+                rect.top + padding,
+                rect.right - padding,
+                rect.bottom - padding,
+                190f,
+                160f
+            )
+        }
+        nativeCanvas.drawTextOnPath(text, path, 0f, 0f, paint)
     }
 }
 

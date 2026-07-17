@@ -31,9 +31,11 @@ data class DashboardUiState(
     val pwm: Float = 0f,
     val maxPwm: Float = 0f,
     val battery: Int = 0,
+    val batteryDisplay: String = "00%",
     val batteryLowest: Int = 101,
     /** Board temperature in °C. */
     val temperature: Float = 0f,
+    val temperatureDisplay: String = "00℃",
     val voltage: Float = 0f,
     val current: Float = 0f,
     val topSpeed: Float = 0f,

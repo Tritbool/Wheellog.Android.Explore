@@ -3,6 +3,7 @@ package com.cooper.wheellog.feature.dashboard
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.ble.BleSessionState
 import com.cooper.wheellog.utils.MathsUtil.kmToMiles
+import com.cooper.wheellog.utils.MathsUtil.celsiusToFahrenheit
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -44,11 +45,13 @@ object DashboardMapper {
         }
 
         val speed = state.currentSpeed.toFloat()               // km/h
-        val pwm = state.pwm?.toFloat() ?: 0f                   // 0-100 %
-        val maxPwm = (state.sessionMaxPwm ?: 0.0).toFloat()
+        val pwm = normalizePwm(state.pwm?.toFloat() ?: 0f)
+        val maxPwm = normalizePwm((state.sessionMaxPwm ?: 0.0).toFloat())
         val battery = state.batteryLevel
         val batteryLowest = state.sessionBatteryLowest ?: 101
         val temp = state.currentTemperature.toFloat()          // °C
+        val batteryDisplay = formatBattery(battery)
+        val temperatureDisplay = formatTemperature(temp, appConfig.useFahrenheit)
 
         // ── Speed display ─────────────────────────────────────────────────────
         val displaySpeedValue = if (useMph) kmToMiles(speed) else speed
@@ -86,7 +89,11 @@ object DashboardMapper {
         val totalDistance = (state.totalDistance ?: 0.0).toFloat()
         val ridingTimeSec = state.sessionRidingTimeSec ?: state.rideTime ?: 0L
         val rideTimeFormatted = formatRideTime(ridingTimeSec)
-        val wheelModel = state.deviceModel.takeIf { it != "Unknown" && it.isNotEmpty() } ?: ""
+        val wheelModel = appConfig.profileName
+            .takeIf { it.isNotBlank() }
+            ?: state.deviceModel.takeIf { it != "Unknown" && it.isNotBlank() }
+            ?: state.deviceName.takeIf { it != "Unknown" && it.isNotBlank() }
+            ?: ""
 
         return DashboardUiState(
             isConnected = true,
@@ -97,8 +104,10 @@ object DashboardMapper {
             pwm = pwm,
             maxPwm = maxPwm,
             battery = battery,
+            batteryDisplay = batteryDisplay,
             batteryLowest = batteryLowest,
             temperature = temp,
+            temperatureDisplay = temperatureDisplay,
             voltage = state.currentVoltage.toFloat(),
             current = state.currentCurrent.toFloat(),
             topSpeed = topSpeed,
@@ -173,5 +182,26 @@ object DashboardMapper {
         val m = (seconds % 3600) / 60
         val s = seconds % 60
         return String.format("%02d:%02d:%02d", h, m, s)
+    }
+
+    internal fun formatBattery(battery: Int): String =
+        String.format("%02d%%", battery.coerceIn(0, 100))
+
+    internal fun formatTemperature(celsius: Float, useFahrenheit: Boolean): String {
+        val roundedCelsius = celsius.roundToInt()
+        return if (useFahrenheit) {
+            String.format("%02d℉", celsiusToFahrenheit(roundedCelsius.toDouble()).toInt())
+        } else {
+            String.format("%02d℃", roundedCelsius)
+        }
+    }
+
+    internal fun normalizePwm(pwm: Float): Float {
+        if (!pwm.isFinite()) return 0f
+        var normalized = pwm
+        while (abs(normalized) > 100f) {
+            normalized /= 10f
+        }
+        return normalized
     }
 }

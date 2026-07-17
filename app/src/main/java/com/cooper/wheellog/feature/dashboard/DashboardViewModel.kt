@@ -90,14 +90,14 @@ class DashboardViewModel(
                 "Total",
                 String.format("%.0f %s", toDisplayDistance(state.totalDistance, state.useMph), distUnit)
             ),
-            "battery" to DashboardBlock("Battery", String.format("%d%%", state.battery)),
+            "battery" to DashboardBlock("Battery", state.batteryDisplay),
             "current" to DashboardBlock("Current", String.format("%.1f A", state.current)),
-            "temperature" to DashboardBlock("Temp", String.format("%.0f °C", state.temperature)),
+            "temperature" to DashboardBlock("Temp", state.temperatureDisplay),
             "riding_time" to DashboardBlock("Ride Time", state.rideTimeFormatted)
         )
 
         // Use a sensible default set when no custom block list is configured.
-        val selectedKeys = listOf("pwm", "max_pwm", "voltage", "top_speed", "distance", "total", "battery", "riding_time")
+        val selectedKeys = listOf("pwm", "max_pwm", "voltage", "top_speed", "distance", "total", "battery", "temperature", "riding_time")
         return selectedKeys.mapNotNull { catalogue[it] }
     }
 

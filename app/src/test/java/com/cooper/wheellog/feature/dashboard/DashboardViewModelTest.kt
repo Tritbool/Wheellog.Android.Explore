@@ -31,7 +31,9 @@ class DashboardViewModelTest {
 
         appConfig = mockk(relaxed = true) {
             every { useMph } returns false
+            every { useFahrenheit } returns false
             every { maxSpeed } returns 50
+            every { profileName } returns ""
             every { swapSpeedPwm } returns false
             every { useShortPwm } returns false
             every { alarmsEnabled } returns false
@@ -97,6 +99,16 @@ class DashboardViewModelTest {
         advanceUntilIdle()
 
         assertThat(dashboardViewModel.uiState.value.displayMode).isEqualTo(DisplayMode.SPEED)
+    }
+
+    @Test
+    fun `uiState includes legacy battery and temperature blocks`() = runTest {
+        sessionStateFlow.value = connectedState()
+        advanceUntilIdle()
+
+        val labels = dashboardViewModel.uiState.value.infoBlocks.map { it.label }
+        assertThat(labels).contains("Battery")
+        assertThat(labels).contains("Temp")
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

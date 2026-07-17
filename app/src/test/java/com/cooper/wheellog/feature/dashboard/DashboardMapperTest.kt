@@ -53,7 +53,9 @@ class DashboardMapperTest {
     fun setUp() {
         appConfig = mockk(relaxed = true) {
             every { useMph } returns false
+            every { useFahrenheit } returns false
             every { maxSpeed } returns 50
+            every { profileName } returns ""
             every { swapSpeedPwm } returns false
             every { useShortPwm } returns false
             every { alarmsEnabled } returns false
@@ -166,6 +168,15 @@ class DashboardMapperTest {
         assertThat(result.mainDialFraction).isWithin(0.001f).of(0.6f)
     }
 
+    @Test
+    fun `pwm values above 100 are normalized for dashboard display`() {
+        val data = eucData(pwm = 426.4)
+        val result = DashboardMapper.map(connectedState(data), null, appConfig)
+
+        assertThat(result.pwm).isWithin(0.001f).of(42.64f)
+        assertThat(result.mainDialFraction).isWithin(0.001f).of(42.64f / 50f)
+    }
+
     // ── Alarm levels ───────────────────────────────────────────────────────
 
     @Test
@@ -259,6 +270,15 @@ class DashboardMapperTest {
         assertThat(result.rideTimeFormatted).isEqualTo("00:30:00")
     }
 
+    @Test
+    fun `wheelModel prefers configured profile name`() {
+        every { appConfig.profileName } returns "Garage S22"
+
+        val result = DashboardMapper.map(connectedState(), null, appConfig)
+
+        assertThat(result.wheelModel).isEqualTo("Garage S22")
+    }
+
     // ── formatRideTime helper ──────────────────────────────────────────────
 
     @Test
@@ -281,5 +301,16 @@ class DashboardMapperTest {
         val data = eucData(temperature = 40.0)  // 40°C → 0.5
         val result = DashboardMapper.map(connectedState(data), null, appConfig)
         assertThat(result.temperatureFraction).isWithin(0.001f).of(0.5f)
+    }
+
+    @Test
+    fun `battery and temperature displays mirror legacy formatting`() {
+        every { appConfig.useFahrenheit } returns false
+        val data = eucData(battery = 9, temperature = 7.2)
+
+        val result = DashboardMapper.map(connectedState(data), null, appConfig)
+
+        assertThat(result.batteryDisplay).isEqualTo("09%")
+        assertThat(result.temperatureDisplay).isEqualTo("07℃")
     }
 }

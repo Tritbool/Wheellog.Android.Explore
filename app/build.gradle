@@ -144,4 +144,5 @@ dependencies {
     testImplementation libs.mockwebserver
     testImplementation libs.json
     testImplementation libs.koin.test
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0"
 }

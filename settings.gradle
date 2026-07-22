@@ -1,3 +1,6 @@
 include ':wearos'
 include ':app'
 include ':shared'
+// Include the euc_ble_library as a local module
+include ':euc_ble_library:euc-ble-core'
+project(':euc_ble_library:euc-ble-core').projectDir = file('../../Tritbool__euc_ble_library/euc-ble-core')

@@ -56,6 +56,15 @@ class AppConfig(var context: Context): KoinComponent {
 
     var useComposeUI: Boolean = false
 
+    // BLE Library Migration flags
+    var useNewBleLibrary: Boolean
+        get() = getValue("use_new_ble_library", false)
+        set(value) = setValue("use_new_ble_library", value)
+
+    var bleComparisonMode: Boolean
+        get() = getValue("ble_comparison_mode", false)
+        set(value) = setValue("ble_comparison_mode", value)
+
     var dayNightThemeMode: Int
         get() = getValue(R.string.day_night_theme, MODE_NIGHT_UNSPECIFIED.toString()).toInt()
         set(value) = setValue(R.string.day_night_theme, value.toString())

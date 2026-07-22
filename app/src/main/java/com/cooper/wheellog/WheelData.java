@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 
+import com.cooper.wheellog.ble.EucBleBridge;
 import com.cooper.wheellog.utils.*;
 import com.cooper.wheellog.utils.Constants.WHEEL_TYPE;
 
@@ -111,26 +112,8 @@ public class WheelData {
     private long mLastLifeData = -1;
 
     public BaseAdapter getAdapter() {
-        switch (mWheelType) {
-            case GOTWAY_VIRTUAL:
-                return GotwayVirtualAdapter.getInstance();
-            case GOTWAY:
-                return GotwayAdapter.getInstance();
-            case VETERAN:
-                return VeteranAdapter.getInstance();
-            case KINGSONG:
-                return KingsongAdapter.getInstance();
-            case NINEBOT:
-                return NinebotAdapter.getInstance();
-            case NINEBOT_Z:
-                return NinebotZAdapter.getInstance();
-            case INMOTION:
-                return InMotionAdapter.getInstance();
-            case INMOTION_V2:
-                return InmotionAdapterV2.getInstance();
-            default:
-                return null;
-        }
+        // Use the bridge adapter for gradual migration to new BLE library
+        return EucBleBridge.getInstance();
     }
 
     public BluetoothService getBluetoothService() {

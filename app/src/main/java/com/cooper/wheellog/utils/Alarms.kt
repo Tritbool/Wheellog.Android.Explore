@@ -189,10 +189,10 @@ object Alarms: KoinComponent {
                 mContext
             )
             temperatureAlarmExecuting.value = true
-        } else if (alarmMotorTemperature > 0 && viewModel.temperature2 >= alarmMotorTemperature) {
+        } else if (alarmMotorTemperature > 0 && viewModel.motorTemperature >= alarmMotorTemperature) {
             raiseAlarm(
                 ALARM_TYPE.TEMPERATURE,
-                viewModel.temperature2.toDouble(),
+                viewModel.motorTemperature.toDouble(),
                 mContext
             )
             temperatureAlarmExecuting.value = true

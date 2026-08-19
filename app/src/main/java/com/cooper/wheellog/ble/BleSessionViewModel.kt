@@ -732,11 +732,11 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     // Temperatures
     val maxTemp: Double
         get() = _sessionState.value.lastData?.motorTemperature
-            ?: _sessionState.value.lastData?.temperature2 ?: _sessionState.value.currentTemperature
+            ?: _sessionState.value.lastData?.motorTemperature ?: _sessionState.value.currentTemperature
     val cpuTemp: Int get() = _sessionState.value.cpuLoad ?: 0
-    val imuTemp: Int get() = 0 // TODO: Implement IMU temperature
-    val temperature2: Int
-        get() = ((_sessionState.value.lastData?.temperature2 ?: 0.0) * 100).toInt()
+    val imuTemp: Int get() = (_sessionState.value.lastData?.imuTemperature?: 0.0).toInt()
+    val motorTemperature: Int
+        get() = ((_sessionState.value.lastData?.motorTemperature ?: 0.0) * 100).toInt()
 
     // Device info
     val name: String get() = _sessionState.value.deviceName

@@ -237,7 +237,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                 updateFieldForSecondPage(R.string.voltage_sag, String.format(Locale.US, "%.2f " + activity.getString(R.string.volt), viewModel.voltageSagDouble))
 
                 updateFieldForSecondPage(R.string.temperature, viewModel.temperature.toTempString())
-                updateFieldForSecondPage(R.string.temperature2, viewModel.temperature2.toTempString())
+                updateFieldForSecondPage(R.string.temperature2, viewModel.motorTemperature.toTempString())
                 updateFieldForSecondPage(R.string.cpu_temp, viewModel.cpuTemp.toTempString())
                 updateFieldForSecondPage(R.string.imu_temp, viewModel.imuTemp.toTempString())
 

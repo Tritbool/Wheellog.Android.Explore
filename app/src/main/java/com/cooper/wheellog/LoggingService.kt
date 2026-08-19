@@ -159,7 +159,7 @@ class LoggingService : Service() {
                 (wd.distanceDouble * 1000).toInt(),
                 (wd.totalDistanceDouble * 1000).toInt(),
                 wd.temperature,
-                wd.temperature2,
+                wd.motorPower,
                 wd.angle,
                 wd.roll,
                 wd.modeStr,

@@ -24,7 +24,7 @@ class DashboardMapperTest {
         current: Double = 10.0,
         totalDistance: Double? = 100.0,
         wheelDistance: Double? = 5.0,
-        rideTime: Long? = 3600L,
+        rideTime: Long = 3600L,
         manufacturer: String = "Kingsong"
     ): EUCData = mockk(relaxed = true) {
         every { this@mockk.speed } returns speed
@@ -113,7 +113,7 @@ class DashboardMapperTest {
     }
 
     @Test
-    fun `speed >= 100 displays as integer`() {
+    fun `speed geq 100 displays as integer`() {
         val data = eucData(speed = 102.0)
         val result = DashboardMapper.map(connectedState(data), null, appConfig)
 

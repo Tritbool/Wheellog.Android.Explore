@@ -37,15 +37,6 @@
         android:src="@drawable/ic_action_logging_grey" />
 
     <ImageButton
-        android:id="@+id/ib_watch"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:background="@android:color/transparent"
-        android:contentDescription="@string/icon_watch"
-        android:src="@drawable/ic_action_watch_grey" />
-
-    <ImageButton
         android:id="@+id/ib_beep"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"

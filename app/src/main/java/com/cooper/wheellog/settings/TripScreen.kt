@@ -9,11 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.utils.Constants
+import org.koin.compose.koinInject
 
 @Composable
-fun tripScreen( ) {
+fun tripScreen(viewModel: BleSessionViewModel = koinInject()) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -23,21 +24,21 @@ fun tripScreen( ) {
             desc = stringResource(R.string.reset_max_values_description),
             showArrowIcon = false,
         ) {
-            WheelData.getInstance().resetMaxValues()
+            viewModel.resetMaxValues()
         }
         val context = LocalContext.current
         clickablePref(
             name = stringResource(R.string.reset_lowest_battery_title),
             showArrowIcon = false,
         ) {
-            WheelData.getInstance().resetVoltageSag()
+            viewModel.resetVoltageSag()
             context.sendBroadcast(Intent(Constants.ACTION_PREFERENCE_RESET))
         }
         clickablePref(
             name = stringResource(R.string.reset_user_distance_title),
             showArrowIcon = false,
         ) {
-            WheelData.getInstance().resetUserDistance()
+            viewModel.resetUserDistance()
         }
     }
 }

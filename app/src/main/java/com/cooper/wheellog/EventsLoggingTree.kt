@@ -39,7 +39,7 @@ class EventsLoggingTree(var context: Context, var mainAdapter: MainPageAdapter) 
     }
 
     override fun isLoggable(tag: String?, priority: Int): Boolean {
-        return priority == Log.ASSERT
+        return priority >= Log.INFO
     }
 
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {

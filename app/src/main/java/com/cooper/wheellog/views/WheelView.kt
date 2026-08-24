@@ -16,12 +16,13 @@ import com.cooper.wheellog.utils.Alarms
 import com.cooper.wheellog.utils.Calculator
 import com.cooper.wheellog.utils.MathsUtil.dpToPx
 import com.cooper.wheellog.utils.MathsUtil.kmToMiles
+import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.utils.MathsUtil.kmToMilesMultiplier
-import com.cooper.wheellog.utils.ReflectUtil
 import com.cooper.wheellog.utils.SomeUtil
 import com.cooper.wheellog.utils.SomeUtil.getColorEx
 import com.cooper.wheellog.utils.StringUtil.toTempString
 import com.cooper.wheellog.utils.ThemeManager
+import io.github.tritbool.euc.ble.protocols.CommandType
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import timber.log.Timber
@@ -32,6 +33,7 @@ import kotlin.math.*
 @SuppressLint("ClickableViewAccessibility")
 class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), KoinComponent {
     private val appConfig: AppConfig by inject()
+    private val viewModel: BleSessionViewModel by inject()
     private var currentTheme = R.style.OriginalTheme
     private var outerArcPaint = Paint()
     private var innerArcPaint = Paint()
@@ -164,15 +166,15 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                 ViewBlockInfo(resources.getString(R.string.battery)) { String.format(Locale.US, "%d %%", mBattery) },
                 ViewBlockInfo(resources.getString(R.string.current)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), mCurrent) },
                 ViewBlockInfo(resources.getString(R.string.phase_current)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), mPhaseCurrent) },
-                ViewBlockInfo(resources.getString(R.string.maxcurrent)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), WheelData.getInstance().maxCurrentDouble) },
-                ViewBlockInfo(resources.getString(R.string.maxphasecurrent)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), WheelData.getInstance().maxPhaseCurrentDouble) },
+                ViewBlockInfo(resources.getString(R.string.maxcurrent)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), viewModel.maxCurrentDouble) },
+                ViewBlockInfo(resources.getString(R.string.maxphasecurrent)) { String.format(Locale.US, "%.1f " + resources.getString(R.string.amp), viewModel.maxPhaseCurrentDouble) },
                 ViewBlockInfo(
                     resources.getString(R.string.power),
                     {
                         String.format(
                             Locale.US,
                             "%.0f " + resources.getString(R.string.watt),
-                            WheelData.getInstance().powerDouble
+                            viewModel.powerDouble
                         )
                     },
                     false
@@ -183,7 +185,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                         String.format(
                             Locale.US,
                             "%.0f " + resources.getString(R.string.watt),
-                            WheelData.getInstance().maxPowerDouble
+                            viewModel.maxPowerDouble
                         )
                     },
                     false
@@ -193,7 +195,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                 },
                 false),
                 ViewBlockInfo(resources.getString(R.string.temperature2), {
-                    WheelData.getInstance().temperature2.toTempString()
+                    viewModel.motorTemperature.toTempString()
                 }, false),
                 ViewBlockInfo(resources.getString(R.string.maxtemperature), {
                     mMaxTemperature.toTempString()
@@ -203,13 +205,13 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                             String.format(
                                 Locale.US,
                                 "%.1f " + resources.getString(R.string.mph),
-                                kmToMiles(WheelData.getInstance().averageSpeedDouble)
+                                kmToMiles(viewModel.averageSpeedDouble)
                             )
                         } else {
                             String.format(
                                 Locale.US,
                                 "%.1f " + resources.getString(R.string.kmh),
-                                WheelData.getInstance().averageSpeedDouble
+                                viewModel.averageSpeedDouble
                             )
                         }
                     },
@@ -217,7 +219,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                 ),
                 ViewBlockInfo(
                     resources.getString(R.string.ride_time),
-                    { WheelData.getInstance().rideTimeString },
+                    { viewModel.rideTimeString },
                     false
                 ),
                 ViewBlockInfo(
@@ -227,13 +229,13 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                             String.format(
                                 Locale.US,
                                 "%.2f " + resources.getString(R.string.miles),
-                                kmToMiles(WheelData.getInstance().wheelDistanceDouble)
+                                kmToMiles(viewModel.wheelDistanceDouble)
                             )
                         } else {
                             String.format(
                                 Locale.US,
                                 "%.3f " + resources.getString(R.string.km),
-                                WheelData.getInstance().wheelDistanceDouble
+                                viewModel.wheelDistanceDouble
                             )
                         }
                     },
@@ -246,13 +248,13 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                             String.format(
                                 Locale.US,
                                 "%.2f " + resources.getString(R.string.miles),
-                                kmToMiles(WheelData.getInstance().remainingDistance)
+                                kmToMiles(viewModel.remainingDistance)
                             )
                         } else {
                             String.format(
                                 Locale.US,
                                 "%.3f " + resources.getString(R.string.km),
-                                WheelData.getInstance().remainingDistance
+                                viewModel.remainingDistance
                             )
                         }
                     },
@@ -261,14 +263,14 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                 ViewBlockInfo(
                     resources.getString(R.string.battery_per_km),
                     {
-                        String.format(Locale.US, "%.2f %%", WheelData.getInstance().batteryPerKm)
+                        String.format(Locale.US, "%.2f %%", viewModel.batteryPerKm)
                     },
                     false
                 ),
                 ViewBlockInfo(
                     resources.getString(R.string.avg_cell_volt),
                     {
-                        String.format(Locale.US, "%.2f " + resources.getString(R.string.volt), WheelData.getInstance().avgVoltagePerCell)
+                        String.format(Locale.US, "%.2f " + resources.getString(R.string.volt), viewModel.avgVoltagePerCell)
                     },
                     false
                 ),
@@ -278,7 +280,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                         String.format(
                             Locale.US,
                             "%.3f " + resources.getString(R.string.km),
-                            WheelData.getInstance().userDistanceDouble)
+                            viewModel.userDistanceDouble)
                     },
                     false
                 ),
@@ -709,7 +711,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         }
         currentTemperature = updateCurrentValue(targetTemperature, currentTemperature)
         currentBattery = updateCurrentValue(targetBattery, currentBattery)
-        val pwmColor = getPwmColor(WheelData.getInstance().calculatedPwm.toInt())
+        val pwmColor = getPwmColor(viewModel.calculatedPwm.toInt())
 
         //####################################################
         //################# DRAW OUTER ARC ###################
@@ -760,7 +762,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         else if (!appConfig.pwmBasedAlarms && alarm1Speed * 10 > 0 && mSpeed >= alarm1Speed * 10) textPaint.color = getColorEx(R.color.accent)
         else textPaint.color = getColorEx(R.color.wheelview_speed_text)
         textPaint.textSize = speedTextSize
-        val mainText: String = if (appConfig.swapSpeedPwm) WheelData.getInstance().calculatedPwm.roundToInt().toString() else speedString
+        val mainText: String = if (appConfig.swapSpeedPwm) viewModel.calculatedPwm.roundToInt().toString() else speedString
         canvas.drawText(mainText, outerArcRect.centerX(), speedTextRect.centerY() + speedTextRect.height() / 2f, textPaint)
         textPaint.textSize = speedTextKPHSize
         val metric = if (appConfig.useMph) resources.getString(R.string.mph) else resources.getString(R.string.kmh)
@@ -768,7 +770,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         if (appConfig.useShortPwm || isInEditMode) {
             textPaint.textSize = speedTextKPHSize * 1.2f
             if (!appConfig.swapSpeedPwm) {
-                val pwm = String.format("%02.0f%% / %02.0f%%", WheelData.getInstance().calculatedPwm, WheelData.getInstance().maxPwm)
+                val pwm = String.format("%02.0f%% / %02.0f%%", viewModel.calculatedPwm, viewModel.maxPwm)
                 textPaint.color = pwmColor
                 canvas.drawText(pwm, outerArcRect.centerX(), speedTextRect.bottom + speedTextKPHHeight * 3.3f, textPaint)
                 textPaint.color = getColorEx(R.color.wheelview_text)
@@ -785,7 +787,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         //####################################################
         //######## DRAW BATTERY AND TEMPERATURE TEXT #########
         //####################################################
-        if (WheelData.getInstance().isConnected) {
+        if (viewModel.isConnected) {
             textPaint.textSize = innerArcTextSize
             canvas.save()
             if (width > height) canvas.rotate(144 + currentBattery * 2.25f - 180, innerArcRect.centerX(), innerArcRect.centerY()) else canvas.rotate(144 + currentBattery * 2.25f - 180, innerArcRect.centerY(), innerArcRect.centerX())
@@ -798,7 +800,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
             if (appConfig.useBetterPercents || customPercents) {
                 if (width > height) canvas.rotate(144 + -3.3f * 2.25f - 180, innerArcRect.centerX(), innerArcRect.centerY()) else canvas.rotate(144 + -2 * 2.25f - 180, innerArcRect.centerY(), innerArcRect.centerX())
                 var batteryCalculateType = "true"
-                if (customPercents && !WheelData.getInstance().isVoltageTiltbackUnsupported) batteryCalculateType = "custom"
+                if (customPercents && !viewModel.isVoltageTiltbackUnsupported) batteryCalculateType = "custom"
                 val batteryString = String.format(Locale.US, "%s", batteryCalculateType)
                 canvas.drawText(batteryString, batteryTextRect.centerX(), batteryTextRect.centerY(), textPaint)
                 canvas.restore()
@@ -852,7 +854,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         }
         currentTemperature = updateCurrentValue(targetTemperature, currentTemperature)
         currentBattery = updateCurrentValue(targetBattery, currentBattery)
-        val pwmColor = getPwmColor(WheelData.getInstance().calculatedPwm.toInt())
+        val pwmColor = getPwmColor(viewModel.calculatedPwm.toInt())
 
         //####################################################
         //################# DRAW OUTER ARC ###################
@@ -948,7 +950,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         else
             textPaint.color = getColorEx(R.color.ajdm_wheelview_speed_text)
         textPaint.textSize = speedTextSize
-        val mainText: String = if (appConfig.swapSpeedPwm) WheelData.getInstance().calculatedPwm.roundToInt().toString() else speedString
+        val mainText: String = if (appConfig.swapSpeedPwm) viewModel.calculatedPwm.roundToInt().toString() else speedString
         canvas.drawText(mainText, outerArcRect.centerX(), speedTextRect.centerY() + speedTextRect.height() / 2, textPaint)
         textPaint.textSize = speedTextKPHSize
         val metric = if (appConfig.useMph) resources.getString(R.string.mph) else resources.getString(R.string.kmh)
@@ -956,7 +958,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
         if (appConfig.useShortPwm || isInEditMode) {
             textPaint.textSize = speedTextKPHSize * 1.2f
             if (!appConfig.swapSpeedPwm) {
-                val pwm = String.format("%02.0f%% / %02.0f%%", WheelData.getInstance().calculatedPwm, WheelData.getInstance().maxPwm)
+                val pwm = String.format("%02.0f%% / %02.0f%%", viewModel.calculatedPwm, viewModel.maxPwm)
                 textPaint.color = pwmColor
                 canvas.drawText(pwm, outerArcRect.centerX(), speedTextRect.bottom + speedTextKPHHeight * 3.3f, textPaint)
                 textPaint.color = getColorEx(R.color.ajdm_wheelview_text)
@@ -986,7 +988,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
             if (appConfig.useBetterPercents || customPercents) {
                 if (width > height) canvas.rotate(147 + currentBattery * 2.25f - 180, innerArcRect.centerX(), innerArcRect.centerY()) else canvas.rotate(146 + currentBattery * 2.25f - 180, innerArcRect.centerY(), innerArcRect.centerX())
                 var batteryCalculateType = "true"
-                if (customPercents && !WheelData.getInstance().isVoltageTiltbackUnsupported) batteryCalculateType = "custom"
+                if (customPercents && !viewModel.isVoltageTiltbackUnsupported) batteryCalculateType = "custom"
                 val batteryString = java.lang.String.format(Locale.US, "%s", batteryCalculateType)
                 canvas.drawText(batteryString, batteryTextRect.centerX(), batteryTextRect.centerY(), textPaint)
                 canvas.restore()
@@ -1128,7 +1130,20 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
     private val gestureDetector = GestureDetector(
         context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
-                WheelData.getInstance().adapter?.switchFlashlight()
+                val supportsLightOn = viewModel.isCommandSupported(CommandType.LIGHT_ON)
+                val supportsLightOff = viewModel.isCommandSupported(CommandType.LIGHT_OFF)
+                if (supportsLightOn || supportsLightOff) {
+                    val lightIsEnabled = viewModel.sessionState.value.lightMode?.let { it != 1 }
+                        ?: appConfig.lightEnabled
+                    val command = when {
+                        lightIsEnabled && supportsLightOff -> CommandType.LIGHT_OFF
+                        !lightIsEnabled && supportsLightOn -> CommandType.LIGHT_ON
+                        supportsLightOn -> CommandType.LIGHT_ON
+                        else -> CommandType.LIGHT_OFF
+                    }
+                    appConfig.lightEnabled = command == CommandType.LIGHT_ON
+                    viewModel.sendCommand(command)
+                }
                 return super.onDoubleTap(e)
             }
 
@@ -1194,16 +1209,6 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
             targetBattery = (40f / 100f * MathUtils.clamp(mBattery, 0, 100)).roundToInt()
             currentBattery = targetBattery
             mWheelModel = "GotInSong Z10"
-            try {
-                val wd = WheelData()
-                val wdField = WheelData::class.java.getDeclaredField("mInstance")
-                wdField.isAccessible = true
-                wdField[null] = wd
-                ReflectUtil.SetPrivateField(wd, "mCalculatedPwm", 0.05)
-                ReflectUtil.SetPrivateField(wd, "mMaxPwm", 0.97)
-                ReflectUtil.SetPrivateField(wd, "mConnectionState", true)
-            } catch (ignored: Exception) {
-            }
         } else {
             currentTheme = appConfig.appTheme
         }

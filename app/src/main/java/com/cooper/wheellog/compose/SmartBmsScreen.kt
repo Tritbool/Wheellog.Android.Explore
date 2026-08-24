@@ -6,14 +6,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.ble.BleSessionViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SmartBmsScreen() {
-    val data = remember { WheelData.getInstance() }
+    val viewModel: BleSessionViewModel = koinViewModel()
 
-    val bms1 = data.bms1
-    val bms2 = data.bms2
+    val bms1 = viewModel.bms1
+    val bms2 = viewModel.bms2
 
     Column(
         modifier = Modifier

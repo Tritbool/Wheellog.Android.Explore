@@ -1,44 +1,38 @@
 package com.cooper.wheellog.settings
 
 import android.Manifest
-import android.app.Activity
-import android.content.Intent
-import android.location.LocationManager
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.BuildConfig
-import com.cooper.wheellog.ElectroClub
 import com.cooper.wheellog.MainActivity
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
 import com.cooper.wheellog.utils.FileUtil
-import com.cooper.wheellog.utils.PermissionsUtil
 import com.cooper.wheellog.utils.ThemeIconEnum
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 @Composable
-fun logScreen(appConfig: AppConfig = koinInject())
-{
+fun logScreen(appConfig: AppConfig = koinInject()) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -85,159 +79,6 @@ fun logScreen(appConfig: AppConfig = koinInject())
             }
         }
 
-        val context = LocalContext.current
-        var locationDependency by remember { mutableStateOf(appConfig.logLocationData) }
-
-        switchPref(
-            name = stringResource(R.string.log_location_title),
-            desc = stringResource(R.string.log_location_description),
-            themeIcon = ThemeIconEnum.SettingsLocation,
-            default = locationDependency,
-        ) {
-            appConfig.logLocationData = it
-            locationDependency = it
-        }
-
-        val gpsDependency = remember { mutableStateOf(appConfig.useGps) }
-        if (gpsDependency.value && !PermissionsUtil.checkLocationPermission(context)) {
-            gpsDependency.value = false
-            appConfig.useGps = false
-        }
-
-        var alertGps by remember { mutableStateOf(false) }
-        var notGrantedLocationPermissions by remember { mutableStateOf<Set<String>>(emptySet()) }
-        val locationPermission = rememberLauncherForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { granted ->
-            notGrantedLocationPermissions = granted.filter { gr -> !gr.value }.keys
-            gpsDependency.value = notGrantedLocationPermissions.isEmpty()
-            appConfig.useGps = gpsDependency.value
-            alertGps = false
-        }
-
-        if (notGrantedLocationPermissions.isNotEmpty()) {
-            AlertDialog(
-                onDismissRequest = { },
-                title = { Text(stringResource(R.string.permisson_error)) },
-                text = { Text(stringResource(R.string.log_location_permisson_error_text) + notGrantedLocationPermissions) },
-                confirmButton = { Button(onClick = {
-                    notGrantedLocationPermissions = emptySet()
-                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                    intent.data = Uri.fromParts("package", context.packageName, null)
-                    context.startActivity(intent, null)
-                }) { Text(stringResource(android.R.string.ok)) } }
-            )
-        }
-
-        AnimatedVisibility (locationDependency) {
-            switchPref(
-                name = stringResource(R.string.use_gps_title),
-                desc = stringResource(R.string.use_gps_description),
-                defaultState = gpsDependency,
-            ) {
-                appConfig.useGps = it
-                gpsDependency.value = it
-                alertGps = it && !PermissionsUtil.checkLocationPermission(context)
-            }
-        }
-
-        if (alertGps) {
-            AlertDialog(
-                onDismissRequest = { },
-                title = { Text(stringResource(R.string.log_location_title)) },
-                text = { Text(stringResource(R.string.log_location_pop_up)) },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                                locationPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
-                            } else {
-                                locationPermission.launch(
-                                    arrayOf(
-                                        Manifest.permission.ACCESS_FINE_LOCATION,
-                                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                                    )
-                                )
-                            }
-                            val mLocationManager = ContextCompat.getSystemService(context, LocationManager::class.java) as LocationManager
-                            val mGPS = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-                            if (!mGPS) {
-                                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), null)
-                            }
-                        }
-                    ) {
-                        Text(stringResource(android.R.string.ok))
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = {
-                        gpsDependency.value = false
-                        appConfig.useGps = false
-                        alertGps = false
-                    }
-                    ) {
-                        Text(stringResource(android.R.string.cancel))
-                    }
-                })
-        }
-
-        AnimatedVisibility (locationDependency && gpsDependency.value) {
-            val autoUploadDependency = remember { mutableStateOf(appConfig.autoUploadEc) }
-            Column {
-                switchPref(
-                    name = stringResource(R.string.auto_upload_log_ec_title),
-                    desc = stringResource(R.string.auto_upload_log_ec_description),
-                    defaultState = autoUploadDependency,
-                ) {
-                    appConfig.autoUploadEc = it
-                    autoUploadDependency.value = it
-                    if (!it) {
-                        ElectroClub.instance.logout()
-                    }
-                }
-
-                if (autoUploadDependency.value && WheelData.getInstance().isConnected) {
-                    val activity = LocalContext.current as Activity
-                    clickablePref(
-                        name = stringResource(R.string.select_garage_ec_title),
-                        desc = appConfig.ecGarage ?: "",
-                    ) {
-                        appConfig.ecGarage = null
-                        ElectroClub.instance.getAndSelectGarageByMacOrShowChooseDialog(
-                            mac = "",
-                            activity = activity,
-                        ) { }
-                    }
-                }
-
-                if (autoUploadDependency.value && appConfig.ecToken == null) {
-                    loginAlertDialog(
-                        title = "electro.club",
-                        onDismiss = {
-                            autoUploadDependency.value = false
-                            appConfig.autoUploadEc = false
-                        },
-                    ) { login, password ->
-                        suspendCoroutine { continuation ->
-                            ElectroClub.instance.login(
-                                email = login,
-                                password = password,
-                            ) { success ->
-                                val errorMessage = ElectroClub.instance.lastError ?: ""
-                                if (success) {
-                                    ElectroClub.instance.getAndSelectGarageByMacOrShowChooseDialog(
-                                        WheelData.getInstance().mac,
-                                        context as Activity
-                                    ) { }
-                                }
-                                continuation.resume(Pair(success, errorMessage))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         switchPref(
             name = stringResource(R.string.use_raw_title),
             desc = stringResource(R.string.use_raw_description),
@@ -271,14 +112,14 @@ fun logScreen(appConfig: AppConfig = koinInject())
                     val filename = sdFormatter.format(Date()) + ".csv"
                     if (fileUtil.prepareFile(filename, "test")) {
                         fileUtil.writeLine(
-                        "date,time,latitude,longitude,gps_speed,gps_alt,gps_heading,gps_distance,speed,voltage,phase_current,current,power,torque,pwm,battery_level,distance,totaldistance,system_temp,temp2,tilt,roll,mode,alert\n" +
-                             "2025-01-29,23:05:53.835,53.921541,27.4574593,0.0,259.5,0.0,0,14.72,83.28,0.00,0.88,73.29,0.00,44.06,95,1,4778555,24,0,0.13,1.42,Drive,\n" +
-                             "2025-01-29,23:05:54.021,53.921541,27.4574593,0.0,259.5,0.0,0,19.92,83.28,0.00,1.04,86.61,0.00,59.62,95,1,4778555,24,0,0.14,1.26,Drive,\n" +
-                             "2025-01-29,23:05:54.021,53.921541,27.4574593,0.0,259.5,0.0,0,19.92,83.28,0.00,1.04,86.61,0.00,59.62,95,1,4778555,24,0,0.14,1.26,Drive,\n" +
-                             "2025-01-29,23:05:54.205,53.921541,27.4574593,0.0,259.5,0.0,0,22.05,83.28,0.00,1.33,110.76,0.00,65.99,95,1,4778555,24,0,0.09,0.51,Drive,"
+                        "date,time,speed,voltage,phase_current,current,power,torque,pwm,battery_level,distance,totaldistance,system_temp,temp2,tilt,roll,mode,alert\n" +
+                             "2025-01-29,23:05:53.835,14.72,83.28,0.00,0.88,73.29,0.00,44.06,95,1,4778555,24,0,0.13,1.42,Drive,\n" +
+                             "2025-01-29,23:05:54.021,19.92,83.28,0.00,1.04,86.61,0.00,59.62,95,1,4778555,24,0,0.14,1.26,Drive,\n" +
+                             "2025-01-29,23:05:54.021,19.92,83.28,0.00,1.04,86.61,0.00,59.62,95,1,4778555,24,0,0.14,1.26,Drive,\n" +
+                             "2025-01-29,23:05:54.205,22.05,83.28,0.00,1.33,110.76,0.00,65.99,95,1,4778555,24,0,0.09,0.51,Drive,"
                         )
                         for (i in 10..59) {
-                            fileUtil.writeLine("2025-01-29,23:$i:00.000,53.921541,27.4574593,0.0,259.5,0.0,0,22.05,83.28,0.00,1.33,110.76,0.00,65.99,95,1,4778555,24,0,0.09,0.51,Drive,")
+                            fileUtil.writeLine("2025-01-29,23:$i:00.000,22.05,83.28,0.00,1.33,110.76,0.00,65.99,95,1,4778555,24,0,0.09,0.51,Drive,")
                         }
                         fileUtil.close()
                     }

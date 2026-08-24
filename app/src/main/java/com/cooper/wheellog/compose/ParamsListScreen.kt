@@ -1,6 +1,8 @@
 package com.cooper.wheellog.compose
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -18,13 +20,14 @@ fun ParamsListScreen(viewModel: BleSessionViewModel = koinViewModel()) {
     val appConfig: AppConfig = koinInject()
     val useMph = appConfig.useMph
     val state by viewModel.sessionState.collectAsState()
+    val sessionDistance = state.sessionDistance ?: state.wheelDistance ?: 0.0
 
     val items = listOf(
         "Speed" to formatSpeed(state.currentSpeed, useMph),
         "Top Speed" to formatSpeed(state.sessionTopSpeed ?: viewModel.topSpeedDouble, useMph),
         "Average Speed" to formatSpeed(viewModel.averageSpeedDouble, useMph),
         "Average Riding Speed" to formatSpeed(viewModel.averageRidingSpeedDouble, useMph),
-        "Distance" to formatDistance(state.wheelDistance ?: 0.0, useMph),
+        "Distance" to formatDistance(sessionDistance, useMph),
         "Wheel Distance" to formatDistance(viewModel.wheelDistanceDouble, useMph),
         "User Distance" to formatDistance(viewModel.userDistanceDouble, useMph),
         "Total Distance" to formatDistance(state.totalDistance ?: 0.0, useMph),
@@ -38,11 +41,14 @@ fun ParamsListScreen(viewModel: BleSessionViewModel = koinViewModel()) {
         "Temperature 2" to "${viewModel.motorTemperature}°C",
         "CPU Temp" to "${viewModel.cpuTemp}°C",
         "IMU Temp" to "${viewModel.imuTemp}°C",
+        "Output" to "${viewModel.output}%",
         "Angle" to String.format(Locale.US, "%.2f°", state.angle ?: 0.0),
         "Roll" to String.format(Locale.US, "%.2f°", state.lastData?.roll ?: 0.0),
         "Ride Time" to viewModel.rideTimeString,
         "Riding Time" to viewModel.ridingTimeString,
+        "Sleep Timer" to viewModel.sleepTimerString,
         "Mode" to (state.lastData?.mode ?: ""),
+        "Manufacturer" to state.deviceManufacturer,
         "Model" to state.deviceModel,
         "Version" to (state.firmwareVersion ?: "Unknown"),
         "Serial" to (state.serialNumber ?: "Unknown")
@@ -51,6 +57,7 @@ fun ParamsListScreen(viewModel: BleSessionViewModel = koinViewModel()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {

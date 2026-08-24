@@ -85,7 +85,7 @@ object DashboardMapper {
 
         // ── Session statistics ────────────────────────────────────────────────
         val topSpeed = (state.sessionTopSpeed ?: state.topSpeed ?: 0.0).toFloat()
-        val distance = (state.wheelDistance ?: 0.0).toFloat()
+        val distance = (state.sessionDistance ?: state.wheelDistance ?: 0.0).toFloat()
         val totalDistance = (state.totalDistance ?: 0.0).toFloat()
         val ridingTimeSec = state.sessionRidingTimeSec ?: state.rideTime ?: 0L
         val rideTimeFormatted = formatRideTime(ridingTimeSec)

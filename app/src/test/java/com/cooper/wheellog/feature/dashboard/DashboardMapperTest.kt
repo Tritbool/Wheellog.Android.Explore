@@ -44,6 +44,7 @@ class DashboardMapperTest {
         BleSessionState(
             connectionState = BLEConstants.ConnectionState.CONNECTED,
             lastData = data,
+            sessionDistance = 3.25,
             sessionMaxPwm = 45.0,
             sessionBatteryLowest = 75,
             sessionRidingTimeSec = 1800L
@@ -256,6 +257,12 @@ class DashboardMapperTest {
     fun `maxPwm comes from sessionMaxPwm in state`() {
         val result = DashboardMapper.map(connectedState(), null, appConfig)
         assertThat(result.maxPwm).isEqualTo(45f)
+    }
+
+    @Test
+    fun `distance prefers session distance over raw wheel distance`() {
+        val result = DashboardMapper.map(connectedState(), null, appConfig)
+        assertThat(result.distance).isEqualTo(3.25f)
     }
 
     @Test

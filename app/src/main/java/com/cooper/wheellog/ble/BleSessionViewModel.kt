@@ -37,6 +37,9 @@ import java.util.ArrayList
 import java.util.Calendar
 import java.util.Timer
 import java.util.TimerTask
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -305,9 +308,12 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         val sessionDistance = data.totalDistance?.let { total ->
             if (sessionStartDistance == 0.0) {
                 sessionStartDistance = total
-                sessionStartTotalDistance = total
             }
-            total - sessionStartDistance
+            max(total - sessionStartDistance, 0.0)
+        } ?: data.wheelDistance?.let { max(it, 0.0) }
+
+        if (sessionStartTotalDistance == 0.0) {
+            data.totalDistance?.takeIf { it > 0.0 }?.let { sessionStartTotalDistance = it }
         }
 
         // Calculate session ride time
@@ -722,8 +728,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun resetUserDistance() {
-        sessionStartDistance = 0.0
-        sessionStartTotalDistance = 0.0
+        sessionStartTotalDistance = _sessionState.value.totalDistance ?: 0.0
     }
 
     fun resetBmsData() {
@@ -760,15 +765,25 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val voltageSagDouble: Double get() = voltageSag.toDouble() / 100
 
     // Distances
-    val distanceDouble: Double get() = _sessionState.value.wheelDistance ?: 0.0
+    val distanceDouble: Double
+        get() = _sessionState.value.sessionDistance
+            ?: _sessionState.value.wheelDistance
+            ?: 0.0
     val totalDistanceDouble: Double get() = _sessionState.value.totalDistance ?: 0.0
     val wheelDistanceDouble: Double get() = _sessionState.value.wheelDistance ?: 0.0
-    val userDistanceDouble: Double get() = 0.0 // TODO: Implement user distance tracking
+    val userDistanceDouble: Double
+        get() {
+            val totalDistance = _sessionState.value.totalDistance ?: return distanceDouble
+            if (sessionStartTotalDistance == 0.0) return 0.0
+            return max(totalDistance - sessionStartTotalDistance, 0.0)
+        }
 
     // Speeds
     val topSpeedDouble: Double get() = sessionTopSpeed
-    val averageSpeedDouble: Double get() = 0.0 // TODO: Implement average speed calculation
-    val averageRidingSpeedDouble: Double get() = 0.0 // TODO: Implement average riding speed calculation
+    val averageSpeedDouble: Double
+        get() = calculateAverageSpeed(distanceDouble, _sessionState.value.sessionRideTime)
+    val averageRidingSpeedDouble: Double
+        get() = calculateAverageSpeed(distanceDouble, ridingTime.toLong())
     val speedLimit: Double get() = _sessionState.value.speedLimit ?: 0.0
 
     // PWM
@@ -798,14 +813,18 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val isConnected: Boolean get() = _sessionState.value.isConnected
     val fanStatus: Int get() = _sessionState.value.fanStatus ?: 0
     val chargingStatus: Int get() = _sessionState.value.chargingStatus ?: 0
-    val output: Int get() = 0 // TODO: Implement output calculation
+    val output: Int get() = normalizePwm(calculatedPwm).roundToInt()
 
     val error: String get() = _sessionState.value.lastError ?: ""
 
     // Time
     val rideTimeString: String get() = formatRideTime(_sessionState.value.rideTime ?: 0)
     val ridingTimeString: String get() = formatRideTime(ridingTime.toLong())
-    val sleepTimerString: String get() = "00:00" // TODO: Implement sleep timer
+    val sleepTimerString: String
+        get() = _sessionState.value.autoPowerOffMinutes
+            ?.takeIf { it >= 0 }
+            ?.let { String.format("%02d:%02d", it / 60, it % 60) }
+            ?: "00:00"
 
     // Mode and protocol
     val modeStr: String get() = _sessionState.value.lastData?.mode ?: ""
@@ -819,7 +838,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         )
 
     // BMS data
-    val bms: Any? get() = null // TODO: Implement BMS data access
+    val bms: Any? get() = bms1
 
     // Current limit
     val currentLimit: Double get() = _sessionState.value.lastData?.current ?: 0.0
@@ -833,9 +852,18 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val maxPowerDouble: Double get() = sessionMaxPower
 
     // Stats placeholders (computed by other components)
-    val remainingDistance: Double get() = 0.0
-    val batteryPerKm: Double get() = 0.0
-    val avgVoltagePerCell: Double get() = 0.0
+    val remainingDistance: Double
+        get() = if (batteryPerKm > 0.0) batteryLevel / batteryPerKm else 0.0
+    val batteryPerKm: Double
+        get() {
+            if (batteryStart < 0 || distanceDouble <= 0.0) return 0.0
+            return max((batteryStart - batteryLevel) / distanceDouble, 0.0)
+        }
+    val avgVoltagePerCell: Double
+        get() = when {
+            bms1.cellNum > 0 -> bms1.avgCell
+            else -> 0.0
+        }
 
     // Feature flags
     val isVoltageTiltbackUnsupported: Boolean get() = false
@@ -859,6 +887,21 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         val minutes = (seconds % 3600) / 60
         val secs = seconds % 60
         return String.format("%02d:%02d:%02d", hours, minutes, secs)
+    }
+
+    private fun calculateAverageSpeed(distanceKm: Double, durationSeconds: Long?): Double {
+        val seconds = durationSeconds ?: return 0.0
+        if (distanceKm <= 0.0 || seconds <= 0L) return 0.0
+        return distanceKm / (seconds / 3600.0)
+    }
+
+    private fun normalizePwm(pwm: Double): Double {
+        if (!pwm.isFinite()) return 0.0
+        var normalized = abs(pwm)
+        while (normalized > 100.0) {
+            normalized /= 10.0
+        }
+        return normalized.coerceIn(0.0, 100.0)
     }
 
     // ========== CLEANUP ==========

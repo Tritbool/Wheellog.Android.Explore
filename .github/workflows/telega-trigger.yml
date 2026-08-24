@@ -50,12 +50,6 @@ jobs:
         name: app-debug
         path: app/build/outputs/apk/debug/app-debug.apk
           
-    - name: Get wearos APK
-      uses: actions/upload-artifact@v3.1.1
-      with:
-        name: wearos-debug
-        path: wearos/build/outputs/apk/debug/wearos-debug.apk
-
     - name: Send apk to telegram
       env: 
         TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}

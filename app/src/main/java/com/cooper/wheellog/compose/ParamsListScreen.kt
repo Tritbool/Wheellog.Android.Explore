@@ -17,34 +17,35 @@ import java.util.Locale
 fun ParamsListScreen(viewModel: BleSessionViewModel = koinViewModel()) {
     val appConfig: AppConfig = koinInject()
     val useMph = appConfig.useMph
+    val state by viewModel.sessionState.collectAsState()
 
     val items = listOf(
-        "Speed" to formatSpeed(viewModel.speedDouble, useMph),
-        "Top Speed" to formatSpeed(viewModel.topSpeedDouble, useMph),
+        "Speed" to formatSpeed(state.currentSpeed, useMph),
+        "Top Speed" to formatSpeed(state.sessionTopSpeed ?: viewModel.topSpeedDouble, useMph),
         "Average Speed" to formatSpeed(viewModel.averageSpeedDouble, useMph),
         "Average Riding Speed" to formatSpeed(viewModel.averageRidingSpeedDouble, useMph),
-        "Distance" to formatDistance(viewModel.distanceDouble, useMph),
+        "Distance" to formatDistance(state.wheelDistance ?: 0.0, useMph),
         "Wheel Distance" to formatDistance(viewModel.wheelDistanceDouble, useMph),
         "User Distance" to formatDistance(viewModel.userDistanceDouble, useMph),
-        "Total Distance" to formatDistance(viewModel.totalDistanceDouble, useMph),
-        "Voltage" to String.format(Locale.US, "%.2f V", viewModel.voltageDouble),
+        "Total Distance" to formatDistance(state.totalDistance ?: 0.0, useMph),
+        "Voltage" to String.format(Locale.US, "%.2f V", state.currentVoltage),
         "Voltage Sag" to String.format(Locale.US, "%.2f V", viewModel.voltageSagDouble),
-        "Current" to String.format(Locale.US, "%.2f A", viewModel.currentDouble),
-        "Power" to String.format(Locale.US, "%.2f W", viewModel.powerDouble),
+        "Current" to String.format(Locale.US, "%.2f A", state.currentCurrent),
+        "Power" to String.format(Locale.US, "%.2f W", state.currentPower),
         "Motor Power" to String.format(Locale.US, "%.2f W", viewModel.motorPower),
-        "Battery" to "${viewModel.batteryLevel}%",
-        "Temperature" to "${viewModel.temperature}°C",
+        "Battery" to "${state.batteryLevel}%",
+        "Temperature" to "${state.currentTemperature.toInt()}°C",
         "Temperature 2" to "${viewModel.motorTemperature}°C",
         "CPU Temp" to "${viewModel.cpuTemp}°C",
         "IMU Temp" to "${viewModel.imuTemp}°C",
-        "Angle" to String.format(Locale.US, "%.2f°", viewModel.angle),
-        "Roll" to String.format(Locale.US, "%.2f°", viewModel.roll),
+        "Angle" to String.format(Locale.US, "%.2f°", state.angle ?: 0.0),
+        "Roll" to String.format(Locale.US, "%.2f°", state.lastData?.roll ?: 0.0),
         "Ride Time" to viewModel.rideTimeString,
         "Riding Time" to viewModel.ridingTimeString,
-        "Mode" to viewModel.modeStr,
-        "Model" to viewModel.model,
-        "Version" to viewModel.version,
-        "Serial" to viewModel.serial
+        "Mode" to (state.lastData?.mode ?: ""),
+        "Model" to state.deviceModel,
+        "Version" to (state.firmwareVersion ?: "Unknown"),
+        "Serial" to (state.serialNumber ?: "Unknown")
     )
 
     Column(

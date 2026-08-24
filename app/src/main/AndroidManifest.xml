@@ -99,6 +99,11 @@
                 android:minWidth="200dp"
                 android:minHeight="200dp" />
         </activity>
+        <service
+            android:name=".LoggingService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
         <!-- <activity-alias used to change app icon dynamically>   : default icon, set enabled true    -->
     </application>
 </manifest>

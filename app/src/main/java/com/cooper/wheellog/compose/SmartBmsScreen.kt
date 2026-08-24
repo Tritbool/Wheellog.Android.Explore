@@ -12,9 +12,11 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SmartBmsScreen() {
     val viewModel: BleSessionViewModel = koinViewModel()
+    val state by viewModel.sessionState.collectAsState()
 
     val bms1 = viewModel.bms1
     val bms2 = viewModel.bms2
+    val hasSmartBms = bms1.cellNum > 0 || bms2.cellNum > 0 || !state.cellVoltages.isNullOrEmpty()
 
     Column(
         modifier = Modifier
@@ -22,13 +24,21 @@ fun SmartBmsScreen() {
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Text("BMS 1", fontSize = 16.sp)
-        BmsBlock(bms1)
+        if (!hasSmartBms) {
+            Text("Battery", fontSize = 16.sp)
+            Text("Level: ${state.batteryLevel}%")
+            Text("Voltage: ${String.format("%.2f V", state.currentVoltage)}")
+            Text("Current: ${String.format("%.2f A", state.currentCurrent)}")
+            Text("Temperature: ${String.format("%.1f°C", state.currentTemperature)}")
+        } else {
+            Text("BMS 1", fontSize = 16.sp)
+            BmsBlock(bms1)
 
-        Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
-        Text("BMS 2", fontSize = 16.sp)
-        BmsBlock(bms2)
+            Text("BMS 2", fontSize = 16.sp)
+            BmsBlock(bms2)
+        }
     }
 }
 

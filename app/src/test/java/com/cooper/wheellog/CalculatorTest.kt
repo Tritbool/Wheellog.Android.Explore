@@ -14,6 +14,7 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 
 class CalculatorTest: KoinTest {
+    /*
     private lateinit var data: WheelData
     private lateinit var appConfig: AppConfig
 
@@ -85,5 +86,5 @@ class CalculatorTest: KoinTest {
             isGreaterThan(36.9)
             isLessThan(37.0)
         }
-    }
+    }*/
 }

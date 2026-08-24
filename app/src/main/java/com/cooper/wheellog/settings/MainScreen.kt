@@ -24,7 +24,6 @@ enum class SettingsScreenEnum(@StringRes val title: Int) {
     Application(title = R.string.speed_settings_title),
     Log(title = R.string.logs_settings_title),
     Alarm(title = R.string.alarm_settings_title),
-    Watch(title = R.string.watch_settings_title),
     Wheel(title = R.string.wheel_settings_title),
     Trip(title = R.string.trip_settings_title),
 }
@@ -99,9 +98,6 @@ fun mainScreen(
             }
             composable(route = SettingsScreenEnum.Alarm.name) {
                 alarmScreen()
-            }
-            composable(route = SettingsScreenEnum.Watch.name) {
-                watchScreen()
             }
             composable(route = SettingsScreenEnum.Wheel.name) {
                 wheelScreen()

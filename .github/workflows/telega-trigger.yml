@@ -37,7 +37,7 @@ jobs:
     - name: Test
       run: ./gradlew test
     - name: Assemble
-      run: ./gradlew assembleDebug -Dec_accessToken="${{ secrets.EC_TOKEN }}" -Dmetrica_api="${{ secrets.METRICA_API }}"
+      run: ./gradlew assembleDebug
       
     - name: Cleanup Gradle Cache
       run: |

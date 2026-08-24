@@ -1,12 +1,11 @@
 package com.cooper.wheellog
+import com.cooper.wheellog.ble.BleSessionViewModel
 
-//import com.yandex.metrica.YandexMetrica
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
-import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
@@ -17,18 +16,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import com.cooper.wheellog.databinding.EdittextLayoutBinding
 import com.cooper.wheellog.databinding.PrivacyPolicyBinding
 import com.cooper.wheellog.databinding.UpdatePwmSettingsBinding
 import com.cooper.wheellog.utils.Constants
-import com.cooper.wheellog.utils.PermissionsUtil
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 object DialogHelper : KoinComponent {
     private val appConfig: AppConfig by inject()
+    private val viewModel: BleSessionViewModel by inject()
     /**
      * return false if in App's Battery settings "Not optimized" and true if "Optimizing battery use"
      */
@@ -70,8 +68,8 @@ object DialogHelper : KoinComponent {
     }
 
     fun checkPWMIsSetAndShowAlert(context: Context) {
-        val wd = WheelDataLegacy
-        if (!wd.isWheelIsReady || wd.isHardwarePWM || appConfig.hwPwm || appConfig.rotationIsSet) {
+        val wd = viewModel
+        if (!wd.isWheelReady() || appConfig.hwPwm || appConfig.rotationIsSet) {
             return
         }
         if (appConfig.rotationSpeed != 500 && appConfig.rotationVoltage != 840) {
@@ -81,12 +79,12 @@ object DialogHelper : KoinComponent {
         val inflater: LayoutInflater = LayoutInflater.from(context)
         val binding = UpdatePwmSettingsBinding.inflate(inflater, null, false)
         binding.modelName.text =
-            if (WheelDataLegacy.model.isNullOrEmpty())
+            if (viewModel.model.isNullOrEmpty())
                 "Unknown model"
-            else WheelDataLegacy.model
+            else viewModel.model
         val svLayout: LinearLayout = binding.setSpeedVoltageLayout
         val templatesBox: Spinner = binding.spinnerTemplates
-        val templates = when (WheelDataLegacy.wheelType) {
+        val templates = when (viewModel.wheelType) {
             Constants.WHEEL_TYPE.GOTWAY ->
                 mutableMapOf(
                         "Begode MTen 67v" to Pair(440, 672), // first - speed, second - voltage
@@ -263,8 +261,6 @@ object DialogHelper : KoinComponent {
         }
         binding.okButton.setOnClickListener {
             appConfig.privatePolicyAccepted = true
-            appConfig.yandexMetricaAccepted = binding.agreeWithMetrica.isChecked
-//            YandexMetrica.setStatisticsSending(
 //                mainActivity.applicationContext,
 //                binding.agreeWithMetrica.isChecked
 //            )
@@ -288,40 +284,6 @@ object DialogHelper : KoinComponent {
             }
             .setNegativeButton(android.R.string.cancel) { _: DialogInterface, _: Int -> }
             .show()
-    }
-
-    fun checkAndShowLocationDialog(context: Context) {
-        if (appConfig.useGps) {
-            val mLocationManager = ContextCompat.getSystemService(
-                context,
-                LocationManager::class.java
-            ) as LocationManager
-            val mGPS = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-            if (!mGPS) {
-                AlertDialog.Builder(context, R.style.OriginalTheme_Dialog_Alert)
-                    .setMessage(R.string.gpsdisabled_alert)
-                    .setPositiveButton(R.string.gotosettings) { _: DialogInterface?, _: Int ->
-                        val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                        context.startActivity(intent, null)
-                    }
-                    .setNegativeButton(android.R.string.cancel) { _: DialogInterface?, _: Int -> }
-                    .create()
-                    .show()
-            }
-
-            if (!PermissionsUtil.checkLocationPermission(context)) {
-                AlertDialog.Builder(context, R.style.OriginalTheme_Dialog_Alert)
-                    .setMessage(R.string.logging_error_no_location_permission)
-                    .setPositiveButton(R.string.gotosettings) { _: DialogInterface?, _: Int ->
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        intent.data = Uri.fromParts("package", context.packageName, null)
-                        context.startActivity(intent, null)
-                    }
-                    .setNegativeButton(android.R.string.cancel) { _: DialogInterface?, _: Int -> }
-                    .create()
-                    .show()
-            }
-        }
     }
 
     fun AlertDialog.setBlackIcon(): AlertDialog {

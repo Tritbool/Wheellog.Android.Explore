@@ -208,7 +208,6 @@ fun applicationScreen(
                 entries = mapOf(
                     stringResource(R.string.icon_connection) to stringResource(R.string.icon_connection),
                     stringResource(R.string.icon_logging) to stringResource(R.string.icon_logging),
-                    stringResource(R.string.icon_watch) to stringResource(R.string.icon_watch),
                     stringResource(R.string.icon_beep) to stringResource(R.string.icon_beep),
                     stringResource(R.string.icon_light) to stringResource(R.string.icon_light),
                     stringResource(R.string.icon_miband) to stringResource(R.string.icon_miband),
@@ -408,14 +407,6 @@ fun applicationScreen(
 
         group(name = stringResource(R.string.connection_category_title)) {
             switchPref(
-                name = stringResource(R.string.show_unknown_devices_title),
-                desc = stringResource(R.string.show_unknown_devices_description),
-                default = appConfig.showUnknownDevices,
-            ) {
-                appConfig.showUnknownDevices = it
-            }
-
-            switchPref(
                 name = stringResource(R.string.use_reconnect_title),
                 desc = stringResource(R.string.use_reconnect_description),
                 default = appConfig.useReconnect,
@@ -500,15 +491,6 @@ fun applicationScreen(
                 default = appConfig.detectBatteryOptimization,
             ) {
                 appConfig.detectBatteryOptimization = it
-            }
-
-            switchPref(
-                name = stringResource(R.string.send_yandex_metriсa_title),
-                desc = stringResource(R.string.send_yandex_metriсa_description),
-                default = appConfig.yandexMetricaAccepted,
-                showDiv = false,
-            ) {
-                appConfig.yandexMetricaAccepted = it
             }
         }
     }

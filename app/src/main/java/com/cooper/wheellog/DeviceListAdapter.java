@@ -1,7 +1,6 @@
 package com.cooper.wheellog;
 
-import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothDevice;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,15 +9,16 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.koin.core.component.KoinComponent;
-import org.koin.java.KoinJavaComponent;
-
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import io.github.tritbool.euc.ble.models.EUCDevice;
 
 // Adapter for holding devices found through scanning.
 public class DeviceListAdapter extends BaseAdapter {
-    private final AppConfig appConfig = KoinJavaComponent.get(AppConfig.class);
-    private final ArrayList<BluetoothDevice> mLeDevices;
+    private final ArrayList<EUCDevice> mLeDevices;
     private final ArrayList<String> mLeAdvDatas;
     private final LayoutInflater mInflator;
 
@@ -34,30 +34,44 @@ public class DeviceListAdapter extends BaseAdapter {
         mInflator = appCompatActivity.getLayoutInflater();
     }
 
-    public void addDevice(BluetoothDevice device, String advData) {
-        if (!appConfig.getShowUnknownDevices()) {
-            @SuppressLint("MissingPermission")
-            String deviceName = device.getName();
-            if (deviceName == null || deviceName.length() == 0)
-                return;
-        }
-
-        if(!mLeDevices.contains(device)) {
+    public void addDevice(EUCDevice device, String advData) {
+        if (!mLeDevices.contains(device)) {
             mLeDevices.add(device);
             mLeAdvDatas.add(advData);
         }
     }
 
-    public BluetoothDevice getDevice(int position) {
+
+    public void setDevices(List<EUCDevice> devices) {
+        mLeDevices.clear();
+        mLeAdvDatas.clear();
+
+        List<EUCDevice> sorted = new ArrayList<>(devices);
+        Collections.sort(sorted, new Comparator<EUCDevice>() {
+            @Override
+            public int compare(EUCDevice a, EUCDevice b) {
+                String aa = a.getAddress();
+                String bb = b.getAddress();
+                if (aa == null && bb == null) return 0;
+                if (aa == null) return -1;
+                if (bb == null) return 1;
+                return aa.compareTo(bb);
+            }
+        });
+
+        for (EUCDevice device : sorted) {
+            mLeDevices.add(device);
+            mLeAdvDatas.add("");
+        }
+    }
+
+    public EUCDevice getDevice(int position) {
         return mLeDevices.get(position);
     }
 
     public String getAdvData(int position) {
         return mLeAdvDatas.get(position);
     }
-//    public void clear() {
-//        mLeDevices.clear();
-//    }
 
     @Override
     public int getCount() {
@@ -88,8 +102,7 @@ public class DeviceListAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) view.getTag();
         }
 
-        BluetoothDevice device = mLeDevices.get(i);
-        @SuppressLint("MissingPermission")
+        EUCDevice device = mLeDevices.get(i);
         final String deviceName = device.getName();
         if (deviceName != null && deviceName.length() > 0)
             viewHolder.deviceName.setText(deviceName);

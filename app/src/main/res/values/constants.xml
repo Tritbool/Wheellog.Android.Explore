@@ -12,10 +12,6 @@
     <string name="disable_phone_vibrate" translatable="false">disable_phone_vibrate</string>
     <string name="disable_phone_beep" translatable="false">disable_phone_beep</string>
     <string name="use_wheel_beep_for_alarm" translatable="false">use_wheel_beep_for_alarm</string>
-    <string name="speed_alarm1" translatable="false">speed_alarm1</string>
-    <string name="speed_alarm2" translatable="false">speed_alarm2</string>
-    <string name="speed_alarm3" translatable="false">speed_alarm3</string>
-    <string name="altered_alarms_section" translatable="false">altered_alarms_section</string>
     <string name="alarm_1_speed" translatable="false">alarm_1_speed</string>
     <string name="alarm_1_battery" translatable="false">alarm_1_battery</string>
     <string name="alarm_2_speed" translatable="false">alarm_2_speed</string>
@@ -82,7 +78,6 @@
     <string name="strobe_mode" translatable="false">strobe_mode</string>
     <string name="led_mode" translatable="false">led_mode</string>
     <string name="alarm_mode" translatable="false">alarm_mode</string>
-    <string name="gotway_84v" translatable="false">gotway_84v</string>
     <string name="gotway_voltage" translatable="false">gotway_voltage</string>
     <string name="gotway_negative" translatable="false">gotway_negative</string>
     <string name="hw_pwm" translatable="false">hw_pwm</string>
@@ -127,13 +122,9 @@
     <string name="continue_this_day_log" translatable="false">continue_this_day_log</string>
     <string name="continue_this_day_log_exception" translatable="false">continue_this_day_log_exception</string>
     <string name="auto_upload_ec" translatable="false">auto_upload_ec</string>
-    <string name="select_garage_ec" translatable="false">clear_garage_ec</string>
     <string name="ec_token" translatable="false">ec_token</string>
     <string name="ec_user_id" translatable="false">ec_user_id</string>
     <string name="ec_garage" translatable="false">ec_garage</string>
-    <string name="auto_upload" translatable="false">auto_upload</string>
-    <string name="log_location_data" translatable="false">log_location_data</string>
-    <string name="use_gps" translatable="false">use_gps</string>
     <string name="use_raw_data" translatable="false">use_raw_data</string>
 
     // APP PREFERENCES
@@ -152,7 +143,6 @@
     <string name="use_stop_music" translatable="false">use_stop_music</string>
     <string name="battery_capacity" translatable="false">battery_capacity</string>
     <string name="charging_power" translatable="false">charging_power</string>
-    <string name="show_unknown_devices" translatable="false">show_unknown_devices</string>
     <string name="connect_beep" translatable="false">connect_beep</string>
     <string name="max_speed" translatable="false">max_speed</string>
     <string name="use_ratio" translatable="false">use_ratio</string>
@@ -177,9 +167,6 @@
     <string name="garmin_connectiq_use_beta" translatable="false">garmin_connectiq_use_beta</string>
 
     // TRIP PREFERENCES
-    <string name="reset_max_values" translatable="false">reset_max_values</string>
-    <string name="reset_user_distance" translatable="false">reset_user_distance</string>
-    <string name="reset_lowest_battery" translatable="false">reset_lowest_battery</string>
     <string name="last_mac" translatable="false">last_mac</string>
     <string name="profile_name" translatable="false">profile_name</string>
     <string name="about" translatable="false">about</string>
@@ -190,7 +177,6 @@
     <string name="show_page_events" translatable="false">show_page_events</string>
     <string name="notification_buttons" translatable="false">notification_buttons</string>
     <string name="miband_mode" translatable="false">miband_mode</string>
-    <string name="miband_on_mainscreen_enable" translatable="false">miband_on_mainscreen_enable</string>
     <string name="miband_fixrs_enable" translatable="false">miband_fixrs_enable</string>
     <string name="auto_watch" translatable="false">auto_watch</string>
     <string name="use_eng_title" translatable="false">English</string>

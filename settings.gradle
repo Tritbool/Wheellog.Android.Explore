@@ -1,3 +1,22 @@
-include ':wearos'
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        mavenLocal()
+        maven { url "https://jitpack.io" }
+    }
+}
+
+rootProject.name = "WheelLog.Android"
+
 include ':app'
-include ':shared'

@@ -12,22 +12,12 @@ class WheelLog : Application() {
         super.onCreate()
         startKoin {
             androidContext(this@WheelLog)
-            modules(listOf(settingModule, notificationsModule, volumeKeyModule, dbModule, bleModule))
+            modules(listOf(settingModule, notificationsModule, volumeKeyModule, dbModule, bleModule, dashboardModule))
         }
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree(), FileLoggingTree(applicationContext))
         }
         // WheelData.initiate() - REMOVED: Migration to BleSessionViewModel
-
-        // YandexMetrica.
-//        if (BuildConfig.metrica_api.isNotEmpty()) {
-//            val config = YandexMetricaConfig
-//                .newConfigBuilder(BuildConfig.metrica_api)
-//                .withLocationTracking(false)
-//                .withStatisticsSending(AppConfig.yandexMetricaAccepted)
-//                .build()
-//            YandexMetrica.activate(applicationContext, config)
-//        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

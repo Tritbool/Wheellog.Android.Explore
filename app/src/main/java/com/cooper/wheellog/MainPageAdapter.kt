@@ -331,6 +331,35 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
             }
             R.layout.main_view_smart_bms -> {
                 viewModel.bmsView = true
+                if (!hasSmartBmsDetails()) {
+                    updateFieldForSmartBmsPage(
+                        R.string.bmsRemPerc,
+                        String.format(Locale.US, "%d %%", viewModel.batteryLevel),
+                        "-"
+                    )
+                    updateFieldForSmartBmsPage(
+                        R.string.bmsVoltage,
+                        String.format(Locale.US, "%.2f V", viewModel.voltageDouble),
+                        "-"
+                    )
+                    updateFieldForSmartBmsPage(
+                        R.string.bmsCurrent,
+                        String.format(Locale.US, "%.2f A", viewModel.currentDouble),
+                        "-"
+                    )
+                    updateFieldForSmartBmsPage(
+                        R.string.bmsTemp1,
+                        String.format(Locale.US, "%.1f°C", viewModel.temperatureDouble),
+                        "-"
+                    )
+                    updateFieldForSmartBmsPage(
+                        R.string.bmsTemp2,
+                        String.format(Locale.US, "%.1f°C", viewModel.motorTemperature / 100.0),
+                        "-"
+                    )
+                    updateSmartBmsPage()
+                    return
+                }
                 updateFieldForSmartBmsPage(R.string.bmsSn, viewModel.bms1.serialNumber, viewModel.bms2.serialNumber)
                 updateFieldForSmartBmsPage(R.string.bmsFw, viewModel.bms1.versionNumber, viewModel.bms2.versionNumber)
                 updateFieldForSmartBmsPage(R.string.bmsFactoryCap, String.format(Locale.US, "%d mAh", viewModel.bms1.factoryCap), String.format(Locale.US, "%d mAh", viewModel.bms2.factoryCap))
@@ -758,10 +787,26 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         }
     }
 
+    private fun hasSmartBmsDetails(): Boolean =
+        viewModel.bms1.cellNum > 0 || viewModel.bms2.cellNum > 0
+
+    private fun configureFallbackBmsDisplay() {
+        addPage(R.layout.main_view_smart_bms, 2)
+        setupFieldForSmartBmsPage(R.string.bmsRemPerc)
+        setupFieldForSmartBmsPage(R.string.bmsVoltage)
+        setupFieldForSmartBmsPage(R.string.bmsCurrent)
+        setupFieldForSmartBmsPage(R.string.bmsTemp1)
+        setupFieldForSmartBmsPage(R.string.bmsTemp2)
+    }
+
     fun configureSmartBmsDisplay() {
         smartBms1PageValues.clear()
         smartBms2PageValues.clear()
-        //removePage(R.layout.main_view_smart_bms)
+        if (!hasSmartBmsDetails()) {
+            configureFallbackBmsDisplay()
+            createSmartBmsPage()
+            return
+        }
         when (viewModel.wheelType) {
             WHEEL_TYPE.KINGSONG -> {
                 if (inArray(viewModel.model, arrayOf("KS-S20", "KS-S22", "KS-S19", "KS-S16", "KS-S16P", "KS-F22P", "KS-F18P", "KS-14SP"))) {
@@ -854,7 +899,8 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                         setupFieldForSmartBmsPage(R.string.bmsCell42)
                     }
                 } else {
-                    removePage(R.layout.main_view_smart_bms)
+                    configureFallbackBmsDisplay()
+                    createSmartBmsPage()
                     return
                 }
             }
@@ -920,7 +966,8 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                         setupFieldForSmartBmsPage(R.string.bmsCell42)
                     }
                 } else {
-                    removePage(R.layout.main_view_smart_bms)
+                    configureFallbackBmsDisplay()
+                    createSmartBmsPage()
                     return
                 }
             }
@@ -1002,7 +1049,8 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                         setupFieldForSmartBmsPage(R.string.bmsCell50)
                     }
                 } else {
-                    removePage(R.layout.main_view_smart_bms)
+                    configureFallbackBmsDisplay()
+                    createSmartBmsPage()
                     return
                 }
             }
@@ -1049,12 +1097,14 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                         setupFieldForSmartBmsPage(R.string.bmsCell16)
                     }
                 } else {
-                    removePage(R.layout.main_view_smart_bms)
+                    configureFallbackBmsDisplay()
+                    createSmartBmsPage()
                     return
                 }
             }
             else -> {
-                removePage(R.layout.main_view_smart_bms)
+                configureFallbackBmsDisplay()
+                createSmartBmsPage()
                 return
             }
         }

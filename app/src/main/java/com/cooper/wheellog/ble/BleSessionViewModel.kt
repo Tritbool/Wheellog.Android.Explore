@@ -242,6 +242,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     private suspend fun updateDisconnectedState() {
         wheelIsReady = false
         wheelAlarm = false
+        bms1.reset()
+        bms2.reset()
 
         _sessionState.value = _sessionState.value.copy(
             connectionState = BLEConstants.ConnectionState.DISCONNECTED,
@@ -253,6 +255,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private suspend fun updateTelemetryData(data: EUCData) {
+        updateBmsData(data)
+
         // Update session statistics
         data.speed?.let { speed ->
             if (speed > sessionTopSpeed) {
@@ -356,6 +360,48 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             "Telemetry updated: manufacturer=%s, model =%s, speed=%.2f, voltage=%.2f, current=%.2f, pwm=%.2f",
             data.manufacturer, data.model, data.speed, data.voltage, data.current, data.pwm
         )
+    }
+
+    private fun updateBmsData(data: EUCData) {
+        val cellVoltages = data.cellVoltages.orEmpty().filter { it > 0.0 }
+
+        bms1.voltage = data.voltage
+        bms1.current = data.current
+        bms1.temp1 = data.temperature
+        bms1.temp2 = data.motorTemperature ?: 0.0
+        bms1.remPerc = data.batteryLevel
+
+        if (cellVoltages.isEmpty()) {
+            bms1.cellNum = 0
+            bms1.minCell = 0.0
+            bms1.maxCell = 0.0
+            bms1.avgCell = 0.0
+            bms1.cellDiff = 0.0
+            bms1.minCellNum = 0
+            bms1.maxCellNum = 0
+            for (i in bms1.cells.indices) {
+                bms1.cells[i] = 0.0
+            }
+            bms2.reset()
+            return
+        }
+
+        val firstPackCount = minOf(cellVoltages.size, bms1.cells.size)
+        bms1.cellNum = firstPackCount
+        for (i in bms1.cells.indices) {
+            bms1.cells[i] = if (i < firstPackCount) cellVoltages[i] else 0.0
+        }
+
+        val minCell = cellVoltages.minOrNull() ?: 0.0
+        val maxCell = cellVoltages.maxOrNull() ?: 0.0
+        bms1.minCell = minCell
+        bms1.maxCell = maxCell
+        bms1.avgCell = cellVoltages.average()
+        bms1.cellDiff = maxCell - minCell
+        bms1.minCellNum = (cellVoltages.indexOf(minCell) + 1).coerceAtLeast(1)
+        bms1.maxCellNum = (cellVoltages.indexOf(maxCell) + 1).coerceAtLeast(1)
+
+        bms2.reset()
     }
 
     private suspend fun updateError(error: String) {

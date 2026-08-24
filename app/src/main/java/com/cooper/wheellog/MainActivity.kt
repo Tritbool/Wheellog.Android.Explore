@@ -102,18 +102,23 @@ class MainActivity : AppCompatActivity() {
 
     // Logging service
     private var loggingService: LoggingService? = null
+    private var isLoggingServiceBound: Boolean = false
+    private var bmsDisplaySignature: String = ""
     private val mLoggingServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             loggingService = (service as LoggingService.LocalBinder).getService()
+            isLoggingServiceBound = true
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
             loggingService = null
+            isLoggingServiceBound = false
             Timber.e("LoggingService disconnected")
         }
 
         override fun onBindingDied(name: ComponentName?) {
             loggingService = null
+            isLoggingServiceBound = false
         }
     }
     //endregion
@@ -171,6 +176,7 @@ class MainActivity : AppCompatActivity() {
         when (connectionState) {
             BLEConstants.ConnectionState.CONNECTED -> {
                 pagerAdapter.configureSecondDisplay()
+                bmsDisplaySignature = ""
                 val mac = viewModel.getMac
                 if (mac.isNotEmpty()) {
                     appConfig.lastMac = mac
@@ -182,6 +188,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             BLEConstants.ConnectionState.DISCONNECTED -> {
+                bmsDisplaySignature = ""
                 if (mConnectionState == BLEConstants.ConnectionState.CONNECTED) {
                     showSnackBar(getString(R.string.connection_lost_at), Snackbar.LENGTH_INDEFINITE)
                 }
@@ -244,6 +251,11 @@ class MainActivity : AppCompatActivity() {
 
         // Data updates
         if (state.lastDataTimestamp != null) {
+            val currentBmsSignature = buildBmsDisplaySignature()
+            if (currentBmsSignature != bmsDisplaySignature) {
+                pagerAdapter.configureSmartBmsDisplay()
+                bmsDisplaySignature = currentBmsSignature
+            }
             // Update logging
             loggingService?.updateFile()
 
@@ -574,9 +586,10 @@ class MainActivity : AppCompatActivity() {
         onDestroyProcess = true
         stopLoggingService()
         viewModel.fullReset()
-        if (loggingService != null) {
+        if (isLoggingServiceBound) {
             try {
                 unbindService(mLoggingServiceConnection)
+                isLoggingServiceBound = false
             } catch (_: Exception) {
                 // ignored
             }
@@ -804,18 +817,31 @@ class MainActivity : AppCompatActivity() {
     fun toggleLoggingService() {
         val dataLoggerServiceIntent = Intent(applicationContext, LoggingService::class.java)
         if (LoggingService.isInstanceCreated()) {
-            unbindService(mLoggingServiceConnection)
+            if (isLoggingServiceBound) {
+                unbindService(mLoggingServiceConnection)
+                isLoggingServiceBound = false
+            }
             loggingService = null
+            stopService(dataLoggerServiceIntent)
             if (!onDestroyProcess) {
                 CoroutineScope(Dispatchers.Main + Job()).launch {
                     pagerAdapter.updatePageOfTrips()
                 }
             }
         } else if (mConnectionState == BLEConstants.ConnectionState.CONNECTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(dataLoggerServiceIntent)
+            } else {
+                startService(dataLoggerServiceIntent)
+            }
             bindService(dataLoggerServiceIntent, mLoggingServiceConnection, BIND_AUTO_CREATE)
         }
         setMenuIconStates()
         notifications.update()
+    }
+
+    private fun buildBmsDisplaySignature(): String {
+        return "${viewModel.wheelType}:${viewModel.model}:${viewModel.bms1.cellNum}:${viewModel.bms2.cellNum}"
     }
     //endregion
 

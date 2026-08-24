@@ -146,7 +146,7 @@ class LoggingService : Service() {
         val wd = viewModel
         fileUtil.writeLine(
             String.format(
-                Locale.US, "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%d,%d,%d,%.2f,%.2f,%s,%d",
+                Locale.US, "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%s,%d",
                 sdf!!.format(System.currentTimeMillis()),
                 wd.speedDouble,
                 wd.voltageDouble,
@@ -158,8 +158,8 @@ class LoggingService : Service() {
                 wd.batteryLevel,
                 (wd.distanceDouble * 1000).toInt(),
                 (wd.totalDistanceDouble * 1000).toInt(),
-                wd.temperature,
-                wd.motorPower,
+                wd.temperatureDouble,
+                wd.motorTemperature / 100.0,
                 wd.angle,
                 wd.roll,
                 wd.modeStr,

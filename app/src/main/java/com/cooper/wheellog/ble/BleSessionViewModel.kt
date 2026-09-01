@@ -10,6 +10,7 @@ import androidx.annotation.RequiresPermission
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.cooper.wheellog.utils.Constants.wheel_type_from_string
+import com.cooper.wheellog.utils.SmartBms
 import io.github.tritbool.euc.ble.EucBleClient
 import io.github.tritbool.euc.ble.core.BLEConstants
 import io.github.tritbool.euc.ble.core.ConnectionCallback
@@ -18,6 +19,7 @@ import io.github.tritbool.euc.ble.core.ErrorCallback
 import io.github.tritbool.euc.ble.core.ProtocolSelection
 import io.github.tritbool.euc.ble.core.ProtocolSelectionMode
 import io.github.tritbool.euc.ble.exceptions.BLEException
+import io.github.tritbool.euc.ble.models.BMSData
 import io.github.tritbool.euc.ble.models.EUCData
 import io.github.tritbool.euc.ble.models.EUCDevice
 import io.github.tritbool.euc.ble.protocols.CommandSupport
@@ -91,8 +93,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     var bmsView: Boolean = false
 
     // BMS data
-    val bms1 = com.cooper.wheellog.utils.SmartBms()
-    val bms2 = com.cooper.wheellog.utils.SmartBms()
+    val bms1 = SmartBms()
+    val bms2 = SmartBms()
 
     // ========== GRAPH DATA (for charts) ==========
     private val graphUpdateInterval = 1000L // milliseconds
@@ -372,6 +374,27 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun updateBmsData(data: EUCData) {
+        // Wheels with two battery packs (e.g. ExtremeBull Rocket) report per-pack cell
+        // voltages through the active protocol's getBMSData(), while EUCData.cellVoltages
+        // only carries the two packs concatenated together. Prefer the per-pack data when
+        // the protocol exposes it so each BMS page reflects its own pack.
+        val bmsPacks = _eucBleClient.getRegisteredProtocols()
+            .firstOrNull { it.manufacturer == data.manufacturer }
+            ?.getBMSData()
+            ?.filter { !it.cellVoltages.isNullOrEmpty() }
+            ?.sortedBy { it.bmsIndex }
+
+        if (!bmsPacks.isNullOrEmpty()) {
+            applyBmsPackData(bms1, data, bmsPacks[0])
+            val secondPack = bmsPacks.getOrNull(1)
+            if (secondPack != null) {
+                applyBmsPackData(bms2, data, secondPack)
+            } else {
+                bms2.reset()
+            }
+            return
+        }
+
         val cellVoltages = data.cellVoltages.orEmpty().filter { it > 0.0 }
 
         bms1.voltage = data.voltage
@@ -405,6 +428,57 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         bms1.maxCellNum = (cellVoltages.indexOf(maxCell) + 1).coerceAtLeast(1)
 
         bms2.reset()
+    }
+
+    /**
+     * Populates a single BMS pack (bms1 or bms2) from a [BMSData] snapshot returned by the
+     * active protocol. Since library 0.0.8, Gotway/Begode protocols decode per-pack
+     * voltage/current/temperatures (from Type 1 BMS summary frames) in addition to
+     * per-pack cell voltages, so those are preferred over the shared [EUCData] fields
+     * whenever the protocol provides them; fields the protocol doesn't measure per-pack
+     * fall back to the overall [EUCData] values.
+     */
+    private fun applyBmsPackData(bms: SmartBms, data: EUCData, pack: BMSData) {
+        bms.voltage = pack.voltage ?: data.voltage
+        bms.current = pack.current ?: data.current
+
+        val temperatures = pack.temperatures
+        if (temperatures != null && temperatures.size >= 4) {
+            bms.temp1 = temperatures[0]
+            bms.temp2 = temperatures[1]
+            bms.temp3 = temperatures[2]
+            bms.temp4 = temperatures[3]
+        } else {
+            bms.temp1 = data.temperature
+            bms.temp2 = data.motorTemperature ?: 0.0
+        }
+
+        bms.remPerc = data.batteryLevel
+        pack.remainingCapacity?.let { bms.remCap = it }
+        pack.factoryCapacity?.let { bms.factoryCap = it }
+        pack.cycles?.let { bms.fullCycles = it }
+
+        val cellVoltages = pack.cellVoltages.orEmpty().filter { it > 0.0 }
+        if (cellVoltages.isEmpty()) {
+            // Keep last known cell data instead of clearing it, mirroring the
+            // single-pack fallback behaviour above.
+            return
+        }
+
+        val packCount = minOf(cellVoltages.size, bms.cells.size)
+        bms.cellNum = packCount
+        for (i in bms.cells.indices) {
+            bms.cells[i] = if (i < packCount) cellVoltages[i] else 0.0
+        }
+
+        val minCell = cellVoltages.minOrNull() ?: 0.0
+        val maxCell = cellVoltages.maxOrNull() ?: 0.0
+        bms.minCell = minCell
+        bms.maxCell = maxCell
+        bms.avgCell = cellVoltages.average()
+        bms.cellDiff = maxCell - minCell
+        bms.minCellNum = (cellVoltages.indexOf(minCell) + 1).coerceAtLeast(1)
+        bms.maxCellNum = (cellVoltages.indexOf(maxCell) + 1).coerceAtLeast(1)
     }
 
     private suspend fun updateError(error: String) {

@@ -1,6 +1,5 @@
 package com.cooper.wheellog;
 
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,8 +9,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 import io.github.tritbool.euc.ble.models.EUCDevice;
@@ -19,7 +17,8 @@ import io.github.tritbool.euc.ble.models.EUCDevice;
 // Adapter for holding devices found through scanning.
 public class DeviceListAdapter extends BaseAdapter {
     private final ArrayList<EUCDevice> mLeDevices;
-    private final ArrayList<String> mLeAdvDatas;
+    // Advertising payload kept per device address, so it survives list rebuilds.
+    private final HashMap<String, String> mLeAdvDatas;
     private final LayoutInflater mInflator;
 
     static class ViewHolder {
@@ -30,39 +29,31 @@ public class DeviceListAdapter extends BaseAdapter {
     public DeviceListAdapter(AppCompatActivity appCompatActivity) {
         super();
         mLeDevices = new ArrayList<>();
-        mLeAdvDatas = new ArrayList<>();
+        mLeAdvDatas = new HashMap<>();
         mInflator = appCompatActivity.getLayoutInflater();
     }
 
     public void addDevice(EUCDevice device, String advData) {
         if (!mLeDevices.contains(device)) {
             mLeDevices.add(device);
-            mLeAdvDatas.add(advData);
+            if (advData != null) {
+                mLeAdvDatas.put(device.getAddress(), advData);
+            }
         }
     }
 
-
-    public void setDevices(List<EUCDevice> devices) {
-        mLeDevices.clear();
-        mLeAdvDatas.clear();
-
-        List<EUCDevice> sorted = new ArrayList<>(devices);
-        Collections.sort(sorted, new Comparator<EUCDevice>() {
-            @Override
-            public int compare(EUCDevice a, EUCDevice b) {
-                String aa = a.getAddress();
-                String bb = b.getAddress();
-                if (aa == null && bb == null) return 0;
-                if (aa == null) return -1;
-                if (bb == null) return 1;
-                return aa.compareTo(bb);
-            }
-        });
-
-        for (EUCDevice device : sorted) {
-            mLeDevices.add(device);
-            mLeAdvDatas.add("");
+    /**
+     * Replaces the displayed devices, keeping the order given by the caller (discovery order).
+     * Returns true when the contents actually changed, so the caller can skip a needless
+     * notifyDataSetChanged() (which would reset scroll position and pressed state).
+     */
+    public boolean setDevices(List<EUCDevice> devices) {
+        if (mLeDevices.equals(devices)) {
+            return false;
         }
+        mLeDevices.clear();
+        mLeDevices.addAll(devices);
+        return true;
     }
 
     public EUCDevice getDevice(int position) {
@@ -70,7 +61,8 @@ public class DeviceListAdapter extends BaseAdapter {
     }
 
     public String getAdvData(int position) {
-        return mLeAdvDatas.get(position);
+        String advData = mLeAdvDatas.get(mLeDevices.get(position).getAddress());
+        return advData == null ? "" : advData;
     }
 
     @Override

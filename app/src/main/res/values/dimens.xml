@@ -3,4 +3,8 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
 
     <dimen name="notification_content_margin_top">37.5dp</dimen>
+
+    <!-- Fixed height of the discovered-device list in the scan dialog, so the dialog no longer
+         grows (and pushes the MAC field down) every time a new device is found. -->
+    <dimen name="scan_device_list_height">280dp</dimen>
 </resources>

@@ -3,6 +3,7 @@ import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.app.Service
 import android.content.*
+import android.content.pm.ServiceInfo
 import android.os.Binder
 import android.os.Build
 import android.os.Environment
@@ -18,7 +19,6 @@ import io.github.tritbool.euc.ble.core.BLEConstants
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
 import timber.log.Timber
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -29,32 +29,79 @@ class LoggingService : Service() {
     private val notifications: NotificationUtil by inject()
     private val dao: TripDao by inject()
     private var sdf: SimpleDateFormat? = null
-    private lateinit var fileUtil: FileUtil
+    private var fileUtil: FileUtil? = null
     private var ioState = CoroutineScope(Dispatchers.IO + Job())
 
-    fun updateConnectionState(connectionState: BLEConstants.ConnectionState) {}
+    // Guards against re-running the (file creating) initialization when onStartCommand is
+    // redelivered, and against writing the same telemetry sample twice.
+    private var logStarted = false
+    private var lastLoggedTimestamp: Long? = null
+
+    fun updateConnectionState(connectionState: BLEConstants.ConnectionState) {
+        if (connectionState != BLEConstants.ConnectionState.CONNECTED) {
+            // Park logging: nothing is appended until fresh telemetry arrives again.
+            lastLoggedTimestamp = null
+        }
+    }
 
     private val mBinder: IBinder = LocalBinder()
 
-    override fun onBind(intent: Intent): IBinder? {
-        //     stopSelf()
-        //     return null
-        // }
+    override fun onBind(intent: Intent): IBinder = mBinder
+
+    override fun onCreate() {
+        super.onCreate()
         instance = this
-        fileUtil = FileUtil(applicationContext)
+        sdf = SimpleDateFormat("yyyy-MM-dd,HH:mm:ss.SSS", Locale.US)
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Must happen within a few seconds of startForegroundService(), otherwise Android
+        // kills the service with ForegroundServiceDidNotStartInTimeException.
+        startAsForeground()
+
+        if (!logStarted) {
+            if (!startLogging()) {
+                stopSelf()
+                return START_NOT_STICKY
+            }
+            logStarted = true
+            observeTelemetry()
+        }
+        return START_STICKY
+    }
+
+    private fun startAsForeground() {
+        if (notifications.notification == null) {
+            notifications.update()
+        }
+        val notification = notifications.notification ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                Constants.MAIN_NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+            )
+        } else {
+            startForeground(Constants.MAIN_NOTIFICATION_ID, notification)
+        }
+    }
+
+    /**
+     * Prepares (or reopens) the CSV file. Returns false when logging cannot be started.
+     */
+    private fun startLogging(): Boolean {
+        var file = FileUtil(applicationContext)
+        fileUtil = file
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             if (!checkExternalFilePermission(this)) {
                 showToast(R.string.logging_error_no_storage_permission)
-                stopSelf()
-                return mBinder
+                return false
             }
             if (!isExternalStorageReadable || !isExternalStorageWritable) {
                 showToast(R.string.logging_error_storage_unavailable)
-                stopSelf()
-                return mBinder
+                return false
             }
         }
-        sdf = SimpleDateFormat("yyyy-MM-dd,HH:mm:ss.SSS", Locale.US)
         var writeToLastLog = false
         val mac = viewModel.mac
         if (appConfig.continueThisDayLog &&
@@ -63,15 +110,16 @@ class LoggingService : Service() {
             val lastFileUtil = FileUtil.getLastLog(applicationContext)
             if (lastFileUtil?.file?.path?.contains(mac.replace(':', '_')) == true
             ) {
-                fileUtil = lastFileUtil
+                file = lastFileUtil
+                fileUtil = file
                 // parse prev log for filling session state - TODO: Implement EUCData parser
                 // val parser = ParserLogToWheelData()
                 // parser.parseFile(fileUtil)
-                fileUtil.prepareStream()
+                file.prepareStream()
                 writeToLastLog = true
                 // reset trip duration for recalculation in trip list
                 ioState.launch {
-                    dao.getTripByFileName(fileUtil.file!!.name)?.apply {
+                    dao.getTripByFileName(file.file!!.name)?.apply {
                         duration = 0
                         dao.update(this)
                     }
@@ -81,25 +129,47 @@ class LoggingService : Service() {
         if (!writeToLastLog) {
             val sdFormatter = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US)
             val filename = sdFormatter.format(Date()) + ".csv"
-            if (!fileUtil.prepareFile(filename, viewModel.mac)) {
-                stopSelf()
-                return mBinder
+            if (!file.prepareFile(filename, mac)) {
+                return false
             }
             appConfig.continueThisDayLogMacException = ""
+            file.writeLine("date,time,speed,voltage,phase_current,current,power,torque,pwm,battery_level,distance,totaldistance,system_temp,temp2,tilt,roll,mode,alert")
         }
-        if (!writeToLastLog) {
-            fileUtil.writeLine("date,time,speed,voltage,phase_current,current,power,torque,pwm,battery_level,distance,totaldistance,system_temp,temp2,tilt,roll,mode,alert")
-        }
-        val serviceIntent = Intent(Constants.ACTION_LOGGING_SERVICE_TOGGLED)
-        serviceIntent.putExtra(
-            Constants.INTENT_EXTRA_LOGGING_FILE_LOCATION,
-            fileUtil.absolutePath
-        )
-        serviceIntent.putExtra(Constants.INTENT_EXTRA_IS_RUNNING, true)
-        sendBroadcast(serviceIntent)
+        broadcastState(file.absolutePath, true)
         Timber.i("DataLogger Started")
+        return true
+    }
 
-        return mBinder
+    /**
+     * Logging is driven from the service itself so that it keeps running while the app is in
+     * the background or the screen is off (it used to be pushed by MainActivity, which stopped
+     * as soon as the activity was paused).
+     */
+    private fun observeTelemetry() {
+        ioState.launch {
+            viewModel.sessionState.collect { state ->
+                if (!state.isConnected) {
+                    lastLoggedTimestamp = null
+                    return@collect
+                }
+                val timestamp = state.lastDataTimestamp ?: return@collect
+                if (timestamp == lastLoggedTimestamp) return@collect
+                lastLoggedTimestamp = timestamp
+                updateFile()
+            }
+        }
+    }
+
+    private fun broadcastState(path: String?, isRunning: Boolean) {
+        val serviceIntent = Intent(Constants.ACTION_LOGGING_SERVICE_TOGGLED).apply {
+            // Keep the broadcast internal to the app.
+            setPackage(packageName)
+            if (!isNullOrEmpty(path)) {
+                putExtra(Constants.INTENT_EXTRA_LOGGING_FILE_LOCATION, path)
+            }
+            putExtra(Constants.INTENT_EXTRA_IS_RUNNING, isRunning)
+        }
+        sendBroadcast(serviceIntent)
     }
 
     private fun isNullOrEmpty(s: String?): Boolean {
@@ -107,26 +177,16 @@ class LoggingService : Service() {
     }
 
     override fun onDestroy() {
-        var isBusy = false
-        val path = fileUtil.absolutePath
-        fileUtil.close()
+        ioState.cancel()
+        val path = fileUtil?.absolutePath
+        fileUtil?.close()
+        fileUtil = null
         Timber.wtf("DataLogger Stopping...")
         notifications.setCustomTitle("Uploading tack...")
-
-        if (!isBusy) {
-            reallyDestroy(path)
-        }
-    }
-
-    private fun reallyDestroy(path: String?) {
-        val serviceIntent = Intent(Constants.ACTION_LOGGING_SERVICE_TOGGLED)
-        if (!isNullOrEmpty(path)) {
-            serviceIntent.putExtra(Constants.INTENT_EXTRA_LOGGING_FILE_LOCATION, path)
-        }
-        serviceIntent.putExtra(Constants.INTENT_EXTRA_IS_RUNNING, false)
-        sendBroadcast(serviceIntent)
+        broadcastState(path, false)
         instance = null
         Timber.wtf("DataLogger Stopped")
+        super.onDestroy()
     }
 
     private val isExternalStorageWritable: Boolean
@@ -144,10 +204,13 @@ class LoggingService : Service() {
 
     fun updateFile() {
         val wd = viewModel
-        fileUtil.writeLine(
+        val file = fileUtil ?: return
+        val formatter = sdf ?: return
+        file.writeLine(
             String.format(
-                Locale.US, "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%s,%d",
-                sdf!!.format(System.currentTimeMillis()),
+                Locale.US,
+                "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%s,%d",
+                formatter.format(System.currentTimeMillis()),
                 wd.speedDouble,
                 wd.voltageDouble,
                 wd.phaseCurrentDouble,
@@ -169,7 +232,7 @@ class LoggingService : Service() {
     }
 
     private fun showToast(messageId: Int) {
-        for (i in 0..3) Toast.makeText(this, messageId, Toast.LENGTH_LONG).show()
+        Toast.makeText(this, messageId, Toast.LENGTH_LONG).show()
     }
 
     inner class LocalBinder : Binder() {

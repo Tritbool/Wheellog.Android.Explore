@@ -28,6 +28,7 @@ import io.github.tritbool.euc.ble.protocols.EUCProtocol
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -107,6 +108,15 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     private var ridingTimerControl: Timer? = null
     private val ridingSpeedThreshold = 200 // 2km/h in legacy format
 
+    // ========== PROTOCOL SELECTION ==========
+    // True once the library reported an active protocol for the current connection.
+    private var protocolActive: Boolean = false
+    private var protocolWatchdogJob: Job? = null
+
+    // Grace period given to the library to auto-detect the wheel protocol after the
+    // GATT connection is established, before the user is asked to pick one manually.
+    private val protocolDetectionTimeoutMs = 6000L
+
     init {
         Timber.i("BleSessionViewModel initialized - REPLACES WheelData")
         startRidingTimerControl()
@@ -138,6 +148,12 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 }
             }
 
+            override fun onScanStarted() {
+                viewModelScope.launch {
+                    _sessionState.value = _sessionState.value.copy(isScanning = true)
+                }
+            }
+
             override fun onDeviceDiscovered(device: EUCDevice) {
                 viewModelScope.launch {
                     addScanResult(device)
@@ -148,26 +164,34 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 viewModelScope.launch {
                     _sessionState.value = _sessionState.value.copy(
                         isScanning = false,
-                        scanResults = devices
+                        // The library keeps its results in a hash map, so this list is in
+                        // arbitrary order. Merge it into the discovery-ordered list built
+                        // from onDeviceDiscovered instead of replacing it, otherwise the
+                        // device list visibly reshuffles when the scan ends.
+                        scanResults = ScanResultMerger.merge(_sessionState.value.scanResults, devices)
                     )
                 }
             }
 
             override fun onProtocolSelectionRequired(protocols: List<EUCProtocol>) {
                 viewModelScope.launch {
-                    _sessionState.value = _sessionState.value.copy(
-                        protocolSelectionRequired = true,
-                        protocolCandidates = protocols
-                    )
-                    Timber.i(
-                        "Protocol auto-detection failed, %d candidates available",
-                        protocols.size
-                    )
+                    // The library also emits this callback as soon as
+                    // AUTO_WITH_MANUAL_FALLBACK is enabled while no protocol is active,
+                    // i.e. before the wheel is even connected. Auto-detection has not run
+                    // at that point, so prompting the user would be premature (and would
+                    // fail, since a protocol can only be selected on a connected device).
+                    if (!_sessionState.value.isConnected) {
+                        Timber.d("Ignoring protocol selection request received before connection")
+                        return@launch
+                    }
+                    requestProtocolSelection(protocols)
                 }
             }
 
             override fun onProtocolSelected(selection: ProtocolSelection) {
                 viewModelScope.launch {
+                    protocolActive = true
+                    cancelProtocolWatchdog()
                     _sessionState.value = _sessionState.value.copy(
                         protocolSelectionRequired = false,
                         protocolCandidates = emptyList()
@@ -184,7 +208,12 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         client.setDataCallback(object : DataCallback {
             override fun onDataReceived(data: EUCData) {
                 viewModelScope.launch {
-                    updateTelemetryData(data)
+                    try {
+                        updateTelemetryData(data)
+                    } catch (e: Exception) {
+                        // A single malformed packet must not tear down the update pipeline
+                        Timber.e(e, "Failed to process telemetry packet")
+                    }
                 }
             }
         })
@@ -245,6 +274,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         } else {
             Timber.i("Device connected; device metadata is not available yet")
         }
+
+        startProtocolWatchdog()
     }
 
     private suspend fun updateDisconnectedState() {
@@ -252,14 +283,63 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         wheelAlarm = false
         bms1.reset()
         bms2.reset()
+        protocolActive = false
+        cancelProtocolWatchdog()
 
         _sessionState.value = _sessionState.value.copy(
             connectionState = BLEConstants.ConnectionState.DISCONNECTED,
             selectedDevice = null,
-            lastData = null
+            lastData = null,
+            // Telemetry is stale from now on; consumers (logging service, UI) must not
+            // keep treating the last received sample as fresh.
+            lastDataTimestamp = null,
+            protocolSelectionRequired = false,
+            protocolCandidates = emptyList()
         )
 
         Timber.i("Device disconnected")
+    }
+
+    /**
+     * Publishes a manual protocol selection request to the UI.
+     */
+    private fun requestProtocolSelection(protocols: List<EUCProtocol>) {
+        if (protocols.isEmpty() || protocolActive) return
+        cancelProtocolWatchdog()
+        _sessionState.value = _sessionState.value.copy(
+            protocolSelectionRequired = true,
+            protocolCandidates = protocols
+        )
+        Timber.i("Protocol auto-detection failed, %d candidates available", protocols.size)
+    }
+
+    /**
+     * Watches the connection after it is established: if the library has not activated any
+     * protocol within [protocolDetectionTimeoutMs], the wheel would stay connected without
+     * ever producing telemetry, so the user is asked to pick a protocol manually.
+     *
+     * This is required because the library only emits `onProtocolSelectionRequired` once per
+     * selection mode change: the notification it raises when AUTO_WITH_MANUAL_FALLBACK is
+     * enabled (before connecting) latches the request and suppresses the one that would
+     * otherwise be raised when auto-detection actually fails.
+     */
+    private fun startProtocolWatchdog() {
+        cancelProtocolWatchdog()
+        if (protocolActive) return
+        protocolWatchdogJob = viewModelScope.launch {
+            delay(protocolDetectionTimeoutMs.milliseconds)
+            val state = _sessionState.value
+            if (protocolActive || !state.isConnected || state.lastDataTimestamp != null) {
+                return@launch
+            }
+            Timber.w("No protocol activated %d ms after connecting", protocolDetectionTimeoutMs)
+            requestProtocolSelection(_eucBleClient.getRegisteredProtocols())
+        }
+    }
+
+    private fun cancelProtocolWatchdog() {
+        protocolWatchdogJob?.cancel()
+        protocolWatchdogJob = null
     }
 
     private suspend fun updateTelemetryData(data: EUCData) {
@@ -378,11 +458,17 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         // voltages through the active protocol's getBMSData(), while EUCData.cellVoltages
         // only carries the two packs concatenated together. Prefer the per-pack data when
         // the protocol exposes it so each BMS page reflects its own pack.
-        val bmsPacks = _eucBleClient.getRegisteredProtocols()
-            .firstOrNull { it.manufacturer == data.manufacturer }
-            ?.getBMSData()
-            ?.filter { !it.cellVoltages.isNullOrEmpty() }
-            ?.sortedBy { it.bmsIndex }
+        val bmsPacks = runCatching {
+            _eucBleClient.getRegisteredProtocols()
+                .firstOrNull { it.manufacturer == data.manufacturer }
+                ?.getBMSData()
+                ?.filter { !it.cellVoltages.isNullOrEmpty() }
+                ?.sortedBy { it.bmsIndex }
+        }.onFailure {
+            // getBMSData() reads decoder state that is mutated on the BLE thread, so a
+            // transient failure here must never break the telemetry update pipeline.
+            Timber.w(it, "Unable to read per-pack BMS data")
+        }.getOrNull()
 
         if (!bmsPacks.isNullOrEmpty()) {
             applyBmsPackData(bms1, data, bmsPacks[0])
@@ -482,8 +568,15 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private suspend fun updateError(error: String) {
-        _sessionState.value = _sessionState.value.copy(
-            lastError = error
+        val state = _sessionState.value
+        _sessionState.value = state.copy(
+            lastError = error,
+            // A failing scan must not leave the UI stuck in the "scanning" state.
+            isScanning = if (state.isScanning && error.contains("scan", ignoreCase = true)) {
+                false
+            } else {
+                state.isScanning
+            }
         )
 
         Timber.e("BLE error: %s", error)
@@ -496,30 +589,38 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun startScan() {
         viewModelScope.launch {
             try {
+                // `isScanning` is only raised once the library reports the platform scan has
+                // actually started (onScanStarted); otherwise a refused scan would leave the
+                // flag stuck at true forever.
                 _sessionState.value = _sessionState.value.copy(
-                    isScanning = true,
                     scanResults = emptyList(),
                     lastError = null
                 )
                 _eucBleClient.startScan()
-                Timber.i("BLE scan started")
+                Timber.i("BLE scan requested")
             } catch (e: Exception) {
+                _sessionState.value = _sessionState.value.copy(isScanning = false)
                 updateError(e.message ?: "Failed to start scan")
             }
         }
     }
 
+    /**
+     * Stops an ongoing scan. Safe (and cheap) to call when no scan is running.
+     */
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     fun stopScan() {
         viewModelScope.launch {
             try {
                 _eucBleClient.stopScan()
+                Timber.i("BLE scan stopped")
+            } catch (e: Exception) {
+                // Stopping a scan that is not running is not an error worth surfacing.
+                Timber.w(e, "Failed to stop BLE scan")
+            } finally {
                 _sessionState.value = _sessionState.value.copy(
                     isScanning = false
                 )
-                Timber.i("BLE scan stopped")
-            } catch (e: Exception) {
-                updateError(e.message ?: "Failed to stop scan")
             }
         }
     }
@@ -528,6 +629,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun connect(device: EUCDevice) {
         viewModelScope.launch {
             try {
+                prepareForConnection()
                 _eucBleClient.connect(device)
                 Timber.i("Connecting to device: %s", device.address)
             } catch (e: Exception) {
@@ -561,6 +663,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun connectByAddress(mac: String, name: String = "") {
         viewModelScope.launch {
             try {
+                prepareForConnection()
                 if (_eucBleClient.getProtocolSelectionMode() != ProtocolSelectionMode.FORCED) {
                     _eucBleClient.setProtocolSelectionMode(ProtocolSelectionMode.AUTO_WITH_MANUAL_FALLBACK)
                 }
@@ -571,19 +674,38 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                     updateError("Bluetooth not available — cannot connect to $mac")
                     return@launch
                 }
+                // Protocol auto-detection also relies on the advertised device name
+                // (e.g. to tell an ExtremeBull apart from a plain Gotway/Begode), so fall
+                // back to the name known by the Bluetooth stack when none was supplied.
+                val resolvedName = name.ifBlank {
+                    runCatching { bluetoothDevice.name }.getOrNull().orEmpty()
+                }
                 val device = EUCDevice(
                     bluetoothDevice = bluetoothDevice,
                     address = mac,
-                    name = name,
+                    name = resolvedName,
                     manufacturerId = -1,
                     rssi = 0
                 )
                 _eucBleClient.connect(device)
-                Timber.i("Connecting to device by address: %s", mac)
+                Timber.i("Connecting to device by address: %s (%s)", mac, resolvedName)
             } catch (e: Exception) {
                 updateError(e.message ?: "Failed to connect to $mac")
             }
         }
+    }
+
+    /**
+     * Resets the per-connection protocol tracking before a new connection attempt.
+     */
+    private fun prepareForConnection() {
+        protocolActive = false
+        cancelProtocolWatchdog()
+        _sessionState.value = _sessionState.value.copy(
+            lastDataTimestamp = null,
+            protocolSelectionRequired = false,
+            protocolCandidates = emptyList()
+        )
     }
 
     fun updateScanResults(devices: List<EUCDevice>) {
@@ -596,12 +718,9 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
     fun addScanResult(device: EUCDevice) {
         viewModelScope.launch {
-            val currentResults = _sessionState.value.scanResults
-            if (!currentResults.any { it.address == device.address }) {
-                _sessionState.value = _sessionState.value.copy(
-                    scanResults = currentResults + device
-                )
-            }
+            _sessionState.value = _sessionState.value.copy(
+                scanResults = ScanResultMerger.merge(_sessionState.value.scanResults, listOf(device))
+            )
         }
     }
 
@@ -657,6 +776,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 ?: return false
         val result = _eucBleClient.selectProtocol(protocol)
         if (result) {
+            protocolActive = true
+            cancelProtocolWatchdog()
             viewModelScope.launch {
                 _sessionState.value = _sessionState.value.copy(
                     protocolSelectionRequired = false,
@@ -664,6 +785,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 )
             }
             Timber.i("Protocol manually selected: %s", protocolId)
+        } else {
+            Timber.w("Manual protocol selection failed: %s", protocolId)
         }
         return result
     }
@@ -674,6 +797,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
      */
     fun dismissProtocolSelection() {
         viewModelScope.launch {
+            cancelProtocolWatchdog()
             _sessionState.value = _sessionState.value.copy(
                 protocolSelectionRequired = false,
                 protocolCandidates = emptyList()

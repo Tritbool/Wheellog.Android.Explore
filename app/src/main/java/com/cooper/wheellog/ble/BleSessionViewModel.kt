@@ -385,7 +385,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             ?.sortedBy { it.bmsIndex }
 
         if (!bmsPacks.isNullOrEmpty()) {
-            applyBmsPackData(bms1, data, bmsPacks.getOrNull(0))
+            applyBmsPackData(bms1, data, bmsPacks[0])
             val secondPack = bmsPacks.getOrNull(1)
             if (secondPack != null) {
                 applyBmsPackData(bms2, data, secondPack)
@@ -432,21 +432,33 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
     /**
      * Populates a single BMS pack (bms1 or bms2) from a [BMSData] snapshot returned by the
-     * active protocol. Shared telemetry (temperature, battery level) that isn't measured
-     * per-pack falls back to the overall [EUCData]; voltage/current use the pack-specific
-     * value when the protocol provides it.
+     * active protocol. Since library 0.0.8, Gotway/Begode protocols decode per-pack
+     * voltage/current/temperatures (from Type 1 BMS summary frames) in addition to
+     * per-pack cell voltages, so those are preferred over the shared [EUCData] fields
+     * whenever the protocol provides them; fields the protocol doesn't measure per-pack
+     * fall back to the overall [EUCData] values.
      */
-    private fun applyBmsPackData(bms: SmartBms, data: EUCData, pack: BMSData?) {
-        bms.voltage = pack?.voltage ?: data.voltage
-        bms.current = pack?.current ?: data.current
-        bms.temp1 = data.temperature
-        bms.temp2 = data.motorTemperature ?: 0.0
-        bms.remPerc = data.batteryLevel
-        pack?.remainingCapacity?.let { bms.remCap = it }
-        pack?.factoryCapacity?.let { bms.factoryCap = it }
-        pack?.cycles?.let { bms.fullCycles = it }
+    private fun applyBmsPackData(bms: SmartBms, data: EUCData, pack: BMSData) {
+        bms.voltage = pack.voltage ?: data.voltage
+        bms.current = pack.current ?: data.current
 
-        val cellVoltages = pack?.cellVoltages.orEmpty().filter { it > 0.0 }
+        val temperatures = pack.temperatures
+        if (temperatures != null && temperatures.size >= 4) {
+            bms.temp1 = temperatures[0]
+            bms.temp2 = temperatures[1]
+            bms.temp3 = temperatures[2]
+            bms.temp4 = temperatures[3]
+        } else {
+            bms.temp1 = data.temperature
+            bms.temp2 = data.motorTemperature ?: 0.0
+        }
+
+        bms.remPerc = data.batteryLevel
+        pack.remainingCapacity?.let { bms.remCap = it }
+        pack.factoryCapacity?.let { bms.factoryCap = it }
+        pack.cycles?.let { bms.fullCycles = it }
+
+        val cellVoltages = pack.cellVoltages.orEmpty().filter { it > 0.0 }
         if (cellVoltages.isEmpty()) {
             // Keep last known cell data instead of clearing it, mirroring the
             // single-pack fallback behaviour above.

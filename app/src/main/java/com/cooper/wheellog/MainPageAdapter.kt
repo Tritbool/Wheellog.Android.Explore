@@ -707,20 +707,28 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         val layout = pagesView[R.layout.main_view_smart_bms]?.findViewById<GridLayout>(R.id.page_smart_bms_grid) ?: return
         layout.removeAllViews()
         val font = ThemeManager.getTypeface(activity)
+        // Only show the "Battery 2" column when the wheel actually reports a
+        // second BMS (e.g. dual-battery Kingsong/Veteran wheels). Single-BMS
+        // wheels such as Begode/Gotway would otherwise display an empty,
+        // meaningless second column.
+        val showBms2 = viewModel.bms2.cellNum > 0
+        layout.columnCount = if (showBms2) 4 else 2
         val bat1Text = (activity.layoutInflater.inflate(
                 R.layout.textview_smart_bms_battery_template, layout, false
         ) as TextView).apply {
             text = activity.getString(R.string.bmsBattery1Title)
             typeface = font
         }
-        val bat2Text = (activity.layoutInflater.inflate(
-                R.layout.textview_smart_bms_battery_template, layout, false
-        ) as TextView).apply {
-            text = activity.getString(R.string.bmsBattery2Title)
-            typeface = font
-        }
         layout.addView(bat1Text)
-        layout.addView(bat2Text)
+        if (showBms2) {
+            val bat2Text = (activity.layoutInflater.inflate(
+                    R.layout.textview_smart_bms_battery_template, layout, false
+            ) as TextView).apply {
+                text = activity.getString(R.string.bmsBattery2Title)
+                typeface = font
+            }
+            layout.addView(bat2Text)
+        }
 
         var views1 = ArrayList<View>()
         var views2 = ArrayList<View>()
@@ -741,49 +749,58 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
             views1.add(headerText1)
             views1.add(valueText1)
         }
-        for ((key2, value2) in smartBms2PageValues) {
-            val headerText2 = (activity.layoutInflater.inflate(
-                    R.layout.textview_smart_bms_title_template, layout, false
-            ) as TextView).apply {
-                text = activity.getString(key2)
-                typeface = font
+        if (showBms2) {
+            for ((key2, value2) in smartBms2PageValues) {
+                val headerText2 = (activity.layoutInflater.inflate(
+                        R.layout.textview_smart_bms_title_template, layout, false
+                ) as TextView).apply {
+                    text = activity.getString(key2)
+                    typeface = font
+                }
+                val valueText2 = (activity.layoutInflater.inflate(
+                        R.layout.textview_smart_bms_value_template, layout, false
+                ) as TextView).apply {
+                    text = value2
+                    typeface = font
+                }
+                views2.add(headerText2)
+                views2.add(valueText2)
             }
-            val valueText2 = (activity.layoutInflater.inflate(
-                    R.layout.textview_smart_bms_value_template, layout, false
-            ) as TextView).apply {
-                text = value2
-                typeface = font
-            }
-            views2.add(headerText2)
-            views2.add(valueText2)
         }
         var index = 0
         while (index < views1.size) {
             layout.addView(views1[index])
             layout.addView(views1[index+1])
-            layout.addView(views2[index])
-            layout.addView(views2[index+1])
+            if (showBms2) {
+                layout.addView(views2[index])
+                layout.addView(views2[index+1])
+            }
             index += 2
         }
     }
 
     private fun updateSmartBmsPage() {
         val layout = pagesView[R.layout.main_view_smart_bms]?.findViewById<GridLayout>(R.id.page_smart_bms_grid) ?: return
+        val showBms2 = viewModel.bms2.cellNum > 0
+        val headerCount = if (showBms2) 2 else 1
+        val rowStride = if (showBms2) 4 else 2
         val count = layout.childCount
-        if (smartBms1PageValues.size * 4 != count-2) {
+        if (smartBms1PageValues.size * rowStride != count - headerCount) {
             return
         }
-        var index = 3
+        var index = headerCount + 1
         for (value in smartBms1PageValues.values) {
             val valueText = layout.getChildAt(index) as TextView
             valueText.text = value
-            index += 4
+            index += rowStride
         }
-        index = 5
-        for (value in smartBms2PageValues.values) {
-            val valueText = layout.getChildAt(index) as TextView
-            valueText.text = value
-            index += 4
+        if (showBms2) {
+            index = headerCount + 3
+            for (value in smartBms2PageValues.values) {
+                val valueText = layout.getChildAt(index) as TextView
+                valueText.text = value
+                index += rowStride
+            }
         }
     }
 

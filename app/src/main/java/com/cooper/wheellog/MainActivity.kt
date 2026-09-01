@@ -104,6 +104,7 @@ class MainActivity : AppCompatActivity() {
     private var loggingService: LoggingService? = null
     private var isLoggingServiceBound: Boolean = false
     private var bmsDisplaySignature: String = ""
+    private var paramsDisplaySignature: String = ""
     private val mLoggingServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             loggingService = (service as LoggingService.LocalBinder).getService()
@@ -176,6 +177,7 @@ class MainActivity : AppCompatActivity() {
         when (connectionState) {
             BLEConstants.ConnectionState.CONNECTED -> {
                 pagerAdapter.configureSecondDisplay()
+                paramsDisplaySignature = viewModel.wheelType.toString()
                 bmsDisplaySignature = ""
                 val mac = viewModel.getMac
                 if (mac.isNotEmpty()) {
@@ -189,6 +191,7 @@ class MainActivity : AppCompatActivity() {
 
             BLEConstants.ConnectionState.DISCONNECTED -> {
                 bmsDisplaySignature = ""
+                paramsDisplaySignature = ""
                 if (mConnectionState == BLEConstants.ConnectionState.CONNECTED) {
                     showSnackBar(getString(R.string.connection_lost_at), Snackbar.LENGTH_INDEFINITE)
                 }
@@ -255,6 +258,15 @@ class MainActivity : AppCompatActivity() {
             if (currentBmsSignature != bmsDisplaySignature) {
                 pagerAdapter.configureSmartBmsDisplay()
                 bmsDisplaySignature = currentBmsSignature
+            }
+
+            // The wheel type/manufacturer is only known once telemetry data starts
+            // flowing (it is "Unknown" right at CONNECTED time), so the params page
+            // (page 2) needs to be (re)configured once it becomes available.
+            val currentParamsSignature = viewModel.wheelType.toString()
+            if (currentParamsSignature != paramsDisplaySignature) {
+                pagerAdapter.configureSecondDisplay()
+                paramsDisplaySignature = currentParamsSignature
             }
             // Update logging
             loggingService?.updateFile()

@@ -381,17 +381,11 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         bms1.remPerc = data.batteryLevel
 
         if (cellVoltages.isEmpty()) {
-            bms1.cellNum = 0
-            bms1.minCell = 0.0
-            bms1.maxCell = 0.0
-            bms1.avgCell = 0.0
-            bms1.cellDiff = 0.0
-            bms1.minCellNum = 0
-            bms1.maxCellNum = 0
-            for (i in bms1.cells.indices) {
-                bms1.cells[i] = 0.0
-            }
-            bms2.reset()
+            // Cell voltages are not part of every telemetry packet for some
+            // protocols (e.g. Gotway/Begode), so a packet without them doesn't
+            // mean the BMS has no cells. Keep the last known cell data instead
+            // of clearing it, otherwise the BMS page would flicker between the
+            // detailed and fallback layouts on every update.
             return
         }
 

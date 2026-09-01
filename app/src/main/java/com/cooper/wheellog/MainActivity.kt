@@ -100,6 +100,9 @@ class MainActivity : AppCompatActivity() {
     // Dialog shown when protocol auto-detection fails
     private var protocolSelectionDialog: AlertDialog? = null
 
+    // Last BLE error already reported to the user, to avoid repeating the same snackbar
+    private var lastShownError: String? = null
+
     // Logging service
     private var loggingService: LoggingService? = null
     private var isLoggingServiceBound: Boolean = false
@@ -211,7 +214,10 @@ class MainActivity : AppCompatActivity() {
      * Replaces the legacy broadcast receivers for WHEEL_DATA_AVAILABLE and BLUETOOTH_CONNECTION_STATE.
      */
     private fun handleSessionStateChange(state: BleSessionState) {
-        if (isPaused) return
+        // NOTE: do not gate this on `isPaused`. The collector already runs inside
+        // repeatOnLifecycle(STARTED), which re-emits the current state at ON_START while
+        // `isPaused` is still true; dropping that emission left `mConnectionState` stale
+        // (wrong menu icon and an inverted connect/disconnect action after backgrounding).
 
         // Connection state changes
         if (state.connectionState != mConnectionState) {
@@ -269,8 +275,6 @@ class MainActivity : AppCompatActivity() {
                 paramsDisplaySignature = currentParamsSignature
             }
             // Update logging
-            loggingService?.updateFile()
-
             notifications.update()
 
             // Auto-start logging when moving
@@ -300,6 +304,16 @@ class MainActivity : AppCompatActivity() {
 
             // Update the pager
             pagerAdapter.updateScreen(false)
+        }
+
+        // Surface BLE errors (e.g. "Connection timeout", "Already connecting or connected")
+        // so a seemingly unresponsive connect button explains itself.
+        val error = state.lastError
+        if (error != null && error != lastShownError && !isPaused) {
+            showSnackBar(error)
+            lastShownError = error
+        } else if (error == null) {
+            lastShownError = null
         }
     }
 
@@ -362,7 +376,7 @@ class MainActivity : AppCompatActivity() {
             miLogging!!.setTitle(R.string.start_data_service)
             miLogging!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuLogOff))
         }
-        when (mConnectionState) {
+        when (viewModel.sessionState.value.connectionState) {
             BLEConstants.ConnectionState.CONNECTED -> {
                 miWheel!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuWheelOn))
                 miWheel!!.setTitle(R.string.disconnect_from_wheel)
@@ -500,6 +514,12 @@ class MainActivity : AppCompatActivity() {
             mNotificationButtonReceiver,
             makeNotificationIntentFilter(),
             ContextCompat.RECEIVER_EXPORTED
+        )
+        ContextCompat.registerReceiver(
+            this,
+            mNotificationButtonReceiver,
+            makeInternalIntentFilter(),
+            ContextCompat.RECEIVER_NOT_EXPORTED
         )
 
         notifications.update()
@@ -654,6 +674,7 @@ class MainActivity : AppCompatActivity() {
             miSettings.setIcon(ThemeManager.getId(ThemeIconEnum.MenuSettings))
             miSearch!!.setIcon(ThemeManager.getId(ThemeIconEnum.MenuBluetooth))
         }
+        setMenuIconStates()
         return true
     }
 
@@ -840,7 +861,7 @@ class MainActivity : AppCompatActivity() {
                     pagerAdapter.updatePageOfTrips()
                 }
             }
-        } else if (mConnectionState == BLEConstants.ConnectionState.CONNECTED) {
+        } else if (viewModel.sessionState.value.connectionState == BLEConstants.ConnectionState.CONNECTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(dataLoggerServiceIntent)
             } else {
@@ -869,7 +890,12 @@ class MainActivity : AppCompatActivity() {
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun toggleConnectToWheel() {
-        if (mConnectionState == BLEConstants.ConnectionState.CONNECTED) {
+        // Any non-disconnected state (CONNECTED, but also CONNECTING/DISCONNECTING and the
+        // library's automatic reconnection attempts) must be cancellable, otherwise the button
+        // just re-issues connect() and the library rejects it with "Already connecting or
+        // connected", making the button look dead. disconnect() also clears the library's
+        // auto-reconnect loop.
+        if (viewModel.sessionState.value.connectionState != BLEConstants.ConnectionState.DISCONNECTED) {
             if (checkBlePermissions(this, RESULT_REQUEST_PERMISSIONS_BT)) {
                 viewModel.disconnect()
             }
@@ -922,6 +948,21 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 Constants.NOTIFICATION_BUTTON_BEEP -> playBeep()
+                Constants.ACTION_LOGGING_SERVICE_TOGGLED -> {
+                    val isRunning =
+                        intent.getBooleanExtra(Constants.INTENT_EXTRA_IS_RUNNING, false)
+                    val path =
+                        intent.getStringExtra(Constants.INTENT_EXTRA_LOGGING_FILE_LOCATION)
+                    if (isRunning && !path.isNullOrEmpty()) {
+                        showSnackBar("${getString(R.string.started_logging)} $path")
+                    }
+                    setMenuIconStates()
+                    notifications.update()
+                    if (!isRunning && !onDestroyProcess) {
+                        pagerAdapter.updatePageOfTrips()
+                    }
+                }
+
                 Constants.ACTION_PREFERENCE_RESET -> {
                     Timber.i("Reset battery lowest")
                     pagerAdapter.wheelView?.resetBatteryLowest()
@@ -1008,6 +1049,13 @@ class MainActivity : AppCompatActivity() {
             addAction(Constants.NOTIFICATION_BUTTON_LOGGING)
             addAction(Constants.NOTIFICATION_BUTTON_BEEP)
             addAction(Constants.ACTION_PREFERENCE_RESET)
+        }
+    }
+
+    /** App-internal broadcasts, deliberately registered as non-exported. */
+    private fun makeInternalIntentFilter(): IntentFilter {
+        return IntentFilter().apply {
+            addAction(Constants.ACTION_LOGGING_SERVICE_TOGGLED)
         }
     }
 

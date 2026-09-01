@@ -148,6 +148,12 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 }
             }
 
+            override fun onScanStarted() {
+                viewModelScope.launch {
+                    _sessionState.value = _sessionState.value.copy(isScanning = true)
+                }
+            }
+
             override fun onDeviceDiscovered(device: EUCDevice) {
                 viewModelScope.launch {
                     addScanResult(device)
@@ -158,7 +164,11 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 viewModelScope.launch {
                     _sessionState.value = _sessionState.value.copy(
                         isScanning = false,
-                        scanResults = devices
+                        // The library keeps its results in a hash map, so this list is in
+                        // arbitrary order. Merge it into the discovery-ordered list built
+                        // from onDeviceDiscovered instead of replacing it, otherwise the
+                        // device list visibly reshuffles when the scan ends.
+                        scanResults = ScanResultMerger.merge(_sessionState.value.scanResults, devices)
                     )
                 }
             }
@@ -280,6 +290,9 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             connectionState = BLEConstants.ConnectionState.DISCONNECTED,
             selectedDevice = null,
             lastData = null,
+            // Telemetry is stale from now on; consumers (logging service, UI) must not
+            // keep treating the last received sample as fresh.
+            lastDataTimestamp = null,
             protocolSelectionRequired = false,
             protocolCandidates = emptyList()
         )
@@ -555,8 +568,15 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private suspend fun updateError(error: String) {
-        _sessionState.value = _sessionState.value.copy(
-            lastError = error
+        val state = _sessionState.value
+        _sessionState.value = state.copy(
+            lastError = error,
+            // A failing scan must not leave the UI stuck in the "scanning" state.
+            isScanning = if (state.isScanning && error.contains("scan", ignoreCase = true)) {
+                false
+            } else {
+                state.isScanning
+            }
         )
 
         Timber.e("BLE error: %s", error)
@@ -569,30 +589,38 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun startScan() {
         viewModelScope.launch {
             try {
+                // `isScanning` is only raised once the library reports the platform scan has
+                // actually started (onScanStarted); otherwise a refused scan would leave the
+                // flag stuck at true forever.
                 _sessionState.value = _sessionState.value.copy(
-                    isScanning = true,
                     scanResults = emptyList(),
                     lastError = null
                 )
                 _eucBleClient.startScan()
-                Timber.i("BLE scan started")
+                Timber.i("BLE scan requested")
             } catch (e: Exception) {
+                _sessionState.value = _sessionState.value.copy(isScanning = false)
                 updateError(e.message ?: "Failed to start scan")
             }
         }
     }
 
+    /**
+     * Stops an ongoing scan. Safe (and cheap) to call when no scan is running.
+     */
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     fun stopScan() {
         viewModelScope.launch {
             try {
                 _eucBleClient.stopScan()
+                Timber.i("BLE scan stopped")
+            } catch (e: Exception) {
+                // Stopping a scan that is not running is not an error worth surfacing.
+                Timber.w(e, "Failed to stop BLE scan")
+            } finally {
                 _sessionState.value = _sessionState.value.copy(
                     isScanning = false
                 )
-                Timber.i("BLE scan stopped")
-            } catch (e: Exception) {
-                updateError(e.message ?: "Failed to stop scan")
             }
         }
     }
@@ -690,12 +718,9 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
     fun addScanResult(device: EUCDevice) {
         viewModelScope.launch {
-            val currentResults = _sessionState.value.scanResults
-            if (!currentResults.any { it.address == device.address }) {
-                _sessionState.value = _sessionState.value.copy(
-                    scanResults = currentResults + device
-                )
-            }
+            _sessionState.value = _sessionState.value.copy(
+                scanResults = ScanResultMerger.merge(_sessionState.value.scanResults, listOf(device))
+            )
         }
     }
 

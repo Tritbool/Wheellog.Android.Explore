@@ -23,13 +23,16 @@ import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.databinding.ActivityScanBinding
 import com.cooper.wheellog.utils.PermissionsUtil
 import com.cooper.wheellog.utils.StringUtil
 import io.github.tritbool.euc.ble.models.EUCDevice
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import timber.log.Timber
@@ -68,9 +71,7 @@ class ScanActivity : AppCompatActivity() {
                 binding.lastMacText.errorIconDrawable = null
                 return@setEndIconOnClickListener
             }
-            if (viewModel.sessionState.value.isScanning) {
-                scanLeDevice(false)
-            }
+            scanLeDevice(false)
             val intent = Intent()
             intent.putExtra("MAC", deviceAddress)
             appConfig.lastMac = deviceAddress
@@ -85,9 +86,6 @@ class ScanActivity : AppCompatActivity() {
                 if (keycode == KeyEvent.KEYCODE_BACK && keyEvent.action == KeyEvent.ACTION_UP &&
                     !keyEvent.isCanceled
                 ) {
-                    if (viewModel.sessionState.value.isScanning) {
-                        scanLeDevice(false)
-                    }
                     dialogInterface.cancel()
                     close()
                 }
@@ -102,11 +100,18 @@ class ScanActivity : AppCompatActivity() {
             clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
         }
 
-        // Observe scan results from ViewModel
+        // Observe scan results only: any other session state change (telemetry, connection,
+        // ...) must not rebuild the device list.
         lifecycleScope.launch {
-            viewModel.sessionState.collect { state ->
-                mDeviceListAdapter?.setDevices(state.scanResults)
-                mDeviceListAdapter?.notifyDataSetChanged()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.sessionState
+                    .map { it.scanResults }
+                    .distinctUntilChanged()
+                    .collect { devices ->
+                        if (mDeviceListAdapter?.setDevices(devices) == true) {
+                            mDeviceListAdapter?.notifyDataSetChanged()
+                        }
+                    }
             }
         }
 
@@ -115,9 +120,6 @@ class ScanActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
             override fun handleOnBackPressed() {
-                if (viewModel.sessionState.value.isScanning) {
-                    scanLeDevice(false)
-                }
                 close()
             }
         })
@@ -125,11 +127,20 @@ class ScanActivity : AppCompatActivity() {
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     private fun close() {
-        if (viewModel.sessionState.value.isScanning) {
-            val ignored = runCatching { viewModel.stopScan() }
-        }
+        stopScanning()
         alertDialog.dismiss()
         finish()
+    }
+
+    /**
+     * Unconditionally stops the scan. `stopScan()` is idempotent, so this is safe to call even
+     * when no scan is running - and calling it unconditionally means a stale `isScanning` flag
+     * can never leave the radio scanning in the background.
+     */
+    @SuppressLint("MissingPermission")
+    private fun stopScanning() {
+        scanPeriodHandler.removeCallbacksAndMessages(null)
+        runCatching { viewModel.stopScan() }
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
@@ -154,9 +165,19 @@ class ScanActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun killMe() {
-        alertDialog.dismiss()
-        finish()
+        close()
+    }
+
+    /**
+     * Covers every way out of this activity that does not go through [close] (Home, recents,
+     * task switching, activity recreation, the system "enable Bluetooth" dialog, ...).
+     */
+    @SuppressLint("MissingPermission")
+    override fun onPause() {
+        super.onPause()
+        stopScanning()
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
@@ -173,9 +194,7 @@ class ScanActivity : AppCompatActivity() {
 
     @SuppressLint("MissingPermission")
     private val onItemClickListener = OnItemClickListener { _, _, i, _ ->
-        if (viewModel.sessionState.value.isScanning) {
-            viewModel.stopScan()
-        }
+        stopScanning()
         val device = mDeviceListAdapter!!.getDevice(i)
         val deviceAddress = device.address
         val deviceName = device.name
@@ -200,9 +219,7 @@ class ScanActivity : AppCompatActivity() {
      */
     @SuppressLint("MissingPermission")
     private val onItemLongClickListener = OnItemLongClickListener { _, _, i, _ ->
-        if (viewModel.sessionState.value.isScanning) {
-            viewModel.stopScan()
-        }
+        stopScanning()
         val device = mDeviceListAdapter!!.getDevice(i)
         showProtocolPickerDialog(device)
         true
@@ -252,8 +269,7 @@ class ScanActivity : AppCompatActivity() {
             scanTitle!!.setText(R.string.scanning)
             macLayout.visibility = View.GONE
         } else {
-            scanPeriodHandler.removeCallbacksAndMessages(null)
-            viewModel.stopScan()
+            stopScanning()
             pb!!.visibility = View.GONE
             scanTitle!!.setText(R.string.devices)
             macLayout.visibility = View.VISIBLE

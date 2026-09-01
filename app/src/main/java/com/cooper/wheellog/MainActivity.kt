@@ -861,7 +861,7 @@ class MainActivity : AppCompatActivity() {
     private fun connectToLastDevice() {
         val lastMac = appConfig.lastMac
         if (checkBlePermissions(this, RESULT_REQUEST_PERMISSIONS_BT) && lastMac.isNotEmpty()) {
-            viewModel.connectByAddress(lastMac)
+            viewModel.connectByAddress(lastMac, appConfig.lastName)
         } else if (isMaxBleReq) {
             showSnackBar(R.string.bluetooth_required)
         }
@@ -945,6 +945,9 @@ class MainActivity : AppCompatActivity() {
                 setMenuIconStates()
 
                 if (mac.isNotEmpty() && checkBlePermissions(this, RESULT_REQUEST_PERMISSIONS_BT)) {
+                    // The advertised name feeds the library's protocol auto-detection, so
+                    // remember it for later reconnections to the same wheel.
+                    appConfig.lastName = name
                     if (protocolId != null) {
                         viewModel.forceProtocol(protocolId)
                     } else {

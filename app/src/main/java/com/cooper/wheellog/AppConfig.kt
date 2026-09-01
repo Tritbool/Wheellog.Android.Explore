@@ -315,6 +315,10 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue("last_mac", "")
         set(value) = setValue("last_mac", value)
 
+    var lastName: String
+        get() = getValue("last_name", "")
+        set(value) = setValue("last_name", value)
+
     var advDataForWheel: String
         get() = getValue("adv_data_for_wheel", "")
         set(value) = setValue("adv_data_for_wheel", value)

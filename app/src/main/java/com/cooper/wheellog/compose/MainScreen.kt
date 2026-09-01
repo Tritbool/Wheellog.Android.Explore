@@ -13,7 +13,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.views.WheelView
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 enum class Page { Main, Params, Trips, Events, BMS }
@@ -43,7 +42,7 @@ fun MainScreen(appConfig: AppConfig = koinInject()) {
 
 
 @Composable
-fun LegacyMainView(viewModel: BleSessionViewModel = koinViewModel()) {
+fun LegacyMainView(viewModel: BleSessionViewModel = koinInject()) {
     val state by viewModel.sessionState.collectAsState()
     val appConfig: AppConfig = koinInject()
 

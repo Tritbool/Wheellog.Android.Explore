@@ -11,12 +11,11 @@ import androidx.compose.ui.unit.sp
 import com.cooper.wheellog.utils.MathsUtil
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.ble.BleSessionViewModel
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import java.util.Locale
 
 @Composable
-fun ParamsListScreen(viewModel: BleSessionViewModel = koinViewModel()) {
+fun ParamsListScreen(viewModel: BleSessionViewModel = koinInject()) {
     val appConfig: AppConfig = koinInject()
     val useMph = appConfig.useMph
     val state by viewModel.sessionState.collectAsState()

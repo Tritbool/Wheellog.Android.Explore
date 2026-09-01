@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.feature.dashboard.DashboardViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 
 /**
@@ -28,7 +29,7 @@ import org.koin.core.parameter.parametersOf
  */
 @Composable
 fun MainPageScreen(
-    bleViewModel: BleSessionViewModel = koinViewModel(),
+    bleViewModel: BleSessionViewModel = koinInject(),
     dashboardViewModel: DashboardViewModel = koinViewModel { parametersOf(bleViewModel) }
 ) {
     val state by dashboardViewModel.uiState.collectAsState()

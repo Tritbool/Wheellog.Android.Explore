@@ -32,13 +32,13 @@ import io.github.tritbool.euc.ble.models.EUCDevice
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
 
 class ScanActivity : AppCompatActivity() {
     private val appConfig: AppConfig by inject()
-    private val viewModel: BleSessionViewModel by viewModel()
+    // Shared app-wide singleton (see bleModule); must use `inject()`, not `viewModel()`.
+    private val viewModel: BleSessionViewModel by inject()
     private var mDeviceListAdapter: DeviceListAdapter? = null
     private var pb: ProgressBar? = null
     private var scanTitle: TextView? = null

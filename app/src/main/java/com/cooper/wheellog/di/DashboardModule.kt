@@ -14,7 +14,7 @@ import org.koin.dsl.module
  * as the rest of the screen.  Inject it with:
  *
  * ```kotlin
- * val bleVm: BleSessionViewModel = koinViewModel()
+ * val bleVm: BleSessionViewModel = koinInject()
  * val dashVm: DashboardViewModel = koinViewModel { parametersOf(bleVm) }
  * ```
  */

@@ -10,12 +10,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cooper.wheellog.ble.BleSessionViewModel
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.util.Locale
 
 @Composable
 fun SmartBmsScreen() {
-    val viewModel: BleSessionViewModel = koinViewModel()
+    val viewModel: BleSessionViewModel = koinInject()
     val state by viewModel.sessionState.collectAsState()
 
     val bms1 = viewModel.bms1

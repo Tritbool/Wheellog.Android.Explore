@@ -35,7 +35,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.viewpager2.widget.ViewPager2
@@ -90,7 +89,8 @@ class MainActivity : AppCompatActivity() {
     private var doubleBackToExitPressedOnce = false
     private var snackbar: Snackbar? = null
     private val speedModel: PiPView.SpeedModel by lazy { PiPView.SpeedModel() }
-    private val viewModel: BleSessionViewModel by viewModel()
+    // Shared app-wide singleton (see bleModule); must use `inject()`, not `viewModel()`.
+    private val viewModel: BleSessionViewModel by inject()
     private var settingsNavHostController: NavHostController? = null
 
     // Current connection state, derived from sessionState observation

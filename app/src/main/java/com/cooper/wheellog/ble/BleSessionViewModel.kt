@@ -120,8 +120,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
             override fun onConnected() {
                 viewModelScope.launch {
-                    val device = client.getConnectedDevice()
-                    if (device != null) updateConnectedDevice(device)
+                    updateConnectedDevice(client.getConnectedDevice())
                 }
             }
 
@@ -228,18 +227,22 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         Timber.i("Connection state updated to: %s", state)
     }
 
-    private suspend fun updateConnectedDevice(device: EUCDevice) {
+    private suspend fun updateConnectedDevice(device: EUCDevice?) {
         // Reset session statistics
         resetSessionStatistics()
 
         _sessionState.value = _sessionState.value.copy(
             connectionState = BLEConstants.ConnectionState.CONNECTED,
-            selectedDevice = device,
+            selectedDevice = device ?: _sessionState.value.selectedDevice,
             lastError = null,
             isScanning = false
         )
 
-        Timber.i("Device connected: %s (%s)", device.name, device.address)
+        if (device != null) {
+            Timber.i("Device connected: %s (%s)", device.name, device.address)
+        } else {
+            Timber.i("Device connected; device metadata is not available yet")
+        }
     }
 
     private suspend fun updateDisconnectedState() {

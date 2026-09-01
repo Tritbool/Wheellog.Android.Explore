@@ -15,14 +15,13 @@ import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
 import com.cooper.wheellog.ble.BleSessionViewModel
 import io.github.tritbool.euc.ble.protocols.CommandType
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
 @androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 fun wheelScreen(
     appConfig: AppConfig = koinInject(),
-    viewModel: BleSessionViewModel = koinViewModel(),
+    viewModel: BleSessionViewModel = koinInject(),
 ) {
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState())

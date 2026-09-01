@@ -36,7 +36,6 @@ import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.Constants.WHEEL_TYPE
 import com.cooper.wheellog.utils.ThemeIconEnum
 import com.cooper.wheellog.utils.ThemeManager
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 /**
@@ -48,7 +47,7 @@ import org.koin.compose.koinInject
 fun startScreenMigrated(
     modifier: Modifier = Modifier,
     onSelect: (String) -> Unit = {},
-    viewModel: BleSessionViewModel = koinViewModel()
+    viewModel: BleSessionViewModel = koinInject()
 ) {
     // Collect the session state as a state that can be observed
     val sessionState by viewModel.sessionState.collectAsStateWithLifecycle()

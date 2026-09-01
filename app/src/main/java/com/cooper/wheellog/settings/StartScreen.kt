@@ -34,7 +34,6 @@ import com.cooper.wheellog.ble.getWheelType
 import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.ThemeIconEnum
 import com.cooper.wheellog.utils.ThemeManager
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
@@ -43,7 +42,7 @@ fun startScreen(
     onSelect: (String) -> Unit = {},
 )
 {
-    val viewModel: BleSessionViewModel = koinViewModel()
+    val viewModel: BleSessionViewModel = koinInject()
     val sessionState by viewModel.sessionState.collectAsStateWithLifecycle()
     val isSpecificVisible = sessionState.getWheelType() != Constants.WHEEL_TYPE.Unknown
     Column(

@@ -14,12 +14,12 @@ import java.util.Locale
  *
  * Receives the shared [BleSessionViewModel] and [AppConfig] as constructor
  * parameters so it can be created with a known [BleSessionViewModel] instance
- * (the one already scoped to the Activity's ViewModelStore) rather than letting
+ * (the shared app-wide singleton registered in `bleModule`) rather than letting
  * Koin create an orphaned duplicate.
  *
  * Usage in a composable:
  * ```kotlin
- * val bleVm: BleSessionViewModel = koinViewModel()
+ * val bleVm: BleSessionViewModel = koinInject()
  * val dashVm: DashboardViewModel = koinViewModel { parametersOf(bleVm) }
  * ```
  */

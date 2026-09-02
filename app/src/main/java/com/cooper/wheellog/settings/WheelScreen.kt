@@ -16,6 +16,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
 import com.cooper.wheellog.ble.BleSessionViewModel
+import com.cooper.wheellog.utils.Constants
 import io.github.tritbool.euc.ble.protocols.CommandType
 import org.koin.compose.koinInject
 
@@ -47,7 +48,7 @@ fun wheelScreen(
         speakerVolumeSetting(appConfig, viewModel)
         lockSetting(appConfig, viewModel)
         pedalsModeSetting(appConfig, viewModel)
-        alarmModeInfo(viewModel)
+        alarmModeSetting(viewModel)
         rollAngleInfo(viewModel)
         ledModeSetting(appConfig, viewModel)
         milesModeInfo(viewModel)
@@ -57,6 +58,7 @@ fun wheelScreen(
         calibrationSetting(viewModel)
         resetTripSetting(viewModel)
         connectBeepSetting(appConfig, viewModel)
+        gotwayCorrectionSettings(appConfig, viewModel)
         forAllWheel(appConfig)
     }
 }
@@ -184,32 +186,50 @@ private fun pedalsModeSetting(appConfig: AppConfig, viewModel: BleSessionViewMod
 }
 
 /**
- * Read-only display of the wheel-reported alarm mode (which speed/PWM alarm
- * thresholds are currently disabled on the wheel itself). Some protocols
- * (e.g. Gotway/Begode) decode this straight from telemetry, but the pinned
- * euc-ble-library has no CommandType to *write* it back yet, so this is
- * informational only until library-side write support is added.
+ * Wheel-reported alarm mode (which speed/PWM alarm thresholds are currently disabled on
+ * the wheel itself). On Gotway/Begode, [CommandType.SET_ALARM_SPEED] actually implements
+ * this same preset (legacy WheelLog.Android's `GotwayAdapter.updateAlarmMode`: "o"/"u"/"i"/"I"
+ * for on_level_alarm/off_level_1_alarm/off_level_2_alarm/pwm_tiltback_alarm), so it's editable
+ * there. Other protocols that support [CommandType.SET_ALARM_SPEED] use it for raw speed
+ * threshold(s) instead (see [alarmSpeedSetting]), so this stays read-only for them.
  */
 @Composable
-private fun alarmModeInfo(viewModel: BleSessionViewModel) {
+@androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+private fun alarmModeSetting(viewModel: BleSessionViewModel) {
     val state by viewModel.sessionState.collectAsState()
-    val alarmMode = state.alarmMode ?: return
+    val alarmMode = state.alarmMode
 
-    val label = when (alarmMode) {
-        0 -> stringResource(R.string.on_level_alarm)
-        1 -> stringResource(R.string.off_level_1_alarm)
-        2 -> stringResource(R.string.off_level_2_alarm)
-        else -> stringResource(R.string.pwm_tiltback_alarm)
+    val entries = mapOf(
+        "0" to stringResource(R.string.on_level_alarm),
+        "1" to stringResource(R.string.off_level_1_alarm),
+        "2" to stringResource(R.string.off_level_2_alarm),
+        "3" to stringResource(R.string.pwm_tiltback_alarm),
+    )
+
+    if (viewModel.wheelType == Constants.WHEEL_TYPE.GOTWAY &&
+        viewModel.isCommandSupported(CommandType.SET_ALARM_SPEED)
+    ) {
+        list(
+            name = stringResource(R.string.alarm_mode_title),
+            desc = stringResource(R.string.alarm_settings_title),
+            entries = entries,
+            defaultKey = (alarmMode ?: 0).toString(),
+        ) {
+            viewModel.sendCommand(CommandType.SET_ALARM_SPEED, it.first.toInt())
+        }
+        return
     }
+
+    if (alarmMode == null) return
     baseSettings(
         name = stringResource(R.string.alarm_mode_title),
-        rightContent = { Text(label) },
+        rightContent = { Text(entries[alarmMode.toString()] ?: entries.getValue("3")) },
     )
 }
 
 /**
  * Read-only display of the wheel-reported roll-angle cutoff sensitivity.
- * See [alarmModeInfo] for why this isn't editable yet.
+ * See [alarmModeSetting] for why this isn't editable yet.
  */
 @Composable
 private fun rollAngleInfo(viewModel: BleSessionViewModel) {
@@ -230,7 +250,7 @@ private fun rollAngleInfo(viewModel: BleSessionViewModel) {
 
 /**
  * Read-only display of whether the wheel's own controller currently reports
- * speed/distance in miles instead of km. See [alarmModeInfo] for why this
+ * speed/distance in miles instead of km. See [alarmModeSetting] for why this
  * isn't editable yet.
  */
 @Composable
@@ -296,6 +316,9 @@ private fun speedLimitSetting(appConfig: AppConfig, viewModel: BleSessionViewMod
 @androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
 private fun alarmSpeedSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
     if (!viewModel.isCommandSupported(CommandType.SET_ALARM_SPEED)) return
+    // Gotway/Begode overloads this same CommandType as an alarm-mode preset index
+    // rather than a raw speed threshold; that case is handled by alarmModeSetting.
+    if (viewModel.wheelType == Constants.WHEEL_TYPE.GOTWAY) return
 
     sliderPref(
         name = stringResource(R.string.wheel_alarm1_title),
@@ -349,6 +372,37 @@ private fun resetTripSetting(viewModel: BleSessionViewModel) {
         alertDesc = stringResource(R.string.reset_trip_message),
         onConfirm = { viewModel.sendCommand(CommandType.RESET_TRIP) },
     )
+}
+
+/**
+ * Gotway/Begode's reverse-engineered protocol has known quirks that are corrected on the
+ * app side rather than by asking the wheel to change anything (see
+ * [BleSessionViewModel]'s telemetry pipeline for where these are applied). Only shown for
+ * Gotway/Begode/ExtremeBull-family wheels.
+ */
+@Composable
+private fun gotwayCorrectionSettings(appConfig: AppConfig, viewModel: BleSessionViewModel) {
+    if (viewModel.wheelType != Constants.WHEEL_TYPE.GOTWAY) return
+
+    switchPref(
+        name = stringResource(R.string.is_gotway_mcm_title),
+        desc = stringResource(R.string.is_gotway_mcm_description),
+        default = appConfig.gotwayMcm,
+    ) {
+        appConfig.gotwayMcm = it
+    }
+    list(
+        name = stringResource(R.string.gotway_negative_title),
+        desc = stringResource(R.string.gotway_negative_description),
+        entries = mapOf(
+            "-1" to stringResource(R.string.straight),
+            "0" to stringResource(R.string.absolute),
+            "1" to stringResource(R.string.reverse),
+        ),
+        defaultKey = appConfig.gotwayNegative,
+    ) {
+        appConfig.gotwayNegative = it.first
+    }
 }
 
 @Composable

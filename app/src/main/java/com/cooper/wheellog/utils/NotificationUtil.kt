@@ -99,7 +99,7 @@ class NotificationUtil(private val context: Context) : KoinComponent {
 
         val connectionState = viewModel.sessionState.value.connectionState
         val batteryLevel = viewModel.batteryLevel
-        val temperature = viewModel.temperature
+        val temperature = viewModel.temperatureDouble.toInt()
         val distance = viewModel.distanceDouble
         val speed = viewModel.speedDouble
         val title = customText.ifEmpty { context.getString(notificationMessageId) }

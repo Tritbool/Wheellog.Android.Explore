@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.cooper.wheellog.utils.Calculator
 import com.cooper.wheellog.utils.Constants.wheel_type_from_string
 import com.cooper.wheellog.utils.SmartBms
 import io.github.tritbool.euc.ble.EucBleClient
@@ -383,6 +384,14 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         // never causes the displayed value to flicker.
         if (data.temperature > sessionMaxTemperature) {
             sessionMaxTemperature = data.temperature
+        }
+
+        // Feed the rolling power/distance window used to compute Wh/km
+        // consumption (see Calculator.whByKm). Distance is tracked in km
+        // elsewhere in this app, but Calculator expects metres.
+        data.power?.let { power ->
+            val totalDistanceKm = data.totalDistance ?: data.wheelDistance
+            totalDistanceKm?.let { Calculator.pushPower(power, (it * 1000).toInt()) }
         }
 
         // Update battery statistics
@@ -999,13 +1008,20 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val maxPwm: Double get() = sessionMaxPwm
 
     // Temperatures
+    // Highest board temperature reached this session (previously this getter
+    // returned the *current* motor/board temperature via a duplicated
+    // Elvis-chain, so it never actually tracked a running maximum).
     val maxTemp: Double
-        get() = _sessionState.value.lastData?.motorTemperature
-            ?: _sessionState.value.lastData?.motorTemperature ?: _sessionState.value.currentTemperature
+        get() = _sessionState.value.sessionMaxTemperature ?: _sessionState.value.currentTemperature
     val cpuTemp: Int get() = _sessionState.value.cpuLoad ?: 0
     val imuTemp: Int get() = (_sessionState.value.lastData?.imuTemperature?: 0.0).toInt()
+    // NOTE: scaled ×100 for legacy CSV-logging compatibility (see LoggingService,
+    // which divides by 100.0 again). Any new UI code should use
+    // [motorTemperatureDouble] instead to avoid displaying/alarming on the
+    // raw scaled integer.
     val motorTemperature: Int
         get() = ((_sessionState.value.lastData?.motorTemperature ?: 0.0) * 100).toInt()
+    val motorTemperatureDouble: Double get() = _sessionState.value.motorTemperature ?: 0.0
 
     // Device info
     val name: String get() = _sessionState.value.deviceName

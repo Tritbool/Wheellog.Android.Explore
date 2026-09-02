@@ -3,7 +3,9 @@ package com.cooper.wheellog.settings
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,7 +47,10 @@ fun wheelScreen(
         speakerVolumeSetting(appConfig, viewModel)
         lockSetting(appConfig, viewModel)
         pedalsModeSetting(appConfig, viewModel)
+        alarmModeInfo(viewModel)
+        rollAngleInfo(viewModel)
         ledModeSetting(appConfig, viewModel)
+        milesModeInfo(viewModel)
         speedLimitSetting(appConfig, viewModel)
         alarmSpeedSetting(appConfig, viewModel)
         powerOffSetting(viewModel)
@@ -162,6 +167,70 @@ private fun pedalsModeSetting(appConfig: AppConfig, viewModel: BleSessionViewMod
         appConfig.pedalsMode = it.first
         viewModel.sendCommand(CommandType.SET_PEDALS_MODE, it.first.toInt())
     }
+}
+
+/**
+ * Read-only display of the wheel-reported alarm mode (which speed/PWM alarm
+ * thresholds are currently disabled on the wheel itself). Some protocols
+ * (e.g. Gotway/Begode) decode this straight from telemetry, but the pinned
+ * euc-ble-library has no CommandType to *write* it back yet, so this is
+ * informational only until library-side write support is added.
+ */
+@Composable
+private fun alarmModeInfo(viewModel: BleSessionViewModel) {
+    val state by viewModel.sessionState.collectAsState()
+    val alarmMode = state.alarmMode ?: return
+
+    val label = when (alarmMode) {
+        0 -> stringResource(R.string.on_level_alarm)
+        1 -> stringResource(R.string.off_level_1_alarm)
+        2 -> stringResource(R.string.off_level_2_alarm)
+        else -> stringResource(R.string.pwm_tiltback_alarm)
+    }
+    baseSettings(
+        name = stringResource(R.string.alarm_mode_title),
+        rightContent = { Text(label) },
+    )
+}
+
+/**
+ * Read-only display of the wheel-reported roll-angle cutoff sensitivity.
+ * See [alarmModeInfo] for why this isn't editable yet.
+ */
+@Composable
+private fun rollAngleInfo(viewModel: BleSessionViewModel) {
+    val state by viewModel.sessionState.collectAsState()
+    val rollAngleMode = state.rollAngleMode ?: return
+
+    val label = when (rollAngleMode) {
+        0 -> stringResource(R.string.low)
+        1 -> stringResource(R.string.medium)
+        else -> stringResource(R.string.high)
+    }
+    baseSettings(
+        name = stringResource(R.string.roll_angle_title),
+        desc = stringResource(R.string.roll_angle_description),
+        rightContent = { Text(label) },
+    )
+}
+
+/**
+ * Read-only display of whether the wheel's own controller currently reports
+ * speed/distance in miles instead of km. See [alarmModeInfo] for why this
+ * isn't editable yet.
+ */
+@Composable
+private fun milesModeInfo(viewModel: BleSessionViewModel) {
+    val state by viewModel.sessionState.collectAsState()
+    val usesMiles = state.usesMiles ?: return
+
+    baseSettings(
+        name = stringResource(R.string.gw_in_miles_title),
+        desc = stringResource(R.string.gw_in_miles_description),
+        rightContent = {
+            Text(stringResource(if (usesMiles) R.string.on else R.string.off))
+        },
+    )
 }
 
 @Composable

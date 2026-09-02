@@ -1,6 +1,7 @@
 package com.cooper.wheellog.ble
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Application
 import android.bluetooth.BluetoothManager
 import android.content.Context
@@ -45,6 +46,9 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import com.cooper.wheellog.AppConfig
 
 /**
  * ViewModel that manages the BLE session state and provides a reactive interface
@@ -55,7 +59,9 @@ import kotlin.time.Duration.Companion.milliseconds
  * 
  * REPLACES: WheelData.java (legacy singleton)
  */
-class BleSessionViewModel(application: Application) : AndroidViewModel(application) {
+class BleSessionViewModel(application: Application) : AndroidViewModel(application), KoinComponent {
+
+    private val appConfig: AppConfig by inject()
 
     private val _sessionState = MutableStateFlow(BleSessionState.EMPTY)
     val sessionState: StateFlow<BleSessionState> = _sessionState.asStateFlow()
@@ -203,6 +209,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                         selection.manufacturer,
                         selection.reason
                     )
+                    sendConnectBeepIfEnabled()
                 }
             }
         })
@@ -453,8 +460,10 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         // Update wheel alarm based on data
         wheelAlarm = data.wheelAlarm ?: false
 
+        val mergedData = carryForwardSettingsFields(data)
+
         _sessionState.value = _sessionState.value.copy(
-            lastData = data,
+            lastData = mergedData,
             lastDataTimestamp = System.currentTimeMillis(),
             sessionTopSpeed = sessionTopSpeed.takeIf { it > 0 },
             sessionMaxPower = sessionMaxPower.takeIf { it > 0 },
@@ -469,6 +478,34 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         Timber.d(
             "Telemetry updated: manufacturer=%s, model =%s, speed=%.2f, voltage=%.2f, current=%.2f, pwm=%.2f",
             data.manufacturer, data.model, data.speed, data.voltage, data.current, data.pwm
+        )
+    }
+
+    /**
+     * Some protocols (e.g. Gotway/Begode) split their settings fields across multiple
+     * frame types: a frequent "telemetry" frame that never carries them (always null)
+     * and a much rarer "settings" frame that does. Since every incoming [EUCData] fully
+     * replaces [BleSessionState.lastData], these fields would otherwise flicker
+     * null <-> value in the UI at the telemetry frame rate.
+     *
+     * Carry forward the last known non-null value for each of these fields instead of
+     * letting a null in the current packet overwrite a previously known value. Only a
+     * genuine disconnect (which clears lastData entirely) should reset them.
+     */
+    private fun carryForwardSettingsFields(data: EUCData): EUCData {
+        val previous = _sessionState.value.lastData ?: return data
+        if (previous.manufacturer != data.manufacturer) return data
+
+        return data.copy(
+            pedalsMode = data.pedalsMode ?: previous.pedalsMode,
+            alarmMode = data.alarmMode ?: previous.alarmMode,
+            rollAngleMode = data.rollAngleMode ?: previous.rollAngleMode,
+            usesMiles = data.usesMiles ?: previous.usesMiles,
+            autoPowerOffMinutes = data.autoPowerOffMinutes ?: previous.autoPowerOffMinutes,
+            tiltBackSpeed = data.tiltBackSpeed ?: previous.tiltBackSpeed,
+            ledMode = data.ledMode ?: previous.ledMode,
+            lightMode = data.lightMode ?: previous.lightMode,
+            alertFlags = data.alertFlags ?: previous.alertFlags,
         )
     }
 
@@ -831,6 +868,21 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
     fun isCommandSupported(commandType: CommandType): Boolean {
         return _eucBleClient.getCommandSupport(commandType) == CommandSupport.SUPPORTED
+    }
+
+    /**
+     * Sends a confirmation beep right after a protocol is selected, mirroring legacy
+     * WheelLog's connect-beep behavior (a Gotway/Begode wheel double-beeps to confirm
+     * it accepted the BLE connection). Only fires when the active protocol supports
+     * [CommandType.BEEP] and the user hasn't disabled it via [AppConfig.connectBeep].
+     * The BLE connection callback that triggers this only runs once GATT is already
+     * connected, so BLUETOOTH_CONNECT is guaranteed to have been granted.
+     */
+    @SuppressLint("MissingPermission")
+    private fun sendConnectBeepIfEnabled() {
+        if (!appConfig.connectBeep) return
+        if (!isCommandSupported(CommandType.BEEP)) return
+        sendCommand(CommandType.BEEP)
     }
 
     // ========== WHEEL DATA COMPATIBILITY ==========

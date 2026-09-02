@@ -563,9 +563,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         // only carries the two packs concatenated together. Prefer the per-pack data when
         // the protocol exposes it so each BMS page reflects its own pack.
         val bmsPacks = runCatching {
-            _eucBleClient.getRegisteredProtocols()
-                .firstOrNull { it.manufacturer == data.manufacturer }
-                ?.getBMSData()
+            _eucBleClient.getBMSData() //.getRegisteredProtocols()
+                //.firstOrNull { it.manufacturer == data.manufacturer }
                 ?.filter { !it.cellVoltages.isNullOrEmpty() }
                 ?.sortedBy { it.bmsIndex }
         }.onFailure {

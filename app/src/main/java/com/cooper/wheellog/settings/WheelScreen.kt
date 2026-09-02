@@ -174,9 +174,9 @@ private fun pedalsModeSetting(appConfig: AppConfig, viewModel: BleSessionViewMod
         name = stringResource(R.string.pedals_mode_title),
         desc = stringResource(R.string.soft_medium_hard),
         entries = mapOf(
-            "0" to stringResource(R.string.hard),
+            "2" to stringResource(R.string.hard),
             "1" to stringResource(R.string.medium),
-            "2" to stringResource(R.string.soft),
+            "0" to stringResource(R.string.soft),
         ),
         defaultKey = appConfig.pedalsMode,
     ) {

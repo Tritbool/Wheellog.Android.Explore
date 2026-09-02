@@ -298,6 +298,10 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue("wheel_locked", false)
         set(value) = setValue("wheel_locked", value)
 
+    var connectBeep: Boolean
+        get() = getValue("connect_beep", true)
+        set(value) = setValue("connect_beep", value)
+
     var batteryCapacity: Int
         get() = getValue("battery_capacity_wh", 0)
         set(value) = setValue("battery_capacity_wh", value)

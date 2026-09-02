@@ -56,6 +56,7 @@ fun wheelScreen(
         powerOffSetting(viewModel)
         calibrationSetting(viewModel)
         resetTripSetting(viewModel)
+        connectBeepSetting(appConfig, viewModel)
         forAllWheel(appConfig)
     }
 }
@@ -129,6 +130,19 @@ private fun speakerVolumeSetting(appConfig: AppConfig, viewModel: BleSessionView
     ) {
         appConfig.speakerVolume = it.toInt()
         viewModel.sendCommand(CommandType.SPEAKER_VOLUME, it.toInt())
+    }
+}
+
+@Composable
+private fun connectBeepSetting(appConfig: AppConfig, viewModel: BleSessionViewModel) {
+    if (!viewModel.isCommandSupported(CommandType.BEEP)) return
+
+    switchPref(
+        name = stringResource(R.string.connect_beep_title),
+        desc = stringResource(R.string.connect_beep_description),
+        default = appConfig.connectBeep,
+    ) { enabled ->
+        appConfig.connectBeep = enabled
     }
 }
 

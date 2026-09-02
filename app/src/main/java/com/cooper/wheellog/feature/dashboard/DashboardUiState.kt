@@ -36,6 +36,10 @@ data class DashboardUiState(
     /** Board temperature in °C. */
     val temperature: Float = 0f,
     val temperatureDisplay: String = "00℃",
+    /** Highest board temperature reached this session, in °C. */
+    val maxTemperature: Float = 0f,
+    /** Formatted, labelled max-temperature string (e.g. "MAX 45℃"). */
+    val maxTemperatureDisplay: String = "MAX 00℃",
     val voltage: Float = 0f,
     val current: Float = 0f,
     val topSpeed: Float = 0f,
@@ -59,6 +63,8 @@ data class DashboardUiState(
     val batteryFraction: Float = 0f,
     /** Inner-arc temperature fill fraction, 0 – 1 (0 = cold, 1 = 80 °C). */
     val temperatureFraction: Float = 0f,
+    /** Max-temperature marker position on the inner arc, 0 – 1 (same scale as [temperatureFraction]). */
+    val maxTemperatureFraction: Float = 0f,
     /** Battery-lowest safety marker position on the inner arc, 0 – 1. */
     val batteryLowestFraction: Float = 0f,
     /** PWM % at which the dial colour starts shifting toward red. */

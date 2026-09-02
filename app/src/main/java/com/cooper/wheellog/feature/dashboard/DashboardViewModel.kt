@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
 import com.cooper.wheellog.ble.BleSessionViewModel
+import com.cooper.wheellog.utils.Calculator
+import com.cooper.wheellog.utils.MathsUtil
 import kotlinx.coroutines.flow.*
 import java.util.Locale
 
@@ -162,6 +164,42 @@ class DashboardViewModel(
             application.getString(R.string.avg_cell_volt) to DashboardBlock(
                 application.getString(R.string.avg_cell_volt),
                 String.format(Locale.US, "%.2f V", bleViewModel.avgVoltagePerCell)
+            ),
+            application.getString(R.string.maxcurrent) to DashboardBlock(
+                application.getString(R.string.maxcurrent),
+                String.format(Locale.US, "%.1f A", bleViewModel.maxCurrentDouble)
+            ),
+            application.getString(R.string.maxphasecurrent) to DashboardBlock(
+                application.getString(R.string.maxphasecurrent),
+                String.format(Locale.US, "%.1f A", bleViewModel.maxPhaseCurrentDouble)
+            ),
+            application.getString(R.string.power) to DashboardBlock(
+                application.getString(R.string.power),
+                String.format(Locale.US, "%.0f W", bleViewModel.powerDouble)
+            ),
+            application.getString(R.string.maxpower) to DashboardBlock(
+                application.getString(R.string.maxpower),
+                String.format(Locale.US, "%.0f W", bleViewModel.maxPowerDouble)
+            ),
+            application.getString(R.string.temperature2) to DashboardBlock(
+                application.getString(R.string.temperature2),
+                DashboardMapper.formatTemperature(bleViewModel.motorTemperatureDouble.toFloat(), appConfig.useFahrenheit)
+            ),
+            application.getString(R.string.maxtemperature) to DashboardBlock(
+                application.getString(R.string.maxtemperature),
+                DashboardMapper.formatTemperature(state.maxTemperature, appConfig.useFahrenheit)
+            ),
+            application.getString(R.string.ride_time) to DashboardBlock(
+                application.getString(R.string.ride_time),
+                bleViewModel.rideTimeString
+            ),
+            application.getString(R.string.consumption) to DashboardBlock(
+                application.getString(R.string.consumption),
+                if (state.useMph) {
+                    String.format(Locale.US, "%.1f %s", Calculator.whByKm / MathsUtil.kmToMilesMultiplier, application.getString(R.string.whmi))
+                } else {
+                    String.format(Locale.US, "%.1f %s", Calculator.whByKm, application.getString(R.string.whkm))
+                }
             )
         )
 

@@ -182,17 +182,17 @@ object Alarms: KoinComponent {
         }
         val alarmTemperature = appConfig.alarmTemperature
         val alarmMotorTemperature = appConfig.alarmMotorTemperature
-        if (alarmTemperature > 0 && viewModel.temperature >= alarmTemperature) {
+        if (alarmTemperature > 0 && viewModel.temperatureDouble >= alarmTemperature) {
             raiseAlarm(
                 ALARM_TYPE.TEMPERATURE,
-                viewModel.temperature.toDouble(),
+                viewModel.temperatureDouble,
                 mContext
             )
             temperatureAlarmExecuting.value = true
-        } else if (alarmMotorTemperature > 0 && viewModel.motorTemperature >= alarmMotorTemperature) {
+        } else if (alarmMotorTemperature > 0 && viewModel.motorTemperatureDouble >= alarmMotorTemperature) {
             raiseAlarm(
                 ALARM_TYPE.TEMPERATURE,
-                viewModel.motorTemperature.toDouble(),
+                viewModel.motorTemperatureDouble,
                 mContext
             )
             temperatureAlarmExecuting.value = true

@@ -56,6 +56,7 @@ import com.cooper.wheellog.utils.SomeUtil.playBeep
 import com.cooper.wheellog.views.PiPView
 import com.google.android.material.snackbar.Snackbar
 import io.github.tritbool.euc.ble.core.BLEConstants
+import io.github.tritbool.euc.ble.protocols.CommandType
 import io.github.tritbool.euc.ble.protocols.EUCProtocol
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -847,6 +848,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Toggles the wheel's headlight from the notification quick-action button. */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    private fun toggleLight() {
+        val supportsLightToggle = viewModel.isCommandSupported(CommandType.LIGHT_ON) ||
+                viewModel.isCommandSupported(CommandType.LIGHT_OFF)
+        if (!supportsLightToggle) return
+        val enable = !appConfig.lightEnabled
+        appConfig.lightEnabled = enable
+        viewModel.sendCommand(if (enable) CommandType.LIGHT_ON else CommandType.LIGHT_OFF)
+    }
+
     fun toggleLoggingService() {
         val dataLoggerServiceIntent = Intent(applicationContext, LoggingService::class.java)
         if (LoggingService.isInstanceCreated()) {
@@ -948,6 +960,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 Constants.NOTIFICATION_BUTTON_BEEP -> playBeep()
+                Constants.NOTIFICATION_BUTTON_LIGHT -> toggleLight()
                 Constants.ACTION_LOGGING_SERVICE_TOGGLED -> {
                     val isRunning =
                         intent.getBooleanExtra(Constants.INTENT_EXTRA_IS_RUNNING, false)
@@ -1048,6 +1061,7 @@ class MainActivity : AppCompatActivity() {
             addAction(Constants.NOTIFICATION_BUTTON_CONNECTION)
             addAction(Constants.NOTIFICATION_BUTTON_LOGGING)
             addAction(Constants.NOTIFICATION_BUTTON_BEEP)
+            addAction(Constants.NOTIFICATION_BUTTON_LIGHT)
             addAction(Constants.ACTION_PREFERENCE_RESET)
         }
     }

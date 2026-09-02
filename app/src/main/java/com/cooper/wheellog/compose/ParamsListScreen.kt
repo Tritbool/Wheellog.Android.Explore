@@ -37,7 +37,7 @@ fun ParamsListScreen(viewModel: BleSessionViewModel = koinInject()) {
         "Motor Power" to String.format(Locale.US, "%.2f W", viewModel.motorPower),
         "Battery" to "${state.batteryLevel}%",
         "Temperature" to "${state.currentTemperature.toInt()}°C",
-        "Temperature 2" to "${viewModel.motorTemperature}°C",
+        "Temperature 2" to "${viewModel.motorTemperatureDouble.toInt()}°C",
         "CPU Temp" to "${viewModel.cpuTemp}°C",
         "IMU Temp" to "${viewModel.imuTemp}°C",
         "Output" to "${viewModel.output}%",

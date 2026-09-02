@@ -195,7 +195,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
                 },
                 false),
                 ViewBlockInfo(resources.getString(R.string.temperature2), {
-                    viewModel.motorTemperature.toTempString()
+                    viewModel.motorTemperatureDouble.toInt().toTempString()
                 }, false),
                 ViewBlockInfo(resources.getString(R.string.maxtemperature), {
                     mMaxTemperature.toTempString()

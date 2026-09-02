@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.cooper.wheellog.utils.Calculator
 import com.cooper.wheellog.utils.Constants.wheel_type_from_string
 import com.cooper.wheellog.utils.SmartBms
 import io.github.tritbool.euc.ble.EucBleClient
@@ -80,6 +81,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     private var sessionMaxCurrent: Double = 0.0
     private var sessionMaxPhaseCurrent: Double = 0.0
     private var sessionMaxPwm: Double = 0.0
+    private var sessionMaxTemperature: Double = 0.0
     private var sessionStartTime: Long = 0
     private var sessionStartDistance: Double = 0.0
     private var sessionStartTotalDistance: Double = 0.0
@@ -376,6 +378,22 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
+        // Track peak board temperature. Some protocols occasionally emit a packet
+        // without a valid temperature reading (reported as 0), so only the running
+        // maximum is kept — a momentary 0 reading never lowers it and therefore
+        // never causes the displayed value to flicker.
+        if (data.temperature > sessionMaxTemperature) {
+            sessionMaxTemperature = data.temperature
+        }
+
+        // Feed the rolling power/distance window used to compute Wh/km
+        // consumption (see Calculator.whByKm). Distance is tracked in km
+        // elsewhere in this app, but Calculator expects metres.
+        data.power?.let { power ->
+            val totalDistanceKm = data.totalDistance ?: data.wheelDistance
+            totalDistanceKm?.let { Calculator.pushPower(power, (it * 1000).toInt()) }
+        }
+
         // Update battery statistics
         val batteryLevel = data.batteryLevel
         if (batteryStart == -1) {
@@ -442,6 +460,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             sessionMaxPower = sessionMaxPower.takeIf { it > 0 },
             sessionMaxCurrent = sessionMaxCurrent.takeIf { it > 0 },
             sessionMaxPwm = sessionMaxPwm.takeIf { it > 0 },
+            sessionMaxTemperature = sessionMaxTemperature.takeIf { it > 0 },
             sessionBatteryLowest = batteryLowest.takeIf { it < 101 },
             sessionDistance = sessionDistance?.takeIf { it > 0 },
             sessionRideTime = sessionRideTime
@@ -888,6 +907,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             sessionMaxCurrent = 0.0
             sessionMaxPhaseCurrent = 0.0
             sessionMaxPwm = 0.0
+            sessionMaxTemperature = 0.0
             sessionStartTime = System.currentTimeMillis()
             sessionStartDistance = 0.0
             sessionStartTotalDistance = 0.0
@@ -902,6 +922,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 sessionMaxPower = null,
                 sessionMaxCurrent = null,
                 sessionMaxPwm = null,
+                sessionMaxTemperature = null,
                 sessionBatteryLowest = null,
                 sessionRidingTimeSec = null,
                 sessionDistance = null,
@@ -916,6 +937,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         sessionMaxCurrent = 0.0
         sessionMaxPhaseCurrent = 0.0
         sessionMaxPwm = 0.0
+        sessionMaxTemperature = 0.0
     }
 
     fun resetVoltageSag() {
@@ -986,13 +1008,20 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val maxPwm: Double get() = sessionMaxPwm
 
     // Temperatures
+    // Highest board temperature reached this session (previously this getter
+    // returned the *current* motor/board temperature via a duplicated
+    // Elvis-chain, so it never actually tracked a running maximum).
     val maxTemp: Double
-        get() = _sessionState.value.lastData?.motorTemperature
-            ?: _sessionState.value.lastData?.motorTemperature ?: _sessionState.value.currentTemperature
+        get() = _sessionState.value.sessionMaxTemperature ?: _sessionState.value.currentTemperature
     val cpuTemp: Int get() = _sessionState.value.cpuLoad ?: 0
     val imuTemp: Int get() = (_sessionState.value.lastData?.imuTemperature?: 0.0).toInt()
+    // NOTE: scaled ×100 for legacy CSV-logging compatibility (see LoggingService,
+    // which divides by 100.0 again). Any new UI code should use
+    // [motorTemperatureDouble] instead to avoid displaying/alarming on the
+    // raw scaled integer.
     val motorTemperature: Int
         get() = ((_sessionState.value.lastData?.motorTemperature ?: 0.0) * 100).toInt()
+    val motorTemperatureDouble: Double get() = _sessionState.value.motorTemperature ?: 0.0
 
     // Device info
     val name: String get() = _sessionState.value.deviceName

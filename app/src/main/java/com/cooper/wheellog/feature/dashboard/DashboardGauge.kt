@@ -90,6 +90,11 @@ fun DashboardGauge(
         animationSpec = tween(durationMillis = 400),
         label = "temperature"
     )
+    val animatedMaxTemp by animateFloatAsState(
+        targetValue = state.maxTemperatureFraction,
+        animationSpec = tween(durationMillis = 400),
+        label = "maxTemperature"
+    )
 
     val textMeasurer = rememberTextMeasurer()
 
@@ -135,6 +140,10 @@ fun DashboardGauge(
         // Temperature fills from the right side of the inner arc (segment 111 → 72)
         val tempThreshold = SEGMENT_COUNT - (animatedTemp * TEMP_SEGMENTS).roundToInt()
             .coerceIn(0, TEMP_SEGMENTS)
+        // Fixed marker position for the max-reached-temperature label (doesn't track
+        // the live/current reading, so it never flickers on transient bad telemetry).
+        val maxTempThreshold = SEGMENT_COUNT - (animatedMaxTemp * TEMP_SEGMENTS).roundToInt()
+            .coerceIn(0, TEMP_SEGMENTS)
 
         val pwmColor = pwmColor(state.pwm, state.colorPwmStart, state.colorPwmEnd)
 
@@ -153,12 +162,19 @@ fun DashboardGauge(
         drawArcSegment(innerRect, ARC_START_ANGLE, 90f, innerStrokeWidth, COLOR_ARC_DIM)
         drawArcSegment(innerRect, 306f, 90f, innerStrokeWidth, COLOR_ARC_DIM)
 
-        // Active inner arc segments
-        var innerColor = COLOR_BATTERY
+        // Active inner arc segments.
+        // The battery-lowest marker is drawn as a narrow band (not a colour that
+        // persists to the end of the ring) so it reads as "lowest point reached
+        // this session" rather than an unexplained wash of yellow.
+        val batteryLowestMarkerWidth = 2
+        val batteryLowestMarkerStart = (batteryLowestSeg - batteryLowestMarkerWidth + 1)
+            .coerceAtLeast(0)
         for (i in 0..111) {
-            when (i) {
-                batteryLowestSeg -> innerColor = COLOR_BATTERY_LOW
-                tempThreshold -> innerColor = COLOR_TEMPERATURE
+            val innerColor = when {
+                i >= tempThreshold -> COLOR_TEMPERATURE
+                batteryLowestSeg in 1 until batterySeg && i in batteryLowestMarkerStart..batteryLowestSeg ->
+                    COLOR_BATTERY_LOW
+                else -> COLOR_BATTERY
             }
             if (i < batterySeg || i >= tempThreshold) {
                 val startAngle = ARC_START_ANGLE + i * SEGMENT_STEP
@@ -211,14 +227,14 @@ fun DashboardGauge(
                 textSizePx = innerStrokeWidth * 0.6f
             )
             drawArcLabel(
-                text = state.temperatureDisplay,
+                text = state.maxTemperatureDisplay,
                 cx = cx,
                 cy = cy,
-                rotationDegrees = 143.5f + tempThreshold * SEGMENT_STEP,
+                rotationDegrees = 143.5f + maxTempThreshold * SEGMENT_STEP,
                 textX = innerRect.right + innerStrokeWidth / 2f,
                 textY = cy,
                 color = COLOR_LABEL,
-                textSizePx = innerStrokeWidth * 0.6f
+                textSizePx = innerStrokeWidth * 0.42f
             )
             if (state.wheelModel.isNotBlank()) {
                 drawWheelModelLabel(
@@ -403,6 +419,7 @@ private fun DashboardGaugePreview_Connected() {
             battery = 63,
             batteryLowest = 60,
             temperature = 32f,
+            maxTemperature = 38f,
             voltage = 67.2f,
             current = 12.5f,
             topSpeed = 35f,
@@ -411,6 +428,7 @@ private fun DashboardGaugePreview_Connected() {
             mainDialFraction = 0.57f,
             batteryFraction = 0.63f,
             temperatureFraction = 0.4f,
+            maxTemperatureFraction = 0.475f,
             batteryLowestFraction = 0.60f,
             colorPwmStart = 60,
             colorPwmEnd = 90

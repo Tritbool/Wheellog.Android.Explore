@@ -50,8 +50,10 @@ object DashboardMapper {
         val battery = state.batteryLevel
         val batteryLowest = state.sessionBatteryLowest ?: 101
         val temp = state.currentTemperature.toFloat()          // °C
+        val maxTemp = (state.sessionMaxTemperature ?: temp.toDouble()).toFloat().coerceAtLeast(temp)
         val batteryDisplay = formatBattery(battery)
         val temperatureDisplay = formatTemperature(temp, appConfig.useFahrenheit)
+        val maxTemperatureDisplay = "MAX ${formatTemperature(maxTemp, appConfig.useFahrenheit)}"
 
         // ── Speed display ─────────────────────────────────────────────────────
         val displaySpeedValue = if (useMph) kmToMiles(speed) else speed
@@ -79,6 +81,7 @@ object DashboardMapper {
         val batteryLowestFraction = (batteryLowest.coerceAtMost(100) / 100f).coerceIn(0f, 1f)
         // Temperature arc uses 80 °C as 100 % (same as WheelView: 40 segments for 0-80 °C).
         val temperatureFraction = (temp.coerceIn(0f, 80f) / 80f)
+        val maxTemperatureFraction = (maxTemp.coerceIn(0f, 80f) / 80f)
 
         // ── Alarm level ───────────────────────────────────────────────────────
         val alarmLevel = computeAlarmLevel(state, pwm, appConfig)
@@ -108,6 +111,8 @@ object DashboardMapper {
             batteryLowest = batteryLowest,
             temperature = temp,
             temperatureDisplay = temperatureDisplay,
+            maxTemperature = maxTemp,
+            maxTemperatureDisplay = maxTemperatureDisplay,
             voltage = state.currentVoltage.toFloat(),
             current = state.currentCurrent.toFloat(),
             topSpeed = topSpeed,
@@ -122,6 +127,7 @@ object DashboardMapper {
             batteryFraction = batteryFraction,
             batteryLowestFraction = batteryLowestFraction,
             temperatureFraction = temperatureFraction,
+            maxTemperatureFraction = maxTemperatureFraction,
             colorPwmStart = appConfig.colorPwmStart,
             colorPwmEnd = appConfig.colorPwmEnd,
             maxSpeed = maxSpeedConf,

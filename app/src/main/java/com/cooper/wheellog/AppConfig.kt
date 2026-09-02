@@ -302,6 +302,19 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue("connect_beep", true)
         set(value) = setValue("connect_beep", value)
 
+    // Gotway/Begode telemetry correction settings. These correct known quirks of the
+    // reverse-engineered protocol at the app layer since the wheel itself isn't asked
+    // to change anything.
+    var gotwayMcm: Boolean
+        get() = getValue("wheel_gotway_mcm", false)
+        set(value) = setValue("wheel_gotway_mcm", value)
+
+    // ListPreference only works with string parameters. "-1" = straight (no
+    // correction), "0" = absolute value, "1" = reverse sign.
+    var gotwayNegative: String
+        get() = getValue("wheel_gotway_negative", "0")
+        set(value) = setValue("wheel_gotway_negative", value)
+
     var batteryCapacity: Int
         get() = getValue("battery_capacity_wh", 0)
         set(value) = setValue("battery_capacity_wh", value)

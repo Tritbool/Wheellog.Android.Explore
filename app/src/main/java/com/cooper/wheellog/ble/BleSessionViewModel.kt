@@ -80,6 +80,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     private var sessionMaxCurrent: Double = 0.0
     private var sessionMaxPhaseCurrent: Double = 0.0
     private var sessionMaxPwm: Double = 0.0
+    private var sessionMaxTemperature: Double = 0.0
     private var sessionStartTime: Long = 0
     private var sessionStartDistance: Double = 0.0
     private var sessionStartTotalDistance: Double = 0.0
@@ -376,6 +377,14 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
+        // Track peak board temperature. Some protocols occasionally emit a packet
+        // without a valid temperature reading (reported as 0), so only the running
+        // maximum is kept — a momentary 0 reading never lowers it and therefore
+        // never causes the displayed value to flicker.
+        if (data.temperature > sessionMaxTemperature) {
+            sessionMaxTemperature = data.temperature
+        }
+
         // Update battery statistics
         val batteryLevel = data.batteryLevel
         if (batteryStart == -1) {
@@ -442,6 +451,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             sessionMaxPower = sessionMaxPower.takeIf { it > 0 },
             sessionMaxCurrent = sessionMaxCurrent.takeIf { it > 0 },
             sessionMaxPwm = sessionMaxPwm.takeIf { it > 0 },
+            sessionMaxTemperature = sessionMaxTemperature.takeIf { it > 0 },
             sessionBatteryLowest = batteryLowest.takeIf { it < 101 },
             sessionDistance = sessionDistance?.takeIf { it > 0 },
             sessionRideTime = sessionRideTime
@@ -888,6 +898,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             sessionMaxCurrent = 0.0
             sessionMaxPhaseCurrent = 0.0
             sessionMaxPwm = 0.0
+            sessionMaxTemperature = 0.0
             sessionStartTime = System.currentTimeMillis()
             sessionStartDistance = 0.0
             sessionStartTotalDistance = 0.0
@@ -902,6 +913,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 sessionMaxPower = null,
                 sessionMaxCurrent = null,
                 sessionMaxPwm = null,
+                sessionMaxTemperature = null,
                 sessionBatteryLowest = null,
                 sessionRidingTimeSec = null,
                 sessionDistance = null,
@@ -916,6 +928,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         sessionMaxCurrent = 0.0
         sessionMaxPhaseCurrent = 0.0
         sessionMaxPwm = 0.0
+        sessionMaxTemperature = 0.0
     }
 
     fun resetVoltageSag() {

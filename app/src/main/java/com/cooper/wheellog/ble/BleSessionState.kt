@@ -35,6 +35,7 @@ data class BleSessionState(
     val sessionMaxPower: Double? = null,
     val sessionMaxCurrent: Double? = null,
     val sessionMaxPwm: Double? = null,
+    val sessionMaxTemperature: Double? = null,
     val sessionBatteryLowest: Int? = null,
     val sessionRidingTimeSec: Long? = null,
     val sessionDistance: Double? = null,

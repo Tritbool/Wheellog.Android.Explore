@@ -1184,8 +1184,9 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val cpuLoad: Int get() = _sessionState.value.cpuLoad ?: 0
 
     // Beep via wheel
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun wheelBeep() {
-        // TODO: Implement via CommandType when available
+        sendCommand(CommandType.BEEP)
     }
 
     private fun formatRideTime(seconds: Long): String {

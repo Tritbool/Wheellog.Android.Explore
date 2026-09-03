@@ -226,6 +226,10 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue(R.string.use_raw_data, false)
         set(value) = setValue(R.string.use_raw_data, value)
 
+    var enableBmsData: Boolean
+        get() = getValue(R.string.use_bms_data, false)
+        set(value) = setValue(R.string.use_bms_data, value)
+
     var startAutoLoggingWhenIsMovingMore: Float
         get() = getValue(R.string.auto_log_when_moving_more, 7f)
         set(value) = setValue(R.string.auto_log_when_moving_more, value)

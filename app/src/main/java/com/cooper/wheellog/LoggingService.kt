@@ -1,4 +1,5 @@
 package com.cooper.wheellog
+
 import com.cooper.wheellog.ble.BleSessionViewModel
 
 import android.app.Service
@@ -13,7 +14,7 @@ import com.cooper.wheellog.data.TripDao
 import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.FileUtil
 import com.cooper.wheellog.utils.NotificationUtil
-// import com.cooper.wheellog.utils.ParserLogToWheelData - REMOVED: Use EUCData parser
+import io.github.tritbool.euc.ble.models.BMSData
 import com.cooper.wheellog.utils.PermissionsUtil.checkExternalFilePermission
 import io.github.tritbool.euc.ble.core.BLEConstants
 import kotlinx.coroutines.*
@@ -37,10 +38,22 @@ class LoggingService : Service() {
     private var logStarted = false
     private var lastLoggedTimestamp: Long? = null
 
+    private var rawFileUtil: FileUtil? = null
+    private var rawLoggingJob: Job? = null
+
+    private var bmsFileUtil: FileUtil? = null
+    private var lastBmsSignature: String? = null
+    private var lastBmsWriteTimestamp: Long = 0L
+
+    @Volatile
+    private var latestBmsPacks: List<BMSData> = emptyList()
+
     fun updateConnectionState(connectionState: BLEConstants.ConnectionState) {
         if (connectionState != BLEConstants.ConnectionState.CONNECTED) {
             // Park logging: nothing is appended until fresh telemetry arrives again.
             lastLoggedTimestamp = null
+            closeRawFile()
+            closeBmsFile()
         }
     }
 
@@ -58,7 +71,6 @@ class LoggingService : Service() {
         // Must happen within a few seconds of startForegroundService(), otherwise Android
         // kills the service with ForegroundServiceDidNotStartInTimeException.
         startAsForeground()
-
         if (!logStarted) {
             if (!startLogging()) {
                 stopSelf()
@@ -66,6 +78,8 @@ class LoggingService : Service() {
             }
             logStarted = true
             observeTelemetry()
+            observeBmsSnapshots()
+            if (appConfig.enableRawData) observeRawFrames()
         }
         return START_STICKY
     }
@@ -140,6 +154,27 @@ class LoggingService : Service() {
         return true
     }
 
+
+    private fun formatNullableDouble(
+        value: Double?,
+        decimals: Int,
+    ): String {
+        return value?.let {
+            String.format(Locale.US, "%.${decimals}f", it)
+        }.orEmpty()
+    }
+
+    private fun formatDoubleList(
+        values: List<Double>?,
+        decimals: Int,
+    ): String {
+        return values
+            ?.joinToString(separator = ";") {
+                String.format(Locale.US, "%.${decimals}f", it)
+            }
+            .orEmpty()
+    }
+
     /**
      * Logging is driven from the service itself so that it keeps running while the app is in
      * the background or the screen is off (it used to be pushed by MainActivity, which stopped
@@ -160,6 +195,124 @@ class LoggingService : Service() {
         }
     }
 
+    private fun observeBmsSnapshots() {
+        ioState.launch {
+            viewModel.bmsSnapshots.collect { packs ->
+                latestBmsPacks = packs
+            }
+        }
+    }
+
+
+    private fun observeRawFrames() {
+        rawLoggingJob?.cancel()
+
+        rawLoggingJob = ioState.launch {
+            viewModel.rawFrames.collect { frame ->
+                if (!appConfig.enableRawData) {
+                    closeRawFile()
+                    return@collect
+                }
+
+                val rawFile = getOrCreateRawFile() ?: return@collect
+                val hex = frame.joinToString(separator = "") { byte ->
+                    "%02X".format(Locale.US, byte.toInt() and 0xFF)
+                }
+
+                rawFile.writeLine(
+                    "${System.currentTimeMillis()},$hex"
+                )
+            }
+        }
+    }
+
+    private fun closeRawFile() {
+        rawFileUtil?.close()
+        rawFileUtil = null
+    }
+
+    private fun closeBmsFile() {
+        bmsFileUtil?.close()
+        bmsFileUtil = null
+        lastBmsSignature = null
+        lastBmsWriteTimestamp = 0L
+    }
+
+    private fun getOrCreateRawFile(): FileUtil? {
+        rawFileUtil?.let { return it }
+
+        val rawFile = FileUtil(applicationContext)
+        val formatter = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US)
+        val filename = "${formatter.format(Date())}.raw.csv"
+
+        if (!rawFile.prepareFile(filename, viewModel.mac)) {
+            Timber.e("Unable to create RAW BLE log file")
+            return null
+        }
+
+        rawFile.writeLine("timestamp_ms,hex")
+        rawFileUtil = rawFile
+        Timber.i("RAW BLE logging started: %s", rawFile.absolutePath)
+        return rawFile
+    }
+
+    private fun bmsSignature(pack: BMSData): String {
+        return listOf(
+            pack.bmsIndex,
+            pack.voltage,
+            pack.current,
+            pack.remainingCapacity,
+            pack.factoryCapacity,
+            pack.cycles,
+            pack.isCharging,
+            pack.temperatures?.joinToString(separator = ";"),
+            pack.cellVoltages?.joinToString(separator = ";"),
+        ).joinToString(separator = "|")
+    }
+
+    private fun formatBmsLine(
+        timestampMillis: Long,
+        pack: BMSData,
+    ): String {
+        return listOf(
+            timestampMillis.toString(),
+            pack.bmsIndex.toString(),
+            formatNullableDouble(pack.voltage, 3),
+            formatNullableDouble(pack.current, 3),
+            pack.remainingCapacity?.toString().orEmpty(),
+            pack.factoryCapacity?.toString().orEmpty(),
+            pack.cycles?.toString().orEmpty(),
+            pack.isCharging?.toString().orEmpty(),
+            formatDoubleList(pack.temperatures, 2),
+            formatDoubleList(pack.cellVoltages, 4),
+        ).joinToString(separator = ",")
+    }
+
+
+    private fun getOrCreateBmsFile(): FileUtil? {
+        bmsFileUtil?.let { return it }
+
+        val file = FileUtil(applicationContext)
+        val formatter = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US)
+        val filename = "${formatter.format(Date())}.bms.csv"
+
+        if (!file.prepareFile(filename, viewModel.mac)) {
+            Timber.e("Unable to create BMS log file")
+            return null
+        }
+
+        file.writeLine(
+            "timestamp_ms,bms_index,voltage_v,current_a," +
+                    "remaining_capacity_mah,factory_capacity_mah,cycles,is_charging," +
+                    "temperatures_c,cell_voltages_v"
+        )
+
+        bmsFileUtil = file
+        Timber.i("BMS logging started: %s", file.absolutePath)
+        return file
+    }
+
+
     private fun broadcastState(path: String?, isRunning: Boolean) {
         val serviceIntent = Intent(Constants.ACTION_LOGGING_SERVICE_TOGGLED).apply {
             // Keep the broadcast internal to the app.
@@ -179,6 +332,10 @@ class LoggingService : Service() {
     override fun onDestroy() {
         ioState.cancel()
         val path = fileUtil?.absolutePath
+        rawLoggingJob?.cancel()
+        rawLoggingJob = null
+        closeRawFile()
+        closeBmsFile()
         fileUtil?.close()
         fileUtil = null
         Timber.wtf("DataLogger Stopping...")
@@ -202,6 +359,47 @@ class LoggingService : Service() {
             return Environment.MEDIA_MOUNTED == state || Environment.MEDIA_MOUNTED_READ_ONLY == state
         }
 
+    private fun updateBmsFile() {
+        if (!appConfig.enableBmsData) {
+            closeBmsFile()
+            return
+        }
+
+        val packs = latestBmsPacks.filter { pack ->
+                pack.voltage != null ||
+                        pack.current != null ||
+                        !pack.temperatures.isNullOrEmpty() ||
+                        !pack.cellVoltages.isNullOrEmpty()
+            }
+            ?.sortedBy { it.bmsIndex }
+            .orEmpty()
+
+        if (packs.isEmpty()) {
+            return
+        }
+
+        val now = System.currentTimeMillis()
+        val signature = packs.joinToString(separator = "|") { pack ->
+            bmsSignature(pack)
+        }
+
+        val changed = signature != lastBmsSignature
+        val intervalElapsed = now - lastBmsWriteTimestamp >= BMS_LOG_MIN_INTERVAL_MS
+
+        if (!changed && !intervalElapsed) {
+            return
+        }
+
+        val file = getOrCreateBmsFile() ?: return
+
+        packs.forEach { pack ->
+            file.writeLine(formatBmsLine(now, pack))
+        }
+
+        lastBmsSignature = signature
+        lastBmsWriteTimestamp = now
+    }
+
     fun updateFile() {
         val wd = viewModel
         val file = fileUtil ?: return
@@ -209,7 +407,7 @@ class LoggingService : Service() {
         file.writeLine(
             String.format(
                 Locale.US,
-                "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%s,%d",
+                "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%.1f,%.1f,%.2f,%.2f,%.2f,%.2f,%s,%d",
                 formatter.format(System.currentTimeMillis()),
                 wd.speedDouble,
                 wd.voltageDouble,
@@ -229,6 +427,7 @@ class LoggingService : Service() {
                 0
             )
         )
+        if (appConfig.enableBmsData) updateBmsFile()
     }
 
     private fun showToast(messageId: Int) {
@@ -243,6 +442,9 @@ class LoggingService : Service() {
 
     companion object {
         private var instance: LoggingService? = null
+
+        private const val BMS_LOG_MIN_INTERVAL_MS = 5_000L
+
         fun isInstanceCreated(): Boolean {
             return instance != null
         }

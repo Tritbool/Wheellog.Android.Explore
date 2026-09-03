@@ -58,6 +58,8 @@
     // ALARM PREFERENCES
     // WHEEL SETTINGS
     // LOG PREFERENCES
+	<string name="use_bms_data_title">Enregistrer les données BMS</string>
+	<string name="use_bms_data_description">Enregistre les données décodées de chaque pack, y compris les tensions de cellules, dans un fichier BMS séparé.</string>
     // SPEED PREFERENCES
     // WATCH PREFERENCES
 	// TRIP PREFERENCES

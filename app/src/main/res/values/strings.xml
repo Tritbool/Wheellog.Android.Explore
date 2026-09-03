@@ -254,6 +254,10 @@
     <string name="auto_log_title">Auto Log</string>
     <string name="auto_log_description">Start logging automatically when a wheel is connected</string>
     <string name="use_raw_title">RAW Bluetooth Data Logging</string>
+
+    <string name="use_bms_data_title">BMS data logging</string>
+    <string name="use_bms_data_description">Save detailed BMS data in a separated file.</string>
+
     <string name="on_off_strobe">Off/On/Strobe</string>
     <string name="soft_medium_hard">Soft/Medium/Hard</string>
     <string name="mode1_2_3_4">Mode1/Mode2/Mode3/Mode4</string>

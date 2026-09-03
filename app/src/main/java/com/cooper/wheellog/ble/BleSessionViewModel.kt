@@ -42,7 +42,6 @@ import timber.log.Timber
 import java.util.ArrayList
 import java.util.Calendar
 import java.util.Timer
-import java.util.TimerTask
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -50,6 +49,10 @@ import kotlin.time.Duration.Companion.milliseconds
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import com.cooper.wheellog.AppConfig
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 /**
  * ViewModel that manages the BLE session state and provides a reactive interface
@@ -67,6 +70,17 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     private val _sessionState = MutableStateFlow(BleSessionState.EMPTY)
     val sessionState: StateFlow<BleSessionState> = _sessionState.asStateFlow()
 
+
+    private val _rawFrames = MutableSharedFlow<ByteArray>(
+        extraBufferCapacity = 256,
+    )
+    val rawFrames: SharedFlow<ByteArray> = _rawFrames.asSharedFlow()
+
+    private val _bmsSnapshots = MutableSharedFlow<List<BMSData>>(
+        extraBufferCapacity = 16,
+    )
+    val bmsSnapshots: SharedFlow<List<BMSData>> = _bmsSnapshots.asSharedFlow()
+
     // EucBleClient instance - the single source of truth for BLE operations
     // Renamed to _eucBleClient to avoid JVM clash with public fun getEucBleClient()
     private val _eucBleClient: EucBleClient by lazy {
@@ -79,6 +93,13 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         )
         client.initialize()
         setupCallbacks(client)
+
+        viewModelScope.launch {
+            client.rawFrameFlow.collect { frame ->
+                _rawFrames.emit(frame)
+            }
+        }
+
         client
     }
 
@@ -352,9 +373,12 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         protocolWatchdogJob = null
     }
 
-    private suspend fun updateTelemetryData(rawData: EUCData) {
+    private fun updateTelemetryData(rawData: EUCData) {
         val data = applyGotwayCorrections(rawData)
         updateBmsData(data)
+        _eucBleClient.getBMSData()?.let { snapshots ->
+            _bmsSnapshots.tryEmit(snapshots)
+        }
 
         // Update session statistics
         data.speed?.let { speed ->

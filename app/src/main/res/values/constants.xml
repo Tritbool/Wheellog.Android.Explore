@@ -126,6 +126,7 @@
     <string name="ec_user_id" translatable="false">ec_user_id</string>
     <string name="ec_garage" translatable="false">ec_garage</string>
     <string name="use_raw_data" translatable="false">use_raw_data</string>
+    <string name="use_bms_data" translatable="false">use_bms_data</string>
 
     // APP PREFERENCES
     <string name="use_mph" translatable="false">use_mph</string>

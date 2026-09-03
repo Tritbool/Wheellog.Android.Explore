@@ -49,6 +49,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import com.cooper.wheellog.AppConfig
+import com.cooper.wheellog.utils.SomeUtil.playBeep
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -198,7 +199,10 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                         // arbitrary order. Merge it into the discovery-ordered list built
                         // from onDeviceDiscovered instead of replacing it, otherwise the
                         // device list visibly reshuffles when the scan ends.
-                        scanResults = ScanResultMerger.merge(_sessionState.value.scanResults, devices)
+                        scanResults = ScanResultMerger.merge(
+                            _sessionState.value.scanResults,
+                            devices
+                        )
                     )
                 }
             }
@@ -218,6 +222,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
                 }
             }
 
+            @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
             override fun onProtocolSelected(selection: ProtocolSelection) {
                 viewModelScope.launch {
                     protocolActive = true
@@ -289,7 +294,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         Timber.i("Connection state updated to: %s", state)
     }
 
-    private suspend fun updateConnectedDevice(device: EUCDevice?) {
+    private fun updateConnectedDevice(device: EUCDevice?) {
         // Reset session statistics
         resetSessionStatistics()
 
@@ -846,7 +851,10 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     fun addScanResult(device: EUCDevice) {
         viewModelScope.launch {
             _sessionState.value = _sessionState.value.copy(
-                scanResults = ScanResultMerger.merge(_sessionState.value.scanResults, listOf(device))
+                scanResults = ScanResultMerger.merge(
+                    _sessionState.value.scanResults,
+                    listOf(device)
+                )
             )
         }
     }
@@ -949,11 +957,17 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
      * The BLE connection callback that triggers this only runs once GATT is already
      * connected, so BLUETOOTH_CONNECT is guaranteed to have been granted.
      */
-    @SuppressLint("MissingPermission")
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun sendConnectBeepIfEnabled() {
-        if (!appConfig.connectBeep) return
-        if (!isCommandSupported(CommandType.BEEP)) return
-        sendCommand(CommandType.BEEP)
+
+        if (isCommandSupported(CommandType.BEEP)) {
+            Timber.i(
+                "Beeping at connect time"
+            )
+            playBeep()
+            sendCommand(CommandType.BEEP)
+        }
     }
 
 
@@ -1081,7 +1095,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val maxTemp: Double
         get() = _sessionState.value.sessionMaxTemperature ?: _sessionState.value.currentTemperature
     val cpuTemp: Int get() = _sessionState.value.cpuLoad ?: 0
-    val imuTemp: Int get() = (_sessionState.value.lastData?.imuTemperature?: 0.0).toInt()
+    val imuTemp: Int get() = (_sessionState.value.lastData?.imuTemperature ?: 0.0).toInt()
+
     // NOTE: scaled ×100 for legacy CSV-logging compatibility (see LoggingService,
     // which divides by 100.0 again). Any new UI code should use
     // [motorTemperatureDouble] instead to avoid displaying/alarming on the

@@ -115,7 +115,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
     // ========== RIDING TIMER ==========
     private var ridingTimerControl: Timer? = null
-    private val ridingSpeedThreshold = 200 // 2km/h in legacy format
+    private val ridingSpeedThreshold = 2
 
     // ========== PROTOCOL SELECTION ==========
     // True once the library reported an active protocol for the current connection.
@@ -241,7 +241,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch(Dispatchers.Default) {
             while (true) {
                 delay(1000L.milliseconds)
-                if (_sessionState.value.isConnected && (getLegacySpeed() > ridingSpeedThreshold)) {
+                if (_sessionState.value.isConnected && (speed > ridingSpeedThreshold)) {
                     ridingTime++
                     _sessionState.value = _sessionState.value.copy(
                         sessionRidingTimeSec = ridingTime.toLong()
@@ -932,62 +932,6 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         sendCommand(CommandType.BEEP)
     }
 
-    // ========== WHEEL DATA COMPATIBILITY ==========
-
-    // These functions provide compatibility with the legacy WheelData API
-    // They will be used during migration and can be removed later
-
-    fun getLegacySpeed(): Int {
-        return (_sessionState.value.currentSpeed * 100).toInt()
-    }
-
-    fun getLegacyVoltage(): Int {
-        return (_sessionState.value.currentVoltage * 100).toInt()
-    }
-
-    fun getLegacyCurrent(): Int {
-        return (_sessionState.value.currentCurrent * 100).toInt()
-    }
-
-    fun getLegacyTemperature(): Int {
-        return (_sessionState.value.currentTemperature * 100).toInt()
-    }
-
-    fun getLegacyPower(): Int {
-        return (_sessionState.value.currentPower * 100).toInt()
-    }
-
-    fun getLegacyPhaseCurrent(): Int {
-        return ((_sessionState.value.lastData?.phaseCurrent ?: 0.0) * 100).toInt()
-    }
-
-    fun getLegacyBatteryLevel(): Int {
-        return _sessionState.value.batteryLevel
-    }
-
-    fun getLegacyDistance(): Int {
-        return ((_sessionState.value.wheelDistance ?: 0.0) * 1000).toInt()
-    }
-
-    fun getLegacyTotalDistance(): Long {
-        return ((_sessionState.value.totalDistance ?: 0.0) * 1000).toLong()
-    }
-
-    fun getLegacyRideTime(): Int {
-        return _sessionState.value.rideTime?.toInt() ?: 0
-    }
-
-    fun getLegacyTopSpeed(): Int {
-        return (sessionTopSpeed * 100).toInt()
-    }
-
-    fun getLegacyVoltageSag(): Int {
-        return voltageSag
-    }
-
-    fun getLegacyBatteryLowest(): Int {
-        return batteryLowest
-    }
 
     fun isWheelReady(): Boolean {
         return wheelIsReady

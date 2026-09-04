@@ -168,6 +168,8 @@
     <string name="measurement_systems_category_title">Measurement systems</string>
     <string name="use_mph_title">Use MPH</string>
     <string name="use_mph_description">Show speed in miles rather than kilometers</string>
+    <string name="use_psi_title">Use PSI</string>
+    <string name="use_psi_description">Show tire pressure in PSI rather than Bars</string>
     <string name="use_fahrenheit_title">Use Fahrenheit</string>
     <string name="use_fahrenheit_description">Show temperature in Fahrenheit rather than Celsius</string>
     <string name="view_blocks_title">Info blocks</string>

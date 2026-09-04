@@ -18,11 +18,13 @@ import java.util.Locale
 fun ParamsListScreen(viewModel: BleSessionViewModel = koinInject()) {
     val appConfig: AppConfig = koinInject()
     val useMph = appConfig.useMph
+    val usePsi = appConfig.usePsi
     val state by viewModel.sessionState.collectAsState()
     val sessionDistance = state.sessionDistance ?: state.wheelDistance ?: 0.0
 
     val items = listOf(
         "Speed" to formatSpeed(state.currentSpeed, useMph),
+        "Tire pressure" to formatPressure(state.currentPressure, usePsi),
         "Top Speed" to formatSpeed(state.sessionTopSpeed ?: viewModel.topSpeedDouble, useMph),
         "Average Speed" to formatSpeed(viewModel.averageSpeedDouble, useMph),
         "Average Riding Speed" to formatSpeed(viewModel.averageRidingSpeedDouble, useMph),
@@ -50,7 +52,8 @@ fun ParamsListScreen(viewModel: BleSessionViewModel = koinInject()) {
         "Manufacturer" to state.deviceManufacturer,
         "Model" to state.deviceModel,
         "Version" to (state.firmwareVersion ?: "Unknown"),
-        "Serial" to (state.serialNumber ?: "Unknown")
+        "Serial" to (state.serialNumber ?: "Unknown"),
+        "Charging" to (String.format(Locale.US, "%b", state.isCharging))
     )
 
     Column(
@@ -71,6 +74,11 @@ fun ParamsListScreen(viewModel: BleSessionViewModel = koinInject()) {
         }
     }
 }
+
+private fun formatPressure(kPa: Double, usePsi: Boolean): String =
+    if (usePsi) String.format(Locale.US, "%.1f PSI", MathsUtil.kPaToPSI(kPa))
+    else String.format(Locale.US, "%.1f kPa", MathsUtil.kPaToBar(kPa))
+
 
 private fun formatSpeed(kmh: Double, useMph: Boolean): String =
     if (useMph) String.format(Locale.US, "%.1f mph", MathsUtil.kmToMiles(kmh))

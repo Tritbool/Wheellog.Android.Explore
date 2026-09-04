@@ -83,6 +83,14 @@ fun applicationScreen(
             }
 
             switchPref(
+                name = stringResource(R.string.use_psi_title),
+                desc = stringResource(R.string.use_psi_description),
+                default = appConfig.usePsi
+            ) {
+                appConfig.usePsi = it
+            }
+
+            switchPref(
                 name = stringResource(R.string.use_fahrenheit_title),
                 desc = stringResource(R.string.use_fahrenheit_description),
                 default = appConfig.useFahrenheit,

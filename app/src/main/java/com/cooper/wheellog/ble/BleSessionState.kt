@@ -85,6 +85,9 @@ data class BleSessionState(
     val pwm: Double?
         get() = lastData?.pwm
 
+    val currentPressure: Double
+        get() = lastData?.tirePressureKpa ?: -1.0
+
     val isCharging: Boolean
         get() = lastData?.isCharging ?: false
 

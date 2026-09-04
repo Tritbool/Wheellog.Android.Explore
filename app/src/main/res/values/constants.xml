@@ -130,6 +130,7 @@
 
     // APP PREFERENCES
     <string name="use_mph" translatable="false">use_mph</string>
+    <string name="use_psi" translatable="false">use_psi</string>
     <string name="use_fahrenheit" translatable="false">use_fahrenheit</string>
     <string name="use_eng" translatable="false">use_eng</string>
     <string name="app_theme" translatable="false">app_theme</string>

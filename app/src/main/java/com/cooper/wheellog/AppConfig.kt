@@ -72,6 +72,11 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue(R.string.use_mph, false)
         set(value) = setValue(R.string.use_mph, value)
 
+    var usePsi: Boolean
+        get() = getValue(R.string.use_psi, false)
+        set(value) = setValue(R.string.use_psi, value)
+
+
     var useFahrenheit: Boolean
         get() = getValue(R.string.use_fahrenheit, false)
         set(value) = setValue(R.string.use_fahrenheit, value)

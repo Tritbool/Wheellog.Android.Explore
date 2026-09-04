@@ -697,6 +697,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         bms.cellDiff = maxCell - minCell
         bms.minCellNum = (cellVoltages.indexOf(minCell) + 1).coerceAtLeast(1)
         bms.maxCellNum = (cellVoltages.indexOf(maxCell) + 1).coerceAtLeast(1)
+        bms.isCharging = pack.isCharging ?: false
     }
 
     private suspend fun updateError(error: String) {

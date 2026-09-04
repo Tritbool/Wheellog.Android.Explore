@@ -4,44 +4,39 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.BuildConfig
-import com.cooper.wheellog.LocaleManager
 import com.cooper.wheellog.R
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.ble.getWheelType
 import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.ThemeIconEnum
-import com.cooper.wheellog.utils.ThemeManager
 import org.koin.compose.koinInject
 
 @Composable
 fun startScreen(
     modifier: Modifier = Modifier,
     onSelect: (String) -> Unit = {},
-)
-{
+) {
     val viewModel: BleSessionViewModel = koinInject()
     val sessionState by viewModel.sessionState.collectAsStateWithLifecycle()
     val isSpecificVisible = sessionState.getWheelType() != Constants.WHEEL_TYPE.Unknown
@@ -85,63 +80,6 @@ fun startScreen(
                 onSelect(SettingsScreenEnum.Trip.name)
             }
         }
-        var showDonateDialog by remember { mutableStateOf(false) }
-        if (showDonateDialog) {
-            AlertDialog(
-                shape = RoundedCornerShape(8.dp),
-                onDismissRequest = { showDonateDialog = false },
-                title = {
-                    Row {
-                        Icon(
-                            painter = painterResource(
-                                id = ThemeManager.getId(ThemeIconEnum.SettingsDonate)
-                            ),
-                            contentDescription = "info",
-                            modifier = Modifier.size(32.dp).padding(end = 8.dp),
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            text = stringResource(R.string.donate_title),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                    }
-                },
-                text = {
-                    Column {
-                        clickablePref(
-                            name = stringResource(R.string.donate_crypto),
-                        ) {
-                            startActivity(
-                                context,
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    "https://paymicro.github.io/donate".toUri()
-                                ),
-                                null
-                            )
-                        }
-                        clickablePref(
-                            name = stringResource(R.string.donate_bank_ru),
-                            showDiv = false
-                        ) {
-                            startActivity(
-                                context,
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    "https://tinkoff.ru/sl/6iw4b0ugfpC".toUri()
-                                ),
-                                null
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    Button(onClick = { showDonateDialog = false }) {
-                        Text(stringResource(id = android.R.string.ok))
-                    }
-                },
-            )
-        }
         var showAboutDialog by remember { mutableStateOf(false) }
 
         if (showAboutDialog) {
@@ -165,62 +103,31 @@ fun startScreen(
                             name = stringResource(R.string.github),
                             desc = stringResource(R.string.github_desc),
                         ) {
-                            startActivity(
-                                context,
+                            context.startActivity(
                                 Intent(
                                     Intent.ACTION_VIEW,
-                                    "https://github.com/Wheellog/Wheellog.Android".toUri()
+                                    "https://github.com/Wheellog/Wheellog.Android".toUri(),
                                 ),
-                                null
                             )
                         }
                         clickablePref(
                             name = stringResource(R.string.FAQ),
                         ) {
-                            startActivity(
-                                context,
+                            context.startActivity(
                                 Intent(
                                     Intent.ACTION_VIEW,
                                     "https://github.com/Wheellog/Wheellog.Android/wiki".toUri()
                                 ),
-                                null
                             )
                         }
                         clickablePref(
                             name = stringResource(R.string.bug_report),
                         ) {
-                            startActivity(
-                                context,
+                            context.startActivity(
                                 Intent(
                                     Intent.ACTION_VIEW,
                                     "https://github.com/Wheellog/Wheellog.Android/issues".toUri()
                                 ),
-                                null
-                            )
-                        }
-                        if (isSpecificVisible) {
-                            clickablePref(
-                                name = stringResource(R.string.donate_title),
-                            ) {
-                                showAboutDialog = false
-                                showDonateDialog = true
-                            }
-                        }
-                        clickablePref(
-                            name = stringResource(R.string.telegram),
-                            showDiv = false,
-                        ) {
-                            val url = if (LocaleManager.getLocale(context.resources).language == "ru")
-                                "https://t.me/wheelLog"
-                            else
-                                "https://t.me/WheelLog_eng"
-                            startActivity(
-                                context,
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    url.toUri()
-                                ),
-                                null
                             )
                         }
                         Text(
@@ -249,7 +156,6 @@ fun startScreen(
 
 @Preview
 @Composable
-fun startScreenPreview(appConfig: AppConfig = koinInject())
-{
+fun startScreenPreview(appConfig: AppConfig = koinInject()) {
     startScreen()
 }

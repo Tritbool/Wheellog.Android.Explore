@@ -125,18 +125,6 @@ fun applicationScreen(
             }
         }
 
-        group(name = stringResource(R.string.after_connect_category)) {
-            switchPref(
-                name = stringResource(R.string.auto_watch_title),
-                desc = stringResource(R.string.auto_watch_description),
-                themeIcon = ThemeIconEnum.SettingsWatch,
-                default = appConfig.autoWatch,
-                showDiv = false,
-            ) {
-                appConfig.autoWatch = it
-            }
-        }
-
         group(name = stringResource(R.string.main_view_category)) {
 
             multiList(

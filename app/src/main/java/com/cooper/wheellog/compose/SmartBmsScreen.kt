@@ -70,6 +70,7 @@ private fun BmsBlock(
         Text("Voltage: ${String.format("%.2f V", bms.voltage)}")
         Text("Current: ${String.format("%.2f A", bms.current)}")
         Text("Level: ${bms.remPerc}%")
+        Text("Charging: ${bms.status}%")
         Text("Temp 1: ${String.format("%.1f°C", bms.temp1)}")
         Text("Temp 2: ${String.format("%.1f°C", bms.temp2)}")
         Text("Cells: ${cells.size}")

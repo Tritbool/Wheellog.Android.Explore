@@ -20,8 +20,8 @@ android {
         applicationId "com.cooper.wheellog"
         minSdk 23
         targetSdk 36
-        versionCode 129
-        versionName "3.2.8b"
+        versionCode 1
+        versionName "0.0.1b"
         buildConfigField 'String', 'BUILD_TIME', "\"" + new Date().format('HH:mm dd.MM.yyyy') + "\""
         buildConfigField 'String', 'BUILD_DATE', "\"" + new Date().format('dd.MM.yyyy') + "\""
         vectorDrawables.useSupportLibrary = true
@@ -34,6 +34,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {

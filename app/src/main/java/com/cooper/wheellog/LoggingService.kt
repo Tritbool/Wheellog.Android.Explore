@@ -168,11 +168,11 @@ class LoggingService : Service() {
         values: List<Double>?,
         decimals: Int,
     ): String {
-        return values
-            ?.joinToString(separator = ";") {
+        return "\"[" + values
+            ?.joinToString(separator = ",") {
                 String.format(Locale.US, "%.${decimals}f", it)
             }
-            .orEmpty()
+            .orEmpty() + "]\""
     }
 
     /**
@@ -285,7 +285,7 @@ class LoggingService : Service() {
             pack.isCharging?.toString().orEmpty(),
             formatDoubleList(pack.temperatures, 2),
             formatDoubleList(pack.cellVoltages, 4),
-        ).joinToString(separator = ",")
+        ).joinToString(separator = ";")
     }
 
 
@@ -302,9 +302,9 @@ class LoggingService : Service() {
         }
 
         file.writeLine(
-            "timestamp_ms,bms_index,voltage_v,current_a," +
-                    "remaining_capacity_mah,factory_capacity_mah,cycles,is_charging," +
-                    "temperatures_c,cell_voltages_v"
+            "timestamp_ms;bms_index;voltage_v;current_a;" +
+                    "remaining_capacity_mah;factory_capacity_mah;cycles;is_charging;" +
+                    "temperatures_c;cell_voltages_v"
         )
 
         bmsFileUtil = file
@@ -366,11 +366,11 @@ class LoggingService : Service() {
         }
 
         val packs = latestBmsPacks.filter { pack ->
-                pack.voltage != null ||
-                        pack.current != null ||
-                        !pack.temperatures.isNullOrEmpty() ||
-                        !pack.cellVoltages.isNullOrEmpty()
-            }
+            pack.voltage != null ||
+                    pack.current != null ||
+                    !pack.temperatures.isNullOrEmpty() ||
+                    !pack.cellVoltages.isNullOrEmpty()
+        }
             ?.sortedBy { it.bmsIndex }
             .orEmpty()
 
@@ -443,7 +443,7 @@ class LoggingService : Service() {
     companion object {
         private var instance: LoggingService? = null
 
-        private const val BMS_LOG_MIN_INTERVAL_MS = 5_000L
+        private const val BMS_LOG_MIN_INTERVAL_MS = 1000L
 
         fun isInstanceCreated(): Boolean {
             return instance != null

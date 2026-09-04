@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog
 import android.content.Context
 import android.graphics.*
 import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -42,7 +43,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
     private val innerArcRect = RectF()
     private val middleArcRect = RectF()
     private val voltArcRect = RectF()
-    private lateinit var mViewBlocks: Array<ViewBlockInfo>
+    private var mViewBlocks: Array<ViewBlockInfo>
     private var oaDiameter = 0f
     private val speedTextRect = RectF()
     private val batteryTextRect = RectF()
@@ -107,7 +108,7 @@ class WheelView(context: Context, attrs: AttributeSet?) : View(context, attrs), 
     private var currentBattery = 0
     private var mTextBoxesBitmap: Bitmap? = null
     private var mCanvas: Canvas? = null
-    private val refreshHandler = Handler()
+    private val refreshHandler =  Handler(Looper.getMainLooper())
     private var boxRects = arrayOf<RectF?>()
     private val refreshRunner: Runnable = object : Runnable {
         override fun run() {

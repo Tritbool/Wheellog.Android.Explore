@@ -17,7 +17,6 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.doAfterTextChanged
-import com.cooper.wheellog.databinding.EdittextLayoutBinding
 import com.cooper.wheellog.databinding.PrivacyPolicyBinding
 import com.cooper.wheellog.databinding.UpdatePwmSettingsBinding
 import com.cooper.wheellog.utils.Constants
@@ -270,20 +269,6 @@ object DialogHelper : KoinComponent {
             dialog.dismiss()
             mainActivity.finish()
         }
-    }
-
-    fun showEditProfileName(context: Context) {
-        val inflater: LayoutInflater = LayoutInflater.from(context)
-        val binding = EdittextLayoutBinding.inflate(inflater, null, false)
-        binding.edit.setText(appConfig.profileName)
-        AlertDialog.Builder(context)
-            .setTitle(context.getText(R.string.profile_name_title))
-            .setView(binding.root)
-            .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
-                appConfig.profileName = binding.edit.text.toString()
-            }
-            .setNegativeButton(android.R.string.cancel) { _: DialogInterface, _: Int -> }
-            .show()
     }
 
     fun AlertDialog.setBlackIcon(): AlertDialog {

@@ -47,21 +47,23 @@ Let's start
 - Install SDK and connect android device
 - Click `Run` button - Enjoy!
 
-## Migration Compose : télémétrie, événements et trajets
+## Migration Compose : télémétrie, événements, trajets et Smart BMS
 
-Les pages de télémétrie, d'événements et de trajets utilisent Compose par défaut.
+Les pages de télémétrie, d'événements, de trajets et Smart BMS utilisent Compose par défaut.
 Les Views restent la référence de comparaison et un affichage de secours.
-Le dashboard, le BMS, le scan, les services, le BLE et la navigation
+Le dashboard, le scan, les services, le BLE et la navigation
 principale ne sont pas migrés dans cette étape.
 
 Les réglages généraux permettent de désactiver séparément Compose pour la
-télémétrie, les événements et les trajets. Les options sont persistantes et indépendantes
+télémétrie, les événements, les trajets et le BMS. Les options sont persistantes et indépendantes
 du dashboard Compose. Un choix explicite de retour aux Views déjà enregistré
 reste respecté : réactiver la bascule si nécessaire après mise à jour.
 La désactivation restaure les Views sans redémarrer la session BLE.
 Chaque affichage conserve son propre défilement pendant la bascule.
 Les pages événements et trajets doivent aussi être activées dans les réglages des pages ;
 le choix de son moteur de rendu ne force pas sa visibilité.
+La bascule BMS ne force pas non plus l'apparition de sa page : les règles
+existantes de sélection par constructeur/modèle et de repli sont conservées.
 
 ### Référence fonctionnelle à conserver
 
@@ -77,8 +79,8 @@ le choix de son moteur de rendu ne force pas sa visibilité.
   scan et sélection du protocole, logging et confirmation de nouveau fichier,
   remise à zéro des extrema, réglages, permissions et actions de notification.
 - Le dashboard conserve ses gestes Views : tap klaxon si activé, double tap
-  éclairage, appui long pour remplacer un bloc. Les règles BMS restent dans
-  l'adapter : variantes par modèle, un/deux packs et affichage de repli.
+  éclairage, appui long pour remplacer un bloc. Les deux rendus BMS partagent
+  les variantes par modèle, les colonnes un/deux packs et l'affichage de repli.
 - L'enregistrement CSV reste piloté par le service au premier plan, même
   lorsque l'interface est arrêtée.
 
@@ -109,13 +111,21 @@ mais ne signifie pas que la recette visuelle ou sur roue réelle est validée.
 - [ ] En cas d'échec de suppression, message d'erreur et trajet conservé.
 - [ ] Liste actualisée au retour au premier plan, après import, arrêt du
       logging et suppression, sans résultat périmé remplaçant une liste récente.
+- [ ] BMS : mêmes champs, ordre, unités, précisions et numéros de cellules
+      pour chaque constructeur/modèle ; mêmes grilles en portrait/paysage.
+- [ ] Un/deux packs : tensions, courants, températures et cellules distincts,
+      extrema avec leur indice, écarts et marqueurs d'équilibrage.
+- [ ] Paquets incomplets : pas de disparition des cellules déjà reçues ;
+      déconnexion réelle et changement de roue sans données de l'ancienne roue.
+- [ ] Repli sans détails BMS, bascule Views/Compose, défilement et consultation
+      de la page sans commandes ou collecteurs dupliqués.
 - [ ] Scan, menus, notifications, touches volume, alarmes et PiP inchangés ;
       CSV toujours alimenté en arrière-plan, sans doublons.
 - [ ] Validation sur roue réelle des parcours BLE concernés.
 
 Ces contrôles visuels et matériels ne sont pas remplacés par les tests
 unitaires. Les prototypes Compose des autres pages et leurs écarts connus
-(BMS incomplet, gestes du dashboard différents)
+(gestes du dashboard différents)
 restent hors périmètre ; ils ne doivent pas servir de référence de migration.
 Le journal auparavant figé et les caches divergents de la page des événements
 sont remplacés par une source observable commune aux deux affichages.
@@ -125,6 +135,11 @@ Les actions de partage/suppression reprennent les menus existants, avec
 correction des identifiants de menu incohérents dans le fallback Views.
 Les fonctions d'upload et d'ouverture electro.club auparavant incomplètes
 ne sont pas réactivées par cette migration.
+Le prototype BMS simplifié est remplacé par la présentation de référence :
+libellés traduits, champs propres aux modèles et comparaison des packs.
+Compose reçoit un état de présentation figé, pas les tableaux de cellules
+mutables du décodeur. Les températures BMS gardent les formats Celsius de
+la référence ; la préférence Fahrenheit de la télémétrie ne change pas ce lot.
 
 Pour la validation automatisée, utiliser les tâches existantes :
 `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.

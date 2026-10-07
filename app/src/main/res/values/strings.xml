@@ -1,4 +1,7 @@
 <resources>
+    <string name="use_compose_bms" translatable="false">use_compose_bms</string>
+    <string name="use_compose_bms_title">Compose Smart BMS page</string>
+    <string name="use_compose_bms_description">Use the new Smart BMS renderer. Turn off to return to the original page.</string>
     <string name="use_compose_trips" translatable="false">use_compose_trips</string>
     <string name="use_compose_trips_title">Compose trips page</string>
     <string name="use_compose_trips_description">Use the new trips renderer. Turn off to return to the original page.</string>

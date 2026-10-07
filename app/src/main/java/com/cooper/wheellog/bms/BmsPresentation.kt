@@ -161,7 +161,8 @@ object BmsMapper {
         fun value(pack: BmsPackSnapshot, field: Int): String {
             val index = cellLabels.indexOf(field)
             if (index < 0) return pack.fields[field].orEmpty()
-            // The protocol's mask is an Int: shifts beyond bit 31 must not wrap.
+            // Read-only: balancing status is unavailable for cells 33+ because the
+            // authoritative mask is an Int. Never infer [B] by wrapping a shift.
             val balance = if (index < Int.SIZE_BITS && (pack.balanceMap ushr index and 1) == 1) "[B]" else ""
             return format("%.3f V %s", pack.cells.getOrElse(index) { 0.0 }, balance)
         }

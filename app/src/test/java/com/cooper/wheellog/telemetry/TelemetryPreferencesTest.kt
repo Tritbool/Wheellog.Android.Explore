@@ -45,6 +45,9 @@ class TelemetryPreferencesTest {
         assertThat(config.useComposeTelemetry).isTrue()
         assertThat(config.useComposeEvents).isTrue()
         assertThat(config.useComposeTrips).isTrue()
+        assertThat(config.useComposeBms).isTrue()
+        config.useComposeBms = false
+        assertThat(AppConfig(context).useComposeBms).isFalse()
         config.useComposeTrips = false
         assertThat(AppConfig(context).useComposeTrips).isFalse()
         assertThat(config.useComposeEvents).isTrue()
@@ -84,9 +87,11 @@ class TelemetryPreferencesTest {
             assertThat(emissions.single().useCompose).isTrue()
             assertThat(emissions.single().useComposeEvents).isTrue()
             assertThat(emissions.single().useComposeTrips).isTrue()
+            assertThat(emissions.single().useComposeBms).isTrue()
             config.useComposeTelemetry = false
             config.useComposeEvents = false
             config.useComposeTrips = false
+            config.useComposeBms = false
             config.autoUploadEc = true
             config.useMph = true
             config.usePsi = true
@@ -102,6 +107,7 @@ class TelemetryPreferencesTest {
             assertThat(latest.useCompose).isFalse()
             assertThat(latest.useComposeEvents).isFalse()
             assertThat(latest.useComposeTrips).isFalse()
+            assertThat(latest.useComposeBms).isFalse()
             assertThat(latest.autoUploadEc).isTrue()
             assertThat(latest.useMph).isTrue()
             assertThat(latest.usePsi).isTrue()

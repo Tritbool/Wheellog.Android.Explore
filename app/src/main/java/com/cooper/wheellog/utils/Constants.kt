@@ -27,7 +27,7 @@ object Constants {
     fun wheel_type_from_string(wt: String): WHEEL_TYPE {
         return when (wt.lowercase()) {
             "kingsong" -> WHEEL_TYPE.KINGSONG
-            "gotway", "gw", "begode", "eb", "extreme bull", "extreme_bull" -> WHEEL_TYPE.GOTWAY
+            "gotway", "gw", "begode", "eb", "extremebull", "extreme bull", "extreme_bull" -> WHEEL_TYPE.GOTWAY
             "ninebot", "segway" -> WHEEL_TYPE.NINEBOT
             "ninebot_z", "ninebotz" -> WHEEL_TYPE.NINEBOT_Z
             "inmotion" -> WHEEL_TYPE.INMOTION

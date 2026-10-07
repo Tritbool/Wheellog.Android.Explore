@@ -140,6 +140,11 @@ libellés traduits, champs propres aux modèles et comparaison des packs.
 Compose reçoit un état de présentation figé, pas les tableaux de cellules
 mutables du décodeur. Les températures BMS gardent les formats Celsius de
 la référence ; la préférence Fahrenheit de la télémétrie ne change pas ce lot.
+Les cellules proviennent de l'API par pack : en son absence, les valeurs déjà
+reçues sont conservées, ou la page reste sur la télémétrie de repli. Le tableau
+global potentiellement concaténé n'est pas attribué arbitrairement au pack 1.
+Le masque d'équilibrage actuel étant limité à 32 bits, aucun marqueur `[B]`
+n'est inventé au-delà de la cellule 32.
 
 Pour la validation automatisée, utiliser les tâches existantes :
 `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.

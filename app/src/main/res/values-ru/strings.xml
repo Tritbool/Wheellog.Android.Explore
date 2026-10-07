@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="use_compose_bms_title">Страница Smart BMS Compose</string>
+    <string name="use_compose_bms_description">Использовать новый интерфейс Smart BMS. Отключите для возврата к прежней странице.</string>
     <string name="use_compose_trips_title">Страница поездок Compose</string>
     <string name="use_compose_trips_description">Использовать новый интерфейс поездок. Отключите для возврата к прежней странице.</string>
     <string name="trip_delete_failed">Не удалось удалить файл поездки.</string>

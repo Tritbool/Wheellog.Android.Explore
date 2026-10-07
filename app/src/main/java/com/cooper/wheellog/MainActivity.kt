@@ -890,7 +890,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildBmsDisplaySignature(): String {
-        return "${viewModel.wheelType}:${viewModel.model}:${viewModel.bms1.cellNum}:${viewModel.bms2.cellNum}"
+        val snapshot = viewModel.bmsDisplay.value
+        return "${snapshot.wheelType}:${snapshot.model}:${snapshot.first.cellNum}:${snapshot.second.cellNum}"
     }
     //endregion
 

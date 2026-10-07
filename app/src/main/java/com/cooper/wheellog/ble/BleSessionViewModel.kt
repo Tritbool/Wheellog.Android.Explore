@@ -8,12 +8,15 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
+import androidx.annotation.MainThread
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.cooper.wheellog.utils.Calculator
 import com.cooper.wheellog.utils.Constants
 import com.cooper.wheellog.utils.Constants.wheel_type_from_string
 import com.cooper.wheellog.utils.SmartBms
+import com.cooper.wheellog.bms.BmsMapper
+import com.cooper.wheellog.bms.BmsSnapshot
 import io.github.tritbool.euc.ble.EucBleClient
 import io.github.tritbool.euc.ble.core.BLEConstants
 import io.github.tritbool.euc.ble.core.ConnectionCallback
@@ -127,6 +130,46 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     // BMS data
     val bms1 = SmartBms()
     val bms2 = SmartBms()
+    private class BmsFieldPresence {
+        var voltage = false
+        var current = false
+        val temperatures = BooleanArray(6)
+
+        fun reset() {
+            voltage = false
+            current = false
+            temperatures.fill(false)
+        }
+    }
+    private val bms1Fields = BmsFieldPresence()
+    private val bms2Fields = BmsFieldPresence()
+    private var bmsWheelIdentity: Pair<Constants.WHEEL_TYPE, String>? = null
+    private val _bmsDisplay = MutableStateFlow(captureBmsDisplay())
+    val bmsDisplay: StateFlow<BmsSnapshot> = _bmsDisplay.asStateFlow()
+
+    // Mutation and deep-copy publication run without suspension on the main thread.
+    // Consumers never read the mutable packs, including when StateFlow coalesces updates.
+    @MainThread
+    private fun captureBmsDisplay(state: BleSessionState = _sessionState.value): BmsSnapshot {
+        val type = wheel_type_from_string(state.deviceManufacturer).takeUnless { it == Constants.WHEEL_TYPE.Unknown }
+            ?: bmsWheelIdentity?.first ?: Constants.WHEEL_TYPE.Unknown
+        val model = state.deviceModel.takeUnless { it.isBlank() || it.equals("Unknown", ignoreCase = true) }
+            ?: bmsWheelIdentity?.second.orEmpty()
+        return BmsSnapshot(
+            type, model, protoVer, BmsMapper.pack(bms1), BmsMapper.pack(bms2),
+            state.batteryLevel, state.currentVoltage, state.currentCurrent, state.currentTemperature,
+            ((state.motorTemperature ?: 0.0) * 100).toInt() / 100.0
+        )
+    }
+
+    @MainThread
+    private fun clearBmsPacks() {
+        bms1.reset()
+        bms2.reset()
+        bms1Fields.reset()
+        bms2Fields.reset()
+        bmsWheelIdentity = null
+    }
 
     // ========== GRAPH DATA (for charts) ==========
     private val graphUpdateInterval = 1000L // milliseconds
@@ -297,13 +340,17 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     private fun updateConnectedDevice(device: EUCDevice?) {
         // Reset session statistics
         resetSessionStatistics()
+        clearBmsPacks()
 
         _sessionState.value = _sessionState.value.copy(
             connectionState = BLEConstants.ConnectionState.CONNECTED,
             selectedDevice = device ?: _sessionState.value.selectedDevice,
+            lastData = null,
+            lastDataTimestamp = null,
             lastError = null,
             isScanning = false
         )
+        _bmsDisplay.value = captureBmsDisplay()
 
         if (device != null) {
             Timber.i("Device connected: %s (%s)", device.name, device.address)
@@ -317,8 +364,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     private suspend fun updateDisconnectedState() {
         wheelIsReady = false
         wheelAlarm = false
-        bms1.reset()
-        bms2.reset()
+        clearBmsPacks()
         protocolActive = false
         cancelProtocolWatchdog()
 
@@ -332,6 +378,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             protocolSelectionRequired = false,
             protocolCandidates = emptyList()
         )
+        _bmsDisplay.value = captureBmsDisplay()
 
         Timber.i("Device disconnected")
     }
@@ -378,12 +425,22 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         protocolWatchdogJob = null
     }
 
+    @MainThread
     private fun updateTelemetryData(rawData: EUCData) {
         val data = applyGotwayCorrections(rawData)
-        updateBmsData(data)
-        _eucBleClient.getBMSData()?.let { snapshots ->
-            _bmsSnapshots.tryEmit(snapshots)
+        val type = wheel_type_from_string(data.manufacturer)
+        val model = data.model.takeUnless { it.isBlank() || it.equals("Unknown", ignoreCase = true) }
+        val previous = bmsWheelIdentity
+        if (previous != null && (
+            type != Constants.WHEEL_TYPE.Unknown && type != previous.first ||
+            model != null && previous.second.isNotEmpty() && model != previous.second
+        )) {
+            clearBmsPacks()
         }
+        if (type != Constants.WHEEL_TYPE.Unknown) {
+            bmsWheelIdentity = type to (model ?: bmsWheelIdentity?.second.orEmpty())
+        }
+        updateBmsData(data)
 
         // Update session statistics
         data.speed?.let { speed ->
@@ -493,7 +550,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
 
         val mergedData = carryForwardSettingsFields(data)
 
-        _sessionState.value = _sessionState.value.copy(
+        val nextState = _sessionState.value.copy(
             lastData = mergedData,
             lastDataTimestamp = System.currentTimeMillis(),
             sessionTopSpeed = sessionTopSpeed.takeIf { it > 0 },
@@ -505,6 +562,8 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             sessionDistance = sessionDistance?.takeIf { it > 0 },
             sessionRideTime = sessionRideTime
         )
+        _bmsDisplay.value = captureBmsDisplay(nextState)
+        _sessionState.value = nextState
 
         Timber.d(
             "Telemetry updated: manufacturer=%s, model =%s, speed=%.2f, voltage=%.2f, current=%.2f, pwm=%.2f",
@@ -586,15 +645,18 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         )
     }
 
+    @MainThread
     private fun updateBmsData(data: EUCData) {
         // Wheels with two battery packs (e.g. ExtremeBull Rocket) report per-pack cell
         // voltages through the active protocol's getBMSData(), while EUCData.cellVoltages
-        // only carries the two packs concatenated together. Prefer the per-pack data when
-        // the protocol exposes it so each BMS page reflects its own pack.
+        // can carry the two packs concatenated together. Only the per-pack API
+        // provides a reliable mapping to each battery.
         val bmsPacks = runCatching {
-            _eucBleClient.getBMSData() //.getRegisteredProtocols()
-                //.firstOrNull { it.manufacturer == data.manufacturer }
-                ?.filter { !it.cellVoltages.isNullOrEmpty() }
+            _eucBleClient.getBMSData()
+                ?.map { it.copy(
+                    cellVoltages = it.cellVoltages?.let { cells -> java.util.Collections.unmodifiableList(cells.toList()) },
+                    temperatures = it.temperatures?.let { temps -> java.util.Collections.unmodifiableList(temps.toList()) }
+                ) }
                 ?.sortedBy { it.bmsIndex }
         }.onFailure {
             // getBMSData() reads decoder state that is mutated on the BLE thread, so a
@@ -603,49 +665,33 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         }.getOrNull()
 
         if (!bmsPacks.isNullOrEmpty()) {
-            applyBmsPackData(bms1, data, bmsPacks[0])
-            val secondPack = bmsPacks.getOrNull(1)
-            if (secondPack != null) {
-                applyBmsPackData(bms2, data, secondPack)
-            } else {
-                bms2.reset()
+            _bmsSnapshots.tryEmit(java.util.Collections.unmodifiableList(bmsPacks))
+            // Gotway uses zero-based pack indices; the other decoders use 1/2.
+            val type = bmsWheelIdentity?.first ?: wheel_type_from_string(data.manufacturer)
+            val firstIndex = if (type == Constants.WHEEL_TYPE.GOTWAY) 0 else 1
+            bmsPacks.forEach { pack ->
+                when (pack.bmsIndex) {
+                    firstIndex -> applyBmsPackData(bms1, bms1Fields, pack)
+                    firstIndex + 1 -> applyBmsPackData(bms2, bms2Fields, pack)
+                }
             }
-            return
         }
 
-        val cellVoltages = data.cellVoltages.orEmpty().filter { it > 0.0 }
+        // EUCData cells can concatenate multiple packs. Never assign them to a
+        // pack; retain authoritative per-pack data across partial packets.
+        refreshBmsFallbacks(bms1, bms1Fields, data)
+        refreshBmsFallbacks(bms2, bms2Fields, data)
+    }
 
-        bms1.voltage = data.voltage
-        bms1.current = data.current
-        bms1.temp1 = data.temperature
-        bms1.temp2 = data.motorTemperature ?: 0.0
-        bms1.remPerc = data.batteryLevel
-
-        if (cellVoltages.isEmpty()) {
-            // Cell voltages are not part of every telemetry packet for some
-            // protocols (e.g. Gotway/Begode), so a packet without them doesn't
-            // mean the BMS has no cells. Keep the last known cell data instead
-            // of clearing it, otherwise the BMS page would flicker between the
-            // detailed and fallback layouts on every update.
-            return
-        }
-
-        val firstPackCount = minOf(cellVoltages.size, bms1.cells.size)
-        bms1.cellNum = firstPackCount
-        for (i in bms1.cells.indices) {
-            bms1.cells[i] = if (i < firstPackCount) cellVoltages[i] else 0.0
-        }
-
-        val minCell = cellVoltages.minOrNull() ?: 0.0
-        val maxCell = cellVoltages.maxOrNull() ?: 0.0
-        bms1.minCell = minCell
-        bms1.maxCell = maxCell
-        bms1.avgCell = cellVoltages.average()
-        bms1.cellDiff = maxCell - minCell
-        bms1.minCellNum = (cellVoltages.indexOf(minCell) + 1).coerceAtLeast(1)
-        bms1.maxCellNum = (cellVoltages.indexOf(maxCell) + 1).coerceAtLeast(1)
-
-        bms2.reset()
+    @MainThread
+    private fun refreshBmsFallbacks(bms: SmartBms, fields: BmsFieldPresence, data: EUCData) {
+        // Cells do not imply that the decoder measures voltage, current or every
+        // temperature probe. Refresh only fields never supplied by this pack.
+        if (!fields.voltage) bms.voltage = data.voltage
+        if (!fields.current) bms.current = data.current
+        if (!fields.temperatures[0]) bms.temp1 = data.temperature
+        if (!fields.temperatures[1]) bms.temp2 = data.motorTemperature ?: 0.0
+        bms.remPerc = data.batteryLevel
     }
 
     /**
@@ -656,48 +702,51 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
      * whenever the protocol provides them; fields the protocol doesn't measure per-pack
      * fall back to the overall [EUCData] values.
      */
-    private fun applyBmsPackData(bms: SmartBms, data: EUCData, pack: BMSData) {
-        bms.voltage = pack.voltage ?: data.voltage
-        bms.current = pack.current ?: data.current
+    @MainThread
+    private fun applyBmsPackData(bms: SmartBms, fields: BmsFieldPresence, pack: BMSData) {
+        pack.voltage?.let { bms.voltage = it; fields.voltage = true }
+        pack.current?.let { bms.current = it; fields.current = true }
 
         val temperatures = pack.temperatures
-        if (temperatures != null && temperatures.size >= 4) {
-            bms.temp1 = temperatures[0]
-            bms.temp2 = temperatures[1]
-            bms.temp3 = temperatures[2]
-            bms.temp4 = temperatures[3]
-        } else {
-            bms.temp1 = data.temperature
-            bms.temp2 = data.motorTemperature ?: 0.0
+        temperatures.orEmpty().take(6).forEachIndexed { index, temperature ->
+            when (index) {
+                0 -> bms.temp1 = temperature
+                1 -> bms.temp2 = temperature
+                2 -> bms.temp3 = temperature
+                3 -> bms.temp4 = temperature
+                4 -> bms.temp5 = temperature
+                5 -> bms.temp6 = temperature
+            }
+            fields.temperatures[index] = true
         }
 
-        bms.remPerc = data.batteryLevel
         pack.remainingCapacity?.let { bms.remCap = it }
         pack.factoryCapacity?.let { bms.factoryCap = it }
         pack.cycles?.let { bms.fullCycles = it }
+        pack.isCharging?.let { bms.isCharging = it }
 
-        val cellVoltages = pack.cellVoltages.orEmpty().filter { it > 0.0 }
-        if (cellVoltages.isEmpty()) {
+        val cellVoltages = pack.cellVoltages.orEmpty()
+        if (cellVoltages.none { it > 0.0 }) {
             // Keep last known cell data instead of clearing it, mirroring the
             // single-pack fallback behaviour above.
             return
         }
 
         val packCount = minOf(cellVoltages.size, bms.cells.size)
-        bms.cellNum = packCount
-        for (i in bms.cells.indices) {
-            bms.cells[i] = if (i < packCount) cellVoltages[i] else 0.0
+        bms.cellNum = maxOf(bms.cellNum, packCount)
+        for (i in 0 until packCount) {
+            if (cellVoltages[i] > 0.0) bms.cells[i] = cellVoltages[i]
         }
 
-        val minCell = cellVoltages.minOrNull() ?: 0.0
-        val maxCell = cellVoltages.maxOrNull() ?: 0.0
+        val measured = bms.cells.take(bms.cellNum).filter { it > 0.0 }
+        val minCell = measured.minOrNull() ?: 0.0
+        val maxCell = measured.maxOrNull() ?: 0.0
         bms.minCell = minCell
         bms.maxCell = maxCell
-        bms.avgCell = cellVoltages.average()
+        bms.avgCell = if (measured.isEmpty()) 0.0 else measured.average()
         bms.cellDiff = maxCell - minCell
-        bms.minCellNum = (cellVoltages.indexOf(minCell) + 1).coerceAtLeast(1)
-        bms.maxCellNum = (cellVoltages.indexOf(maxCell) + 1).coerceAtLeast(1)
-        bms.isCharging = pack.isCharging ?: false
+        bms.minCellNum = (bms.cells.indexOf(minCell) + 1).coerceAtLeast(1)
+        bms.maxCellNum = (bms.cells.indexOf(maxCell) + 1).coerceAtLeast(1)
     }
 
     private suspend fun updateError(error: String) {
@@ -1031,11 +1080,15 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun resetBmsData() {
-        // BMS data will be handled separately
+        viewModelScope.launch {
+            clearBmsPacks()
+            _bmsDisplay.value = captureBmsDisplay()
+        }
     }
 
     fun fullReset() {
         resetSessionStatistics()
+        resetBmsData()
         xAxis.clear()
         currentAxis.clear()
         speedAxis.clear()

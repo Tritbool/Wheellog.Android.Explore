@@ -55,6 +55,13 @@ fun applicationScreen(
             }
 
             switchPref(
+                name = stringResource(R.string.use_compose_bms_title),
+                desc = stringResource(R.string.use_compose_bms_description),
+                default = appConfig.useComposeBms
+            ) {
+                appConfig.useComposeBms = it
+            }
+            switchPref(
                 name = stringResource(R.string.use_compose_trips_title),
                 desc = stringResource(R.string.use_compose_trips_description),
                 default = appConfig.useComposeTrips

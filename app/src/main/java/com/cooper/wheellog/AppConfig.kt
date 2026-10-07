@@ -55,7 +55,17 @@ class AppConfig(var context: Context) : KoinComponent {
             }
         }
 
-    var useComposeUI: Boolean = false
+    var useComposeUI: Boolean
+        get() = getValue(R.string.use_compose_dashboard, true)
+        set(value) = setValue(R.string.use_compose_dashboard, value)
+
+    /** A listener is owned by the collector and released at STOP/disposal. */
+    fun dashboardPreferences(): Flow<Unit> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> trySend(Unit) }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        trySend(Unit)
+        awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.conflate()
 
     var useComposeTelemetry: Boolean
         get() = getValue(R.string.use_compose_telemetry, true)

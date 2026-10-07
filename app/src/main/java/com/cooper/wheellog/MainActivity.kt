@@ -855,12 +855,7 @@ class MainActivity : AppCompatActivity() {
     /** Toggles the wheel's headlight from the notification quick-action button. */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun toggleLight() {
-        val supportsLightToggle = viewModel.isCommandSupported(CommandType.LIGHT_ON) ||
-                viewModel.isCommandSupported(CommandType.LIGHT_OFF)
-        if (!supportsLightToggle) return
-        val enable = !appConfig.lightEnabled
-        appConfig.lightEnabled = enable
-        viewModel.sendCommand(if (enable) CommandType.LIGHT_ON else CommandType.LIGHT_OFF)
+        com.cooper.wheellog.feature.dashboard.DashboardActions.toggleLight(viewModel, appConfig)
     }
 
     fun toggleLoggingService() {
@@ -983,7 +978,7 @@ class MainActivity : AppCompatActivity() {
 
                 Constants.ACTION_PREFERENCE_RESET -> {
                     Timber.i("Reset battery lowest")
-                    pagerAdapter.wheelView?.resetBatteryLowest()
+                    pagerAdapter.resetBatteryLowest()
                 }
             }
         }

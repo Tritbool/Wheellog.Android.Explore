@@ -47,16 +47,16 @@ Let's start
 - Install SDK and connect android device
 - Click `Run` button - Enjoy!
 
-## Migration Compose : télémétrie, événements, trajets et Smart BMS
+## Migration Compose : dashboard, télémétrie, événements, trajets et Smart BMS
 
-Les pages de télémétrie, d'événements, de trajets et Smart BMS utilisent Compose par défaut.
+Le dashboard et les pages de télémétrie, d'événements, de trajets et Smart BMS utilisent Compose par défaut.
 Les Views restent la référence de comparaison et un affichage de secours.
-Le dashboard, le scan, les services, le BLE et la navigation
+Le scan, les services, le BLE et la navigation
 principale ne sont pas migrés dans cette étape.
 
 Les réglages généraux permettent de désactiver séparément Compose pour la
-télémétrie, les événements, les trajets et le BMS. Les options sont persistantes et indépendantes
-du dashboard Compose. Un choix explicite de retour aux Views déjà enregistré
+télémétrie, les événements, les trajets, le BMS et le dashboard. Les options sont persistantes et indépendantes.
+Un choix explicite de retour aux Views déjà enregistré
 reste respecté : réactiver la bascule si nécessaire après mise à jour.
 La désactivation restaure les Views sans redémarrer la session BLE.
 Chaque affichage conserve son propre défilement pendant la bascule.
@@ -98,6 +98,16 @@ mais ne signifie pas que la recette visuelle ou sur roue réelle est validée.
       reconnexion, changement de constructeur et données partielles.
 - [ ] Modification des unités sans nouveau paquet BLE : rafraîchissement de
       la page Compose, sans commande envoyée à la roue.
+- [ ] Dashboard : mêmes jauges Original/AJDM, arcs de vitesse/courant/courant
+      de phase/PWM, couleurs, valeurs centrales et nom de roue.
+- [ ] Batterie et température : valeur courante, minimum batterie et maximum
+      température aux mêmes positions que les Views, y compris les valeurs nulles.
+- [ ] Blocs : sélection et ordre identiques, formats et unités de référence,
+      appui long et remplacement persistant, disposition selon la taille disponible.
+- [ ] Tap simple : klaxon uniquement si activé ; double tap : éclairage selon
+      les commandes disponibles, sans klaxon ou commande supplémentaire.
+- [ ] Préférences de jauge, unités, thèmes et blocs actualisées sans nouveau
+      paquet BLE ; bascule dashboard Views/Compose sans redémarrer la connexion.
 - [ ] Bascule dans les deux sens, défilement, navigation entre pages,
       rotation et retour au premier plan.
 - [ ] Événements ajoutés en direct sans nouveau paquet BLE, mêmes messages
@@ -126,8 +136,7 @@ mais ne signifie pas que la recette visuelle ou sur roue réelle est validée.
 - [ ] Validation sur roue réelle des parcours BLE concernés.
 
 Ces contrôles visuels et matériels ne sont pas remplacés par les tests
-unitaires. Les prototypes Compose des autres pages et leurs écarts connus
-(gestes du dashboard différents)
+unitaires. Les prototypes Compose des autres pages
 restent hors périmètre ; ils ne doivent pas servir de référence de migration.
 Le journal auparavant figé et les caches divergents de la page des événements
 sont remplacés par une source observable commune aux deux affichages.
@@ -150,6 +159,12 @@ n'est inventé au-delà de la cellule 32.
 Le logging BMS lit le dernier instantané publié avant la télémétrie ;
 déconnexion, réinitialisation et changement de roue invalident cet instantané
 pour ne pas réutiliser les mesures de la session précédente.
+Le lot dashboard extrait le dessin de `WheelView` dans un moteur Canvas
+commun, utilisé par la View de repli et le Canvas Compose. Les deux affichages
+partagent la présentation, le catalogue de blocs et les actions ; le repli
+n'est donc plus une copie indépendante du moteur historique.
+L'ancien geste du prototype qui échangeait vitesse/PWM au tap est supprimé :
+ce choix reste un réglage, indépendant de la grandeur affichée sur l'arc.
 
 Pour la validation automatisée, utiliser les tâches existantes :
 `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.

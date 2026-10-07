@@ -41,7 +41,7 @@ class TelemetryPreferencesTest {
     @Test
     fun `telemetry and events default on and persist independent fallbacks`() {
         val config = AppConfig(context)
-        assertThat(config.useComposeUI).isFalse()
+        assertThat(config.useComposeUI).isTrue()
         assertThat(config.useComposeTelemetry).isTrue()
         assertThat(config.useComposeEvents).isTrue()
         assertThat(config.useComposeTrips).isTrue()

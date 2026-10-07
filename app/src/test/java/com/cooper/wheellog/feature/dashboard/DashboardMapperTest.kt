@@ -71,6 +71,7 @@ class DashboardMapperTest {
             every { alarm3Battery } returns 0
             every { colorPwmStart } returns 60
             every { colorPwmEnd } returns 90
+            every { valueOnDial } returns "0"
         }
     }
 
@@ -87,17 +88,18 @@ class DashboardMapperTest {
         assertThat(result.alarmLevel).isEqualTo(AlarmLevel.NONE)
         assertThat(result.maxSpeed).isEqualTo(50)
         assertThat(result.colorPwmStart).isEqualTo(60)
+        assertThat(result.batteryLowestFraction).isEqualTo(0f)
     }
 
     // ── Speed display ──────────────────────────────────────────────────────
 
     @Test
-    fun `speed is formatted to one decimal in km-h`() {
+    fun `speed at ten kmh and above mirrors WheelView integer formatting`() {
         val result = DashboardMapper.map(connectedState(), null, appConfig)
 
         assertThat(result.isConnected).isTrue()
         assertThat(result.speed).isEqualTo(20f)
-        assertThat(result.speedDisplay).isEqualTo("20.0")
+        assertThat(result.speedDisplay).isEqualTo("20")
         assertThat(result.speedUnit).isEqualTo("km/h")
         assertThat(result.displayMode).isEqualTo(DisplayMode.SPEED)
     }
@@ -110,7 +112,7 @@ class DashboardMapperTest {
 
         assertThat(result.speedUnit).isEqualTo("mph")
         // 20 km/h ≈ 12.4 mph
-        assertThat(result.speedDisplay).isEqualTo("12.4")
+        assertThat(result.speedDisplay).isEqualTo("12")
     }
 
     @Test
@@ -162,20 +164,21 @@ class DashboardMapperTest {
     }
 
     @Test
-    fun `mainDialFraction uses pwm in PWM mode`() {
+    fun `text swap does not change configured outer dial`() {
         every { appConfig.swapSpeedPwm } returns true
         // pwm = 30, maxSpeed = 50 → fraction = 0.6
         val result = DashboardMapper.map(connectedState(), null, appConfig)
-        assertThat(result.mainDialFraction).isWithin(0.001f).of(0.6f)
+        assertThat(result.mainDialFraction).isWithin(0.001f).of(0.4f)
     }
 
     @Test
-    fun `pwm values above 100 are normalized for dashboard display`() {
+    fun `pwm is not silently divided and dial range is capped`() {
+        every { appConfig.valueOnDial } returns "2"
         val data = eucData(pwm = 426.4)
         val result = DashboardMapper.map(connectedState(data), null, appConfig)
 
-        assertThat(result.pwm).isWithin(0.001f).of(42.64f)
-        assertThat(result.mainDialFraction).isWithin(0.001f).of(42.64f / 50f)
+        assertThat(result.pwm).isWithin(0.001f).of(426.4f)
+        assertThat(result.mainDialFraction).isEqualTo(1f)
     }
 
     // ── Alarm levels ───────────────────────────────────────────────────────
@@ -319,5 +322,42 @@ class DashboardMapperTest {
 
         assertThat(result.batteryDisplay).isEqualTo("09%")
         assertThat(result.temperatureDisplay).isEqualTo("07℃")
+    }
+
+    @Test fun `negative current and phase current retain sign and swap leaves ranges unchanged`() {
+        every { appConfig.valueOnDial } returns "1"
+        val data = eucData(current = -25.0)
+        every { data.phaseCurrent } returns -10.0
+        val current = DashboardMapper.map(connectedState(data), null, appConfig)
+        assertThat(current.mainDialFraction).isEqualTo(-.5f)
+        assertThat(current.secondaryDialFraction).isEqualTo(.4f)
+        every { appConfig.valueOnDial } returns "3"
+        every { appConfig.swapSpeedPwm } returns true
+        every { appConfig.useMph } returns true
+        val phase = DashboardMapper.map(connectedState(data), null, appConfig)
+        assertThat(phase.mainDialFraction).isEqualTo(-.2f)
+        assertThat(phase.secondaryDialFraction).isEqualTo(.4f)
+        assertThat(phase.displayMode).isEqualTo(DisplayMode.PWM)
+    }
+
+    @Test fun `disconnect retains latest values and config rather than clearing presentation`() {
+        every { appConfig.swapSpeedPwm } returns true
+        every { appConfig.useShortPwm } returns true
+        val disconnected = connectedState().copy(connectionState = BLEConstants.ConnectionState.DISCONNECTED)
+        val result = DashboardMapper.map(disconnected, null, appConfig)
+        assertThat(result.isConnected).isFalse()
+        assertThat(result.speedDisplay).isEqualTo("20")
+        assertThat(result.battery).isEqualTo(80)
+        assertThat(result.displayMode).isEqualTo(DisplayMode.PWM)
+        assertThat(result.useShortPwm).isTrue()
+    }
+
+    @Test fun `invalid ranges and nonfinite pwm cannot divide by zero or corrupt rendering`() {
+        every { appConfig.maxSpeed } returns 0
+        every { appConfig.valueOnDial } returns "2"
+        val result = DashboardMapper.map(connectedState(eucData(pwm = Double.NaN)), null, appConfig)
+        assertThat(result.pwm).isEqualTo(0f)
+        assertThat(result.mainDialFraction).isEqualTo(0f)
+        assertThat(result.batteryFraction).isEqualTo(.8f)
     }
 }

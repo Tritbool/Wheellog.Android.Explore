@@ -20,11 +20,7 @@ object StringUtil: KoinComponent {
      */
     @JvmStatic
     fun Int.toTempString(): String {
-        return if (appConfig.useFahrenheit) {
-            String.format(Locale.US, "%02d℉", MathsUtil.celsiusToFahrenheit(this.toDouble()).toInt())
-        } else {
-            String.format(Locale.US, "%02d℃", this)
-        }
+        return com.cooper.wheellog.feature.dashboard.DashboardFormatting.temperature(this, appConfig.useFahrenheit)
     }
 
     @JvmStatic

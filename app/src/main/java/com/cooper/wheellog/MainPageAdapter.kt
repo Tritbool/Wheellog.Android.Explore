@@ -45,7 +45,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     private var xAxisLabels = ArrayList<String>()
 
     var wheelView: WheelView? = null
-    private var mainComposeView: ComposeView? = null
+    private var dashboardRenderer: DashboardPageRenderer? = null
     private var chart1: LineChart? = null
     var position: Int = -1
         set(value) {
@@ -76,6 +76,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         eventsRenderer?.start(activity)
         tripsRenderer?.start()
         bmsRenderer?.start()
+        dashboardRenderer?.start()
         telemetryPreferencesJob = activity.lifecycleScope.launch {
             activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 appConfig.telemetryPreferences().collect { preferences ->
@@ -105,6 +106,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         eventsRenderer?.stop()
         tripsRenderer?.stop()
         bmsRenderer?.stop()
+        dashboardRenderer?.stop()
     }
 
     fun addPage(page: Int, index: Int = 0) {
@@ -146,6 +148,8 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         tripsRenderer?.refresh()
     }
 
+    fun resetBatteryLowest() { dashboardRenderer?.resetBatteryLowest() }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return ViewHolder(inflater.inflate(viewType, parent, false))
@@ -157,24 +161,10 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         pagesView[pages[position]] = view
         when (pages[position]) {
             R.layout.main_view_main -> {
-                wheelView = view.findViewById(R.id.wheelView)
-                mainComposeView = view.findViewById(R.id.mainPageComposeView)
-                if (appConfig.useComposeUI) {
-                    wheelView?.visibility = View.GONE
-                    mainComposeView?.apply {
-                        visibility = View.VISIBLE
-                        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                        setContent {
-                            AppTheme {
-                                MainPageScreen()
-                            }
-                        }
-                    }
-                    wheelView = null
-                } else {
-                    mainComposeView?.visibility = View.GONE
-                    wheelView?.visibility = View.VISIBLE
-                }
+                dashboardRenderer?.dispose()
+                holder.dashboardRenderer = DashboardPageRenderer(view, viewModel, appConfig, activity)
+                dashboardRenderer = holder.dashboardRenderer
+                wheelView = dashboardRenderer?.wheelView
             }
             R.layout.main_view_params_list -> {
                 createSecondPage()
@@ -251,33 +241,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         }
         when (pages[position]) {
             R.layout.main_view_main -> {
-                wheelView?.apply {
-                    // WheelView expects speed in 0.1 km/h units and temperature in °C.
-                    setSpeed((viewModel.speedDouble * 10).toInt())
-                    setBattery(viewModel.batteryLevel)
-                    setBatteryLowest(viewModel.batteryLowestLevel)
-                    setTemperature(viewModel.temperatureDouble.toInt())
-                    setRideTime(viewModel.ridingTimeString)
-                    setTopSpeed(viewModel.topSpeedDouble)
-                    setDistance(viewModel.distanceDouble)
-                    setTotalDistance(viewModel.totalDistanceDouble)
-                    setVoltage(viewModel.voltageDouble)
-                    setCurrent(viewModel.currentDouble)
-                    setPhaseCurrent(viewModel.phaseCurrentDouble)
-                    setAverageSpeed(viewModel.averageRidingSpeedDouble)
-                    setMaxPwm(viewModel.maxPwm)
-                    setMaxTemperature(viewModel.maxTemp.toInt())
-                    setPwm(viewModel.calculatedPwm)
-                    updateViewBlocksVisibility()
-                    redrawTextBoxes()
-                    invalidate()
-
-                    var profileName = appConfig.profileName
-                    if (profileName.trim { it <= ' ' } == "") {
-                        profileName = if (viewModel.model == "") viewModel.name else viewModel.model
-                    }
-                    setWheelModel(profileName)
-                }
+                // The dashboard owns lifecycle-bound session and preference collection.
             }
             R.layout.main_view_params_list -> {
                 refreshTelemetryValues()
@@ -430,6 +394,15 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     }
 
     override fun onViewRecycled(holder: ViewHolder) {
+        if (holder.itemViewType == R.layout.main_view_main) {
+            if (pagesView[R.layout.main_view_main] === holder.itemView) {
+                pagesView[R.layout.main_view_main] = null
+                dashboardRenderer = null
+                wheelView = null
+            }
+            holder.dashboardRenderer?.dispose()
+            holder.dashboardRenderer = null
+        }
         if (holder.itemViewType == R.layout.main_view_smart_bms) {
             if (pagesView[R.layout.main_view_smart_bms] === holder.itemView) {
                 pagesView[R.layout.main_view_smart_bms] = null
@@ -472,6 +445,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
 
     override fun onViewAttachedToWindow(holder: ViewHolder) {
         super.onViewAttachedToWindow(holder)
+        holder.dashboardRenderer?.start()
         holder.bmsRenderer?.apply {
             preferences(appConfig.useComposeBms, appConfig.appTheme)
             start()
@@ -487,6 +461,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     }
 
     override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        holder.dashboardRenderer?.stop()
         holder.bmsRenderer?.stop()
         holder.eventsRenderer?.stop()
         holder.tripsRenderer?.stop()
@@ -529,6 +504,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     }
 
     class ViewHolder internal constructor(view: View) : RecyclerView.ViewHolder(view) {
+        internal var dashboardRenderer: DashboardPageRenderer? = null
         internal var bmsRenderer: BmsPageRenderer? = null
         internal var eventsRenderer: EventsPageRenderer? = null
         internal var tripsRenderer: TripsPageRenderer? = null

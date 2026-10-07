@@ -2,10 +2,7 @@ package com.cooper.wheellog.feature.dashboard
 
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.ble.BleSessionState
-import com.cooper.wheellog.utils.MathsUtil.kmToMiles
-import com.cooper.wheellog.utils.MathsUtil.celsiusToFahrenheit
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 /**
  * Pure mapping function: [BleSessionState] + app config → [DashboardUiState].
@@ -20,9 +17,8 @@ object DashboardMapper {
      * Build a [DashboardUiState] from the current BLE session state and config.
      *
      * @param state          Latest [BleSessionState] from [BleSessionViewModel].
-     * @param swapOverride   When non-null, overrides [AppConfig.swapSpeedPwm] so the
-     *                       ViewModel can track a user-initiated display-mode toggle
-     *                       without persisting it to SharedPreferences immediately.
+     * @param swapOverride   Optional mapping override; production gestures persist
+     *                       [AppConfig.swapSpeedPwm] and do not use an override.
      * @param appConfig      Injected app config (display preferences, alarm thresholds).
      */
     fun map(
@@ -33,52 +29,40 @@ object DashboardMapper {
         val useMph = appConfig.useMph
         val maxSpeedConf = appConfig.maxSpeed
 
-        // Return a minimal "disconnected" state that still carries display config.
-        if (!state.isConnected) {
-            return DashboardUiState.EMPTY.copy(
-                useMph = useMph,
-                speedUnit = if (useMph) "mph" else "km/h",
-                maxSpeed = maxSpeedConf,
-                colorPwmStart = appConfig.colorPwmStart,
-                colorPwmEnd = appConfig.colorPwmEnd
-            )
-        }
-
-        val speed = state.currentSpeed.toFloat()               // km/h
+        val speedTenths = (state.currentSpeed * 10).toInt()
+        val speed = speedTenths / 10f
         val pwm = normalizePwm(state.pwm?.toFloat() ?: 0f)
         val maxPwm = normalizePwm((state.sessionMaxPwm ?: 0.0).toFloat())
-        val battery = state.batteryLevel
+        val battery = state.batteryLevel.coerceIn(0, 100)
         val batteryLowest = state.sessionBatteryLowest ?: 101
-        val temp = state.currentTemperature.toFloat()          // °C
-        val maxTemp = (state.sessionMaxTemperature ?: temp.toDouble()).toFloat().coerceAtLeast(temp)
+        val temp = state.currentTemperature.toInt().coerceIn(-100, 100).toFloat()
+        val maxTemp = (state.sessionMaxTemperature ?: temp.toDouble()).toInt().toFloat()
         val batteryDisplay = formatBattery(battery)
         val temperatureDisplay = formatTemperature(temp, appConfig.useFahrenheit)
-        val maxTemperatureDisplay = "MAX ${formatTemperature(maxTemp, appConfig.useFahrenheit)}"
+        val maxTemperatureDisplay = formatTemperature(maxTemp, appConfig.useFahrenheit)
 
         // ── Speed display ─────────────────────────────────────────────────────
-        val displaySpeedValue = if (useMph) kmToMiles(speed) else speed
         val speedUnit = if (useMph) "mph" else "km/h"
-        val speedDisplay = when {
-            abs(displaySpeedValue) >= 100f -> displaySpeedValue.roundToInt().toString()
-            else -> String.format("%.1f", displaySpeedValue)
-        }
+        val speedDisplay = DashboardFormatting.speed(speedTenths, useMph)
 
         // ── Display mode ──────────────────────────────────────────────────────
         val swapSpeedPwm = swapOverride ?: appConfig.swapSpeedPwm
         val displayMode = if (swapSpeedPwm) DisplayMode.PWM else DisplayMode.SPEED
 
         // ── Gauge fractions ───────────────────────────────────────────────────
-        // The main dial normalises the displayed value against maxSpeed (same as
-        // the legacy WheelView which uses: targetX = min(|value|, maxSpeed) / maxSpeed * 112).
-        val mainDialFraction = when (displayMode) {
-            DisplayMode.SPEED ->
-                (abs(speed).coerceAtMost(maxSpeedConf.toFloat())) / maxSpeedConf.toFloat()
-            DisplayMode.PWM ->
-                (abs(pwm).coerceAtMost(maxSpeedConf.toFloat())) / maxSpeedConf.toFloat()
-        }.coerceIn(0f, 1f)
+        // valueOnDial controls the arc independently of the central speed/PWM swap.
+        val speedFraction = DashboardFormatting.fraction(abs(speed), maxSpeedConf)
+        val currentFraction = DashboardFormatting.fraction(state.currentCurrent.toFloat(), maxSpeedConf)
+        val mainDialFraction = when (appConfig.valueOnDial) {
+            "1" -> currentFraction
+            "2" -> DashboardFormatting.fraction(pwm, maxSpeedConf)
+            "3" -> DashboardFormatting.fraction((state.lastData?.phaseCurrent ?: 0.0).toFloat(), maxSpeedConf)
+            else -> speedFraction
+        }
 
         val batteryFraction = (battery / 100f).coerceIn(0f, 1f)
-        val batteryLowestFraction = (batteryLowest.coerceAtMost(100) / 100f).coerceIn(0f, 1f)
+        val batteryLowestFraction = if (batteryLowest > 100) 0f
+            else (batteryLowest / 100f).coerceIn(0f, 1f)
         // Temperature arc uses 80 °C as 100 % (same as WheelView: 40 segments for 0-80 °C).
         val temperatureFraction = (temp.coerceIn(0f, 80f) / 80f)
         val maxTemperatureFraction = (maxTemp.coerceIn(0f, 80f) / 80f)
@@ -90,7 +74,7 @@ object DashboardMapper {
         val topSpeed = (state.sessionTopSpeed ?: state.topSpeed ?: 0.0).toFloat()
         val distance = (state.sessionDistance ?: state.wheelDistance ?: 0.0).toFloat()
         val totalDistance = (state.totalDistance ?: 0.0).toFloat()
-        val ridingTimeSec = state.sessionRidingTimeSec ?: state.rideTime ?: 0L
+        val ridingTimeSec = state.sessionRidingTimeSec ?: 0L
         val rideTimeFormatted = formatRideTime(ridingTimeSec)
         val wheelModel = appConfig.profileName
             .takeIf { it.isNotBlank() }
@@ -99,7 +83,15 @@ object DashboardMapper {
             ?: ""
 
         return DashboardUiState(
-            isConnected = true,
+            isConnected = state.isConnected,
+            useCompose = appConfig.useComposeUI,
+            appTheme = appConfig.appTheme,
+            nightMode = appConfig.dayNightThemeMode,
+            speedWarning = !appConfig.pwmBasedAlarms && appConfig.alarm1Speed > 0 &&
+                speedTenths >= appConfig.alarm1Speed * 10,
+            valueOnDial = appConfig.valueOnDial,
+            secondaryDialFraction = if (appConfig.valueOnDial == "1" || appConfig.valueOnDial == "3")
+                speedFraction else currentFraction,
             wheelModel = wheelModel,
             speed = speed,
             speedDisplay = speedDisplay,
@@ -187,27 +179,18 @@ object DashboardMapper {
         val h = seconds / 3600
         val m = (seconds % 3600) / 60
         val s = seconds % 60
-        return String.format("%02d:%02d:%02d", h, m, s)
+        return DashboardFormatting.format("%02d:%02d:%02d", h, m, s)
     }
 
     internal fun formatBattery(battery: Int): String =
-        String.format("%02d%%", battery.coerceIn(0, 100))
+        DashboardFormatting.format("%02d%%", battery.coerceIn(0, 100))
 
     internal fun formatTemperature(celsius: Float, useFahrenheit: Boolean): String {
-        val roundedCelsius = celsius.roundToInt()
-        return if (useFahrenheit) {
-            String.format("%02d℉", celsiusToFahrenheit(roundedCelsius.toDouble()).toInt())
-        } else {
-            String.format("%02d℃", roundedCelsius)
-        }
+        return DashboardFormatting.temperature(celsius.toInt(), useFahrenheit)
     }
 
     internal fun normalizePwm(pwm: Float): Float {
         if (!pwm.isFinite()) return 0f
-        var normalized = pwm
-        while (abs(normalized) > 100f) {
-            normalized /= 10f
-        }
-        return normalized
+        return pwm
     }
 }

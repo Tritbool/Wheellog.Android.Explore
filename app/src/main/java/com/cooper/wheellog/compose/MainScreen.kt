@@ -5,15 +5,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.views.WheelView
+import com.cooper.wheellog.feature.dashboard.DashboardActions
+import com.cooper.wheellog.feature.dashboard.DashboardViewModel
+import kotlinx.coroutines.flow.collect
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import org.koin.core.parameter.parametersOf
 
 enum class Page { Main, Params, Trips, Events, BMS }
 
@@ -42,42 +49,25 @@ fun MainScreen(appConfig: AppConfig = koinInject()) {
 
 
 @Composable
-fun LegacyMainView(viewModel: BleSessionViewModel = koinInject()) {
-    val state by viewModel.sessionState.collectAsState()
+fun LegacyMainView(viewModel: BleSessionViewModel = koinInject(),
+                   dashboard: DashboardViewModel = koinViewModel { parametersOf(viewModel) }) {
     val appConfig: AppConfig = koinInject()
+    val context = LocalContext.current
+    val owner = LocalLifecycleOwner.current
+    val actions = remember(context, viewModel, appConfig) { DashboardActions(context, viewModel, appConfig) }
+    DisposableEffect(actions) { onDispose { actions.dispose() } }
+    val state by produceState(dashboard.uiState.value, owner, dashboard) {
+        owner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            actions.start()
+            try { dashboard.uiState.collect { value = it } }
+            finally { actions.dispose() }
+        }
+    }
 
     AndroidView(
         factory = { ctx -> WheelView(ctx, null) },
         update = { view ->
-            // Bind the update block to session state emissions so telemetry refreshes the view.
-            state.lastDataTimestamp
-
-            view.apply {
-                setSpeed((viewModel.speedDouble * 10).toInt())
-                setBattery(viewModel.batteryLevel)
-                setBatteryLowest(viewModel.batteryLowestLevel)
-                setTemperature(viewModel.temperatureDouble.toInt())
-                setRideTime(viewModel.ridingTimeString)
-                setTopSpeed(viewModel.topSpeedDouble)
-                setDistance(viewModel.distanceDouble)
-                setTotalDistance(viewModel.totalDistanceDouble)
-                setVoltage(viewModel.voltageDouble)
-                setCurrent(viewModel.currentDouble)
-                setPhaseCurrent(viewModel.phaseCurrentDouble)
-                setAverageSpeed(viewModel.averageRidingSpeedDouble)
-                setMaxPwm(viewModel.maxPwm)
-                setMaxTemperature(viewModel.maxTemp.toInt())
-                setPwm(viewModel.calculatedPwm)
-                updateViewBlocksVisibility()
-                redrawTextBoxes()
-                invalidate()
-
-                var profileName = appConfig.profileName
-                if (profileName.trim { it <= ' ' } == "") {
-                    profileName = if (viewModel.model == "") viewModel.name else viewModel.model
-                }
-                setWheelModel(profileName)
-            }
+            view.render(state, actions)
         }
     )
 }

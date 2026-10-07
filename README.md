@@ -117,6 +117,8 @@ mais ne signifie pas que la recette visuelle ou sur roue réelle est validée.
       extrema avec leur indice, écarts et marqueurs d'équilibrage.
 - [ ] Paquets incomplets : pas de disparition des cellules déjà reçues ;
       déconnexion réelle et changement de roue sans données de l'ancienne roue.
+- [ ] CSV BMS : aucune mesure de l'ancienne roue après reconnexion/réinitialisation ;
+      une réponse BMS vide invalide les mesures de logging sans effacer la grille.
 - [ ] Repli sans détails BMS, bascule Views/Compose, défilement et consultation
       de la page sans commandes ou collecteurs dupliqués.
 - [ ] Scan, menus, notifications, touches volume, alarmes et PiP inchangés ;
@@ -145,6 +147,9 @@ reçues sont conservées, ou la page reste sur la télémétrie de repli. Le tab
 global potentiellement concaténé n'est pas attribué arbitrairement au pack 1.
 Le masque d'équilibrage actuel étant limité à 32 bits, aucun marqueur `[B]`
 n'est inventé au-delà de la cellule 32.
+Le logging BMS lit le dernier instantané publié avant la télémétrie ;
+déconnexion, réinitialisation et changement de roue invalident cet instantané
+pour ne pas réutiliser les mesures de la session précédente.
 
 Pour la validation automatisée, utiliser les tâches existantes :
 `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.

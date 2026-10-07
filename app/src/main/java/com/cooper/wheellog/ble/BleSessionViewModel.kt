@@ -57,6 +57,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.channels.BufferOverflow
 
 /**
  * ViewModel that manages the BLE session state and provides a reactive interface
@@ -81,8 +82,10 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
     val rawFrames: SharedFlow<ByteArray> = _rawFrames.asSharedFlow()
 
     private val _bmsSnapshots = MutableSharedFlow<List<BMSData>>(
+        replay = 1,
         extraBufferCapacity = 16,
-    )
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    ).apply { tryEmit(emptyList()) }
     val bmsSnapshots: SharedFlow<List<BMSData>> = _bmsSnapshots.asSharedFlow()
 
     // EucBleClient instance - the single source of truth for BLE operations
@@ -169,6 +172,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         bms1Fields.reset()
         bms2Fields.reset()
         bmsWheelIdentity = null
+        _bmsSnapshots.tryEmit(emptyList())
     }
 
     // ========== GRAPH DATA (for charts) ==========
@@ -664,8 +668,10 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             Timber.w(it, "Unable to read per-pack BMS data")
         }.getOrNull()
 
-        if (!bmsPacks.isNullOrEmpty()) {
+        if (bmsPacks != null) {
             _bmsSnapshots.tryEmit(java.util.Collections.unmodifiableList(bmsPacks))
+        }
+        if (!bmsPacks.isNullOrEmpty()) {
             // Gotway uses zero-based pack indices; the other decoders use 1/2.
             val type = bmsWheelIdentity?.first ?: wheel_type_from_string(data.manufacturer)
             val firstIndex = if (type == Constants.WHEEL_TYPE.GOTWAY) 0 else 1

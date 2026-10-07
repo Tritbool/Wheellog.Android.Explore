@@ -45,9 +45,6 @@ class LoggingService : Service() {
     private var lastBmsSignature: String? = null
     private var lastBmsWriteTimestamp: Long = 0L
 
-    @Volatile
-    private var latestBmsPacks: List<BMSData> = emptyList()
-
     fun updateConnectionState(connectionState: BLEConstants.ConnectionState) {
         if (connectionState != BLEConstants.ConnectionState.CONNECTED) {
             // Park logging: nothing is appended until fresh telemetry arrives again.
@@ -78,7 +75,6 @@ class LoggingService : Service() {
             }
             logStarted = true
             observeTelemetry()
-            observeBmsSnapshots()
             if (appConfig.enableRawData) observeRawFrames()
         }
         return START_STICKY
@@ -191,14 +187,6 @@ class LoggingService : Service() {
                 if (timestamp == lastLoggedTimestamp) return@collect
                 lastLoggedTimestamp = timestamp
                 updateFile()
-            }
-        }
-    }
-
-    private fun observeBmsSnapshots() {
-        ioState.launch {
-            viewModel.bmsSnapshots.collect { packs ->
-                latestBmsPacks = packs
             }
         }
     }
@@ -365,14 +353,15 @@ class LoggingService : Service() {
             return
         }
 
-        val packs = latestBmsPacks.filter { pack ->
+        // Read the replay published before telemetry, rather than an independently
+        // scheduled collector's cache, which can still contain the previous wheel.
+        val packs = viewModel.bmsSnapshots.replayCache.lastOrNull().orEmpty().filter { pack ->
             pack.voltage != null ||
                     pack.current != null ||
                     !pack.temperatures.isNullOrEmpty() ||
                     !pack.cellVoltages.isNullOrEmpty()
         }
-            ?.sortedBy { it.bmsIndex }
-            .orEmpty()
+            .sortedBy { it.bmsIndex }
 
         if (packs.isEmpty()) {
             return

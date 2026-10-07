@@ -7,6 +7,7 @@ import androidx.preference.PreferenceManager
 import androidx.test.core.app.ApplicationProvider
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
+import com.cooper.wheellog.LoggingService
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.google.common.truth.Truth.assertThat
 import io.github.tritbool.euc.ble.EucBleClient
@@ -14,7 +15,13 @@ import io.github.tritbool.euc.ble.models.BMSData
 import io.github.tritbool.euc.ble.models.EUCData
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import io.mockk.clearMocks
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
+import com.cooper.wheellog.utils.FileUtil
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -221,5 +228,73 @@ class BmsSessionTest {
             assertThat(it.fields[R.string.bmsTemp2]).isEqualTo("38.0°C")
             assertThat(it.fields[R.string.bmsTemp6]).isEqualTo("0.0°C")
         }
+    }
+
+    @Test fun `empty API snapshots publish immediately without clearing UI partial carryforward`() {
+        val emissions = mutableListOf<List<BMSData>>()
+        val collector = model.viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            model.bmsSnapshots.collect { emissions += it }
+        }
+        try {
+            val cells = mutableListOf(4.1, 4.2)
+            packs = listOf(pack(0, cells))
+            publish()
+            val copied = model.bmsSnapshots.replayCache.single()
+            cells[0] = 1.0
+            assertThat(copied.single().cellVoltages).containsExactly(4.1, 4.2).inOrder()
+            packs = emptyList()
+            publish(2)
+            assertThat(model.bmsSnapshots.replayCache.single()).isEmpty()
+            assertThat(model.bmsDisplay.value.first.cellNum).isEqualTo(2)
+            shadowOf(Looper.getMainLooper()).idle()
+            assertThat(emissions.last()).isEmpty()
+            assertThat(emissions).contains(copied)
+        } finally {
+            collector.cancel()
+        }
+    }
+
+    @Test fun `disconnect reset connection and wheel change invalidate logging replay before next telemetry`() {
+        packs = listOf(pack(0, listOf(4.1, 4.2)))
+        publish()
+        model.javaClass.getDeclaredMethod("updateDisconnectedState", Continuation::class.java).apply { isAccessible = true }
+            .invoke(model, mockk<Continuation<Unit>>(relaxed = true))
+        assertThat(model.bmsSnapshots.replayCache.single()).isEmpty()
+        publish(2)
+        model.resetBmsData()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertThat(model.bmsSnapshots.replayCache.single()).isEmpty()
+        publish(3)
+        model.javaClass.getDeclaredMethod("updateConnectedDevice", io.github.tritbool.euc.ble.models.EUCDevice::class.java)
+            .apply { isAccessible = true }.invoke(model, null)
+        assertThat(model.bmsSnapshots.replayCache.single()).isEmpty()
+        publish(4)
+        packs = null
+        publish(5, wheelModel = "Blitz")
+        assertThat(model.bmsSnapshots.replayCache.single()).isEmpty()
+    }
+
+    @Test fun `logging reads immediate replay not stale asynchronously collected packs`() {
+        org.koin.core.context.loadKoinModules(module { single { model } })
+        org.koin.core.context.GlobalContext.get().get<AppConfig>().enableBmsData = true
+        val service = LoggingService()
+        val file = mockk<FileUtil>(relaxed = true)
+        service.javaClass.getDeclaredField("bmsFileUtil").apply { isAccessible = true }.set(service, file)
+        val write = service.javaClass.getDeclaredMethod("updateBmsFile").apply { isAccessible = true }
+        packs = listOf(pack(0, listOf(4.1, 4.2), voltage = 100.0))
+        publish()
+        write.invoke(service)
+        verify(exactly = 1) { file.writeLine(any()) }
+        clearMocks(file, answers = false, recordedCalls = true)
+        packs = emptyList()
+        publish(2)
+        write.invoke(service)
+        verify(exactly = 0) { file.writeLine(any()) }
+        packs = listOf(pack(0, listOf(3.8, 3.9), voltage = 99.0))
+        publish(3)
+        model.resetBmsData()
+        shadowOf(Looper.getMainLooper()).idle()
+        write.invoke(service)
+        verify(exactly = 0) { file.writeLine(any()) }
     }
 }

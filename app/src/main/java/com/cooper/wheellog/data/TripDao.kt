@@ -10,7 +10,7 @@ interface TripDao {
     @Query("SELECT * FROM trip_database WHERE id IN (:tripIds) ORDER BY id ASC")
     fun loadAllByIds(tripIds: IntArray): List<TripDataDbEntry>
 
-    @Query("SELECT * FROM trip_database WHERE fileName LIKE :fileName LIMIT 1")
+    @Query("SELECT * FROM trip_database WHERE fileName = :fileName LIMIT 1")
     fun getTripByFileName(fileName: String): TripDataDbEntry?
 
 

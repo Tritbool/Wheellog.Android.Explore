@@ -3,11 +3,17 @@ package com.cooper.wheellog.feature.dashboard
 /** Alarm severity level for dashboard display. */
 enum class AlarmLevel { NONE, WARN, CRITICAL }
 
-/** Controls what the main dial and centre text display. */
+/** Controls the centre text; valueOnDial independently selects the outer ring. */
 enum class DisplayMode { SPEED, PWM }
 
 /** A single pre-formatted metric shown in the info-block area. */
-data class DashboardBlock(val label: String, val value: String)
+data class DashboardBlock(
+    val label: String,
+    val value: String,
+    val slot: Int = -1,
+    val metric: Int = 0,
+    val selectionKey: String = label
+)
 
 /**
  * Immutable snapshot of everything the dashboard screen needs to render.
@@ -17,6 +23,14 @@ data class DashboardBlock(val label: String, val value: String)
  * all display logic lives in the mapper and the ViewModel.
  */
 data class DashboardUiState(
+    val useCompose: Boolean = true,
+    val appTheme: Int = com.cooper.wheellog.R.style.OriginalTheme,
+    val nightMode: Int = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_UNSPECIFIED,
+    val valueOnDial: String = "0",
+    val secondaryDialFraction: Float = 0f,
+    val batteryCalculation: String = "",
+    val catalogue: List<DashboardBlock> = emptyList(),
+    val speedWarning: Boolean = false,
     // ── Connection ─────────────────────────────────────────────────────────
     val isConnected: Boolean = false,
     val wheelModel: String = "",
@@ -38,8 +52,8 @@ data class DashboardUiState(
     val temperatureDisplay: String = "00℃",
     /** Highest board temperature reached this session, in °C. */
     val maxTemperature: Float = 0f,
-    /** Formatted, labelled max-temperature string (e.g. "MAX 45℃"). */
-    val maxTemperatureDisplay: String = "MAX 00℃",
+    /** Maximum temperature uses the same unprefixed formatter as WheelView. */
+    val maxTemperatureDisplay: String = "00℃",
     val voltage: Float = 0f,
     val current: Float = 0f,
     val topSpeed: Float = 0f,
@@ -57,7 +71,7 @@ data class DashboardUiState(
     val alarmLevel: AlarmLevel = AlarmLevel.NONE,
 
     // ── Gauge rendering hints ───────────────────────────────────────────────
-    /** Main dial fill fraction, 0 – 1, driven by [displayMode]. */
+    /** Signed main dial fraction selected by valueOnDial, not the text swap. */
     val mainDialFraction: Float = 0f,
     /** Inner-arc battery fill fraction, 0 – 1. */
     val batteryFraction: Float = 0f,

@@ -7,4 +7,6 @@ class TripModel(
     var description: String,
     var uri: Uri,
     var pathLegacyAndroid: String? = null,
-    var fileName: String = title)
+    var fileName: String = title,
+    val fileSize: Long? = null,
+    val lastModified: Long? = null)

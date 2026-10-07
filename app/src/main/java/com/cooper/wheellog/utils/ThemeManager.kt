@@ -111,8 +111,11 @@ object ThemeManager: KoinComponent {
     }
 
     @DrawableRes
-    fun getId(icon: ThemeIconEnum): Int {
-        return when(theme) {
+    fun getId(icon: ThemeIconEnum): Int = getId(icon, theme)
+
+    @DrawableRes
+    fun getId(icon: ThemeIconEnum, appTheme: Int): Int {
+        return when(appTheme) {
             R.style.AJDMTheme -> ajdm[icon]
             else -> original[icon]
         } ?: R.drawable.transparent

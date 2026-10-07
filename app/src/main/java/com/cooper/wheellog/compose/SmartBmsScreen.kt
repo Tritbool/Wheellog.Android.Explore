@@ -1,86 +1,67 @@
 package com.cooper.wheellog.compose
 
+import android.widget.TextView
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import com.cooper.wheellog.ble.BleSessionViewModel
-import org.koin.compose.koinInject
-import java.util.Locale
+import com.cooper.wheellog.R
+import com.cooper.wheellog.bms.BmsPresentation
 
 @Composable
-fun SmartBmsScreen() {
-    val viewModel: BleSessionViewModel = koinInject()
-    val state by viewModel.sessionState.collectAsState()
-
-    val bms1 = viewModel.bms1
-    val bms2 = viewModel.bms2
-    val hasSmartBms = bms1.cellNum > 0 || bms2.cellNum > 0 || !state.cellVoltages.isNullOrEmpty()
-    val cellVoltages = state.cellVoltages.orEmpty().filter { it > 0.0 }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        if (!hasSmartBms) {
-            Text("Battery", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Text("Level: ${state.batteryLevel}%")
-            Text("Voltage: ${String.format("%.2f V", state.currentVoltage)}")
-            Text("Current: ${String.format("%.2f A", state.currentCurrent)}")
-            Text("Temperature: ${String.format("%.1f°C", state.currentTemperature)}")
-        } else {
-            if (bms1.cellNum > 0 || cellVoltages.isNotEmpty()) {
-                Text("BMS 1", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                BmsBlock(
-                    bms = bms1,
-                    fallbackCells = cellVoltages
-                )
-            }
-
-            if (bms2.cellNum > 0) {
-                Spacer(Modifier.height(12.dp))
-
-                Text("BMS 2", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                BmsBlock(bms2)
+fun SmartBmsScreen(presentation: BmsPresentation, appTheme: Int, scroll: ScrollState) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val title = remember(context, appTheme) { TextView(context, null, 0, R.style.StatsBMS_Title) }
+    val value = remember(context, appTheme) { TextView(context, null, 0, R.style.StatsBMS) }
+    val font = remember(appTheme) {
+        FontFamily(Font(if (appTheme == R.style.AJDMTheme) R.font.ajdm else R.font.prime))
+    }
+    val titleStyle = TextStyle(
+        color = Color(title.currentTextColor), fontSize = with(density) { title.textSize.toSp() },
+        fontFamily = font, fontWeight = FontWeight.Bold, textAlign = TextAlign.Right,
+        platformStyle = PlatformTextStyle(includeFontPadding = true)
+    )
+    val valueStyle = TextStyle(
+        color = Color(value.currentTextColor), fontSize = with(density) { value.textSize.toSp() },
+        fontFamily = font, textAlign = TextAlign.Left,
+        platformStyle = PlatformTextStyle(includeFontPadding = true)
+    )
+    val titlePadding = with(density) {
+        PaddingValues(title.paddingLeft.toDp(), title.paddingTop.toDp(), title.paddingRight.toDp(), title.paddingBottom.toDp())
+    }
+    Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
+        Row(Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.bmsBattery1Title), Modifier.weight(1f).padding(titlePadding),
+                style = titleStyle.copy(fontSize = 20.sp, textAlign = TextAlign.Center))
+            if (presentation.showSecond) {
+                Text(stringResource(R.string.bmsBattery2Title), Modifier.weight(1f).padding(titlePadding),
+                    style = titleStyle.copy(fontSize = 20.sp, textAlign = TextAlign.Center))
             }
         }
-    }
-}
-
-@Composable
-private fun BmsBlock(
-    bms: com.cooper.wheellog.utils.SmartBms,
-    fallbackCells: List<Double> = emptyList()
-) {
-    val cells = when {
-        bms.cellNum > 0 -> bms.cells.take(bms.cellNum)
-        fallbackCells.isNotEmpty() -> fallbackCells
-        else -> emptyList()
-    }
-
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Voltage: ${String.format("%.2f V", bms.voltage)}")
-        Text("Current: ${String.format("%.2f A", bms.current)}")
-        Text("Level: ${bms.remPerc}%")
-        Text("Charging: ${bms.status}%")
-        Text("Temp 1: ${String.format("%.1f°C", bms.temp1)}")
-        Text("Temp 2: ${String.format("%.1f°C", bms.temp2)}")
-        Text("Cells: ${cells.size}")
-        Text("Avg Cell: ${String.format("%.3f V", bms.avgCell)}")
-        Text("Max Cell: ${String.format("%.3f V", bms.maxCell)}")
-        Text("Min Cell: ${String.format("%.3f V", bms.minCell)}")
-        Text("Cell Diff: ${String.format("%.3f V", bms.cellDiff)}")
-
-        cells.forEachIndexed { index, value ->
-            Text("Cell ${index + 1}: ${String.format(Locale.US, "%.3f V", value)}")
+        presentation.rows.forEach { row ->
+            Row(Modifier.fillMaxWidth()) {
+                Text(stringResource(row.label), Modifier.weight(1f).alignByBaseline().padding(titlePadding), style = titleStyle)
+                Text(row.first, Modifier.weight(1f).alignByBaseline(), style = valueStyle)
+                if (presentation.showSecond) {
+                    Text(stringResource(row.label), Modifier.weight(1f).alignByBaseline().padding(titlePadding), style = titleStyle)
+                    Text(row.second, Modifier.weight(1f).alignByBaseline(), style = valueStyle)
+                }
+            }
         }
     }
 }

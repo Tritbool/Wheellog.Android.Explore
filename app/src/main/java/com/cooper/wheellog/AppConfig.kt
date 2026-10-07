@@ -11,6 +11,11 @@ import com.cooper.wheellog.utils.ThemeEnum
 import com.cooper.wheellog.utils.VolumeKeyController
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 class AppConfig(var context: Context) : KoinComponent {
     private val notifications: NotificationUtil by inject()
@@ -50,7 +55,97 @@ class AppConfig(var context: Context) : KoinComponent {
             }
         }
 
-    var useComposeUI: Boolean = false
+    var useComposeUI: Boolean
+        get() = getValue(R.string.use_compose_dashboard, true)
+        set(value) = setValue(R.string.use_compose_dashboard, value)
+
+    /** A listener is owned by the collector and released at STOP/disposal. */
+    fun dashboardPreferences(): Flow<Unit> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> trySend(Unit) }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        trySend(Unit)
+        awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.conflate()
+
+    var useComposeTelemetry: Boolean
+        get() = getValue(R.string.use_compose_telemetry, true)
+        set(value) = setValue(R.string.use_compose_telemetry, value)
+
+    var useComposeEvents: Boolean
+        get() = getValue(R.string.use_compose_events, true)
+        set(value) = setValue(R.string.use_compose_events, value)
+
+    var useComposeTrips: Boolean
+        get() = getValue(R.string.use_compose_trips, true)
+        set(value) = setValue(R.string.use_compose_trips, value)
+
+    var useComposeBms: Boolean
+        get() = getValue(R.string.use_compose_bms, true)
+        set(value) = setValue(R.string.use_compose_bms, value)
+
+    var useComposeContainer: Boolean
+        get() = getValue(R.string.use_compose_container, true)
+        set(value) = setValue(R.string.use_compose_container, value)
+
+    fun containerPreferences(): Flow<Boolean> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == null || getResId(key) == R.string.use_compose_container) trySend(useComposeContainer)
+        }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        trySend(useComposeContainer)
+        awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.conflate().distinctUntilChanged()
+
+    var useComposeScan: Boolean
+        get() = getValue(R.string.use_compose_scan, true)
+        set(value) = setValue(R.string.use_compose_scan, value)
+
+    fun scanPreferences(): Flow<Boolean> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == null || getResId(key) == R.string.use_compose_scan) trySend(useComposeScan)
+        }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        trySend(useComposeScan)
+        awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.conflate().distinctUntilChanged()
+
+    data class TelemetryPreferences(
+        val useCompose: Boolean,
+        val useMph: Boolean,
+        val usePsi: Boolean,
+        val useFahrenheit: Boolean,
+        val appTheme: Int,
+        val nightMode: Int,
+        val viewBlocks: List<String>,
+        val pageGraph: Boolean,
+        val pageEvents: Boolean,
+        val pageTrips: Boolean,
+        val useComposeEvents: Boolean,
+        val useComposeTrips: Boolean,
+        val autoUploadEc: Boolean,
+        val useComposeBms: Boolean
+    )
+
+    fun telemetryPreferences(): Flow<TelemetryPreferences> = callbackFlow {
+        fun snapshot() = TelemetryPreferences(
+            useComposeTelemetry, useMph, usePsi, useFahrenheit, appTheme, dayNightThemeMode,
+            viewBlocks.toList(), pageGraph, pageEvents, pageTrips, useComposeEvents,
+            useComposeTrips, autoUploadEc, useComposeBms
+        )
+        val resources = setOf(
+            R.string.use_compose_telemetry, R.string.use_mph, R.string.use_psi,
+            R.string.use_fahrenheit, R.string.app_theme, R.string.day_night_theme,
+            R.string.view_blocks_string, R.string.show_page_graph,
+            R.string.show_page_events, R.string.show_page_trips, R.string.use_compose_events,
+            R.string.use_compose_trips, R.string.auto_upload_ec, R.string.use_compose_bms
+        )
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == null || getResId(key) in resources) trySend(snapshot())
+        }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        trySend(snapshot())
+        awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.conflate().distinctUntilChanged()
 
     var dayNightThemeMode: Int
         get() = getValue(R.string.day_night_theme, MODE_NIGHT_UNSPECIFIED.toString()).toInt()

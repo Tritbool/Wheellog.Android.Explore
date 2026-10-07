@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import io.github.tritbool.euc.ble.models.EUCDevice;
+import com.cooper.wheellog.scan.ScanPresentation;
 
 // Adapter for holding devices found through scanning.
 public class DeviceListAdapter extends BaseAdapter {
@@ -96,10 +97,8 @@ public class DeviceListAdapter extends BaseAdapter {
 
         EUCDevice device = mLeDevices.get(i);
         final String deviceName = device.getName();
-        if (deviceName != null && deviceName.length() > 0)
-            viewHolder.deviceName.setText(deviceName);
-        else
-            viewHolder.deviceName.setText(R.string.unknown_device);
+        viewHolder.deviceName.setText(ScanPresentation.displayName(
+                deviceName, viewHolder.deviceName.getContext().getString(R.string.unknown_device)));
         viewHolder.deviceAddress.setText(device.getAddress());
 
         return view;

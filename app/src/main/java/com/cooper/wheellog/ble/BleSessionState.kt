@@ -34,12 +34,15 @@ data class BleSessionState(
     val sessionTopSpeed: Double? = null,
     val sessionMaxPower: Double? = null,
     val sessionMaxCurrent: Double? = null,
+    val sessionMaxPhaseCurrent: Double? = null,
     val sessionMaxPwm: Double? = null,
     val sessionMaxTemperature: Double? = null,
     val sessionBatteryLowest: Int? = null,
     val sessionRidingTimeSec: Long? = null,
     val sessionDistance: Double? = null,
     val sessionRideTime: Long? = null,
+    /** Changes when counter-only actions occur, without pretending a BLE frame arrived. */
+    val sessionStatisticsRevision: Long = 0,
 
     // Timestamp of last data update
     val lastDataTimestamp: Long? = null,

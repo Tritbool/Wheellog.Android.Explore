@@ -1,4 +1,28 @@
 <resources>
+    <string name="use_compose_container" translatable="false">use_compose_container</string>
+    <string name="use_compose_container_title">Compose main navigation</string>
+    <string name="use_compose_container_description">Use the Compose main container and pager. Disable to restore Views navigation independently of each page.</string>
+    <string name="use_compose_scan" translatable="false">use_compose_scan</string>
+    <string name="use_compose_scan_title">Compose scan dialog</string>
+    <string name="use_compose_scan_description">Use the new scan renderer. Turn off to return to the Views dialog.</string>
+    <string name="use_compose_dashboard" translatable="false">useComposeUI</string>
+    <string name="use_compose_dashboard_title">Compose dashboard</string>
+    <string name="use_compose_dashboard_description">Use the Compose dashboard. Turn off to return to WheelView.</string>
+    <string name="use_compose_bms" translatable="false">use_compose_bms</string>
+    <string name="use_compose_bms_title">Compose Smart BMS page</string>
+    <string name="use_compose_bms_description">Use the new Smart BMS renderer. Turn off to return to the original page.</string>
+    <string name="use_compose_trips" translatable="false">use_compose_trips</string>
+    <string name="use_compose_trips_title">Compose trips page</string>
+    <string name="use_compose_trips_description">Use the new trips renderer. Turn off to return to the original page.</string>
+    <string name="trip_delete_failed">Could not delete the trip file.</string>
+    <string name="trip_load_failed">Could not load trips.</string>
+    <string name="trip_share_failed">Could not share the trip file.</string>
+    <string name="use_compose_telemetry" translatable="false">use_compose_telemetry</string>
+    <string name="use_compose_events" translatable="false">use_compose_events</string>
+    <string name="use_compose_events_title">Compose events page</string>
+    <string name="use_compose_events_description">Use the new events renderer. Turn off to return to the original page.</string>
+    <string name="use_compose_telemetry_title">Compose telemetry page</string>
+    <string name="use_compose_telemetry_description">Use the new telemetry renderer. Turn off to return to the original page.</string>
     <string name="kmh">km/h</string>
     <string name="mph">mph</string>
     <string name="km">km</string>

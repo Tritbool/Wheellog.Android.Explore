@@ -30,6 +30,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -38,7 +39,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.viewpager2.widget.ViewPager2
-import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.cooper.wheellog.ble.BleSessionState
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.DialogHelper.checkAndShowPrivatePolicyDialog
@@ -81,6 +81,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     lateinit var pager: ViewPager2
     lateinit var pagerAdapter: MainPageAdapter
+    private var containerRenderer: MainContainerRenderer? = null
     lateinit var pipView: ComposeView
     var mMenu: Menu? = null
     private var miSearch: MenuItem? = null
@@ -417,7 +418,7 @@ class MainActivity : AppCompatActivity() {
         pagerAdapter.updateScreen(true)
     }
 
-    private fun createPager() {
+    private fun createPager(savedInstanceState: Bundle?) {
         pager = binding.pager
         pager.offscreenPageLimit = 10
         val pages = ArrayList<Int>()
@@ -433,19 +434,18 @@ class MainActivity : AppCompatActivity() {
             pages.add(R.layout.main_view_events)
         }
         pagerAdapter = MainPageAdapter(pages, this)
-        pager.adapter = pagerAdapter
-        pager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                pagerAdapter.position = position
-                pagerAdapter.updateScreen(true)
+        if (eventsLoggingTree == null) {
+            eventsLoggingTree = EventsLoggingTree(applicationContext)
+            Timber.plant(eventsLoggingTree!!)
+        }
+        containerRenderer = MainContainerRenderer(binding, pagerAdapter,
+            savedInstanceState?.takeIf { it.containsKey("mainSelectedPage") }?.getInt("mainSelectedPage"))
+        containerRenderer?.render(appConfig.useComposeContainer)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                appConfig.containerPreferences().collect { containerRenderer?.render(it) }
             }
-        })
-        eventsLoggingTree = EventsLoggingTree(applicationContext, pagerAdapter)
-        Timber.plant(eventsLoggingTree!!)
-        val indicator = binding.indicator
-        indicator.setViewPager(pager)
-        pagerAdapter.registerAdapterDataObserver(indicator.adapterDataObserver)
+        }
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -484,8 +484,10 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.settingsView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        binding.pipView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
-        createPager()
+        createPager(savedInstanceState)
         pipView = binding.pipView
 
         binding.textClock.typeface = ThemeManager.getTypeface(applicationContext)
@@ -594,6 +596,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        containerRenderer?.let { outState.putInt("mainSelectedPage", it.pageToSave) }
         super.onSaveInstanceState(outState)
         outState.putInt("connectionState", mConnectionState.ordinal)
     }
@@ -610,7 +613,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        containerRenderer?.dispose()
+        containerRenderer = null
         super.onDestroy()
+        eventsLoggingTree?.let {
+            Timber.uproot(it)
+            it.close()
+        }
+        eventsLoggingTree = null
         if (!this.isFinishing) {
             Timber.wtf("Recreate main activity")
             return
@@ -642,9 +652,6 @@ class MainActivity : AppCompatActivity() {
 
             override fun onFinish() {
                 notifications.close()
-                Timber.uproot(eventsLoggingTree!!)
-                eventsLoggingTree!!.close()
-                eventsLoggingTree = null
                 val am = getSystemService(ACTIVITY_SERVICE) as ActivityManager
                 val runningProcesses = am.runningAppProcesses
                 for (process in runningProcesses) {
@@ -851,12 +858,7 @@ class MainActivity : AppCompatActivity() {
     /** Toggles the wheel's headlight from the notification quick-action button. */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun toggleLight() {
-        val supportsLightToggle = viewModel.isCommandSupported(CommandType.LIGHT_ON) ||
-                viewModel.isCommandSupported(CommandType.LIGHT_OFF)
-        if (!supportsLightToggle) return
-        val enable = !appConfig.lightEnabled
-        appConfig.lightEnabled = enable
-        viewModel.sendCommand(if (enable) CommandType.LIGHT_ON else CommandType.LIGHT_OFF)
+        com.cooper.wheellog.feature.dashboard.DashboardActions.toggleLight(viewModel, appConfig)
     }
 
     fun toggleLoggingService() {
@@ -886,7 +888,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildBmsDisplaySignature(): String {
-        return "${viewModel.wheelType}:${viewModel.model}:${viewModel.bms1.cellNum}:${viewModel.bms2.cellNum}"
+        val snapshot = viewModel.bmsDisplay.value
+        return "${snapshot.wheelType}:${snapshot.model}:${snapshot.first.cellNum}:${snapshot.second.cellNum}"
     }
     //endregion
 
@@ -978,7 +981,7 @@ class MainActivity : AppCompatActivity() {
 
                 Constants.ACTION_PREFERENCE_RESET -> {
                     Timber.i("Reset battery lowest")
-                    pagerAdapter.wheelView?.resetBatteryLowest()
+                    pagerAdapter.resetBatteryLowest()
                 }
             }
         }

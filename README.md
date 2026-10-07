@@ -108,6 +108,8 @@ mais ne signifie pas que la recette visuelle ou sur roue réelle est validée.
       les commandes disponibles, sans klaxon ou commande supplémentaire.
 - [ ] Préférences de jauge, unités, thèmes et blocs actualisées sans nouveau
       paquet BLE ; bascule dashboard Views/Compose sans redémarrer la connexion.
+- [ ] Remise à zéro des maxima et de la distance utilisateur reflétée sans
+      nouveau paquet BLE, y compris après déconnexion, sans ligne CSV supplémentaire.
 - [ ] Bascule dans les deux sens, défilement, navigation entre pages,
       rotation et retour au premier plan.
 - [ ] Événements ajoutés en direct sans nouveau paquet BLE, mêmes messages

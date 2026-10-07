@@ -36,7 +36,9 @@ class DashboardViewModel(
 
     fun present(session: BleSessionState): DashboardUiState {
         val mapped = DashboardMapper.map(session, null, appConfig)
-        val base = if (resetBatteryFor === session)
+        val base = if (resetBatteryFor != null &&
+            resetBatteryFor?.lastData === session.lastData &&
+            resetBatteryFor?.lastDataTimestamp == session.lastDataTimestamp)
             mapped.copy(batteryLowest = 101, batteryLowestFraction = 0f) else mapped
         val context = getApplication<Application>()
         val mph = appConfig.useMph

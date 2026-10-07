@@ -40,6 +40,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.ArrayList
@@ -560,6 +561,7 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             sessionTopSpeed = sessionTopSpeed.takeIf { it > 0 },
             sessionMaxPower = sessionMaxPower.takeIf { it > 0 },
             sessionMaxCurrent = sessionMaxCurrent.takeIf { it > 0 },
+            sessionMaxPhaseCurrent = sessionMaxPhaseCurrent.takeIf { it > 0 },
             sessionMaxPwm = sessionMaxPwm.takeIf { it > 0 },
             sessionMaxTemperature = sessionMaxTemperature.takeIf { it > 0 },
             sessionBatteryLowest = batteryLowest.takeIf { it < 101 },
@@ -1054,17 +1056,21 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
             ridingTime = 0
             lastRideTime = 0
 
-            _sessionState.value = _sessionState.value.copy(
-                sessionTopSpeed = null,
-                sessionMaxPower = null,
-                sessionMaxCurrent = null,
-                sessionMaxPwm = null,
-                sessionMaxTemperature = null,
-                sessionBatteryLowest = null,
-                sessionRidingTimeSec = null,
-                sessionDistance = null,
-                sessionRideTime = null
-            )
+            _sessionState.update { state ->
+                state.copy(
+                    sessionTopSpeed = null,
+                    sessionMaxPower = null,
+                    sessionMaxCurrent = null,
+                    sessionMaxPhaseCurrent = null,
+                    sessionMaxPwm = null,
+                    sessionMaxTemperature = null,
+                    sessionBatteryLowest = null,
+                    sessionRidingTimeSec = null,
+                    sessionDistance = null,
+                    sessionRideTime = null,
+                    sessionStatisticsRevision = state.sessionStatisticsRevision + 1
+                )
+            }
         }
     }
 
@@ -1075,14 +1081,31 @@ class BleSessionViewModel(application: Application) : AndroidViewModel(applicati
         sessionMaxPhaseCurrent = 0.0
         sessionMaxPwm = 0.0
         sessionMaxTemperature = 0.0
+        _sessionState.update { state ->
+            state.copy(
+                sessionTopSpeed = null,
+                sessionMaxPower = null,
+                sessionMaxCurrent = null,
+                sessionMaxPhaseCurrent = null,
+                sessionMaxPwm = null,
+                sessionMaxTemperature = null,
+                sessionStatisticsRevision = state.sessionStatisticsRevision + 1
+            )
+        }
     }
 
     fun resetVoltageSag() {
         voltageSag = 20000
+        publishCounterChange()
     }
 
     fun resetUserDistance() {
         sessionStartTotalDistance = _sessionState.value.totalDistance ?: 0.0
+        publishCounterChange()
+    }
+
+    private fun publishCounterChange() {
+        _sessionState.update { it.copy(sessionStatisticsRevision = it.sessionStatisticsRevision + 1) }
     }
 
     fun resetBmsData() {

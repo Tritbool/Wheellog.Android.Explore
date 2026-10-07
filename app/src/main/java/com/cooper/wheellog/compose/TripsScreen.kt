@@ -37,10 +37,10 @@ import com.cooper.wheellog.views.TripActions
 
 @Composable
 fun TripsScreen(
-    trips: List<TripItemState> = emptyList(),
-    appTheme: Int = R.style.OriginalTheme,
+    trips: List<TripItemState>,
+    appTheme: Int,
     scrollState: LazyListState = rememberLazyListState(),
-    delete: (TripItemState) -> Unit = {}
+    delete: (TripItemState) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize(), state = scrollState) {
         items(trips, key = { it.key }) { TripItem(it, appTheme, delete) }

@@ -165,8 +165,8 @@ mais ne signifie pas que la recette visuelle ou sur roue réelle est validée.
 - [ ] Validation sur roue réelle des parcours BLE concernés.
 
 Ces contrôles visuels et matériels ne sont pas remplacés par les tests
-unitaires. Les prototypes Compose des autres pages
-restent hors périmètre ; ils ne doivent pas servir de référence de migration.
+unitaires. Le conteneur prototype et ses points d'entrée alternatifs sont
+supprimés ; le comportement de référence reste celui des Views.
 Le journal auparavant figé et les caches divergents de la page des événements
 sont remplacés par une source observable commune aux deux affichages.
 Les trajets reprennent les statistiques existantes et leurs dates lisibles ;
@@ -201,7 +201,8 @@ Views intégrées via `AndroidView`, volontairement, pour conserver leur rendu
 et leur comportement clavier. Les deux affichages partagent un état de scan
 et les mêmes callbacks d'activité. Permissions, durée, arrêt/reprise et
 résultat vers `MainActivity` ne sont jamais pilotés par la recomposition.
-Le lot conteneur ne démarre pas `MainActivityCompose` ni son catalogue prototype.
+Le lot conteneur utilise uniquement la vraie `MainActivity` ; le lot 9 supprime
+`MainActivityCompose`, `MainScreen` et leur catalogue de pages prototype.
 Les pages utilisent les renderers des lots précédents via un pont `AndroidView`
 vers `MainPageAdapter`, avec les mêmes notifications d'attachement, de retrait
 et de recyclage. Le graphique MPAndroidChart reste en interop : ses marges et
@@ -211,6 +212,39 @@ gardent leurs instances dans un en-tête View réutilisé. Ce lot migre donc le
 conteneur, le pager et son indicateur, pas les menus ni le graphique vers des
 widgets Compose natifs. Le repli restaure `ViewPager2` sans modifier les
 bascules de rendu de chaque page.
+
+### Lot 9 : nettoyage et conditions de retrait des Views
+
+Le nettoyage retire les points d'entrée Compose inutilisés et les collecteurs
+autonomes de télémétrie, d'événements et de BMS qui ne servaient qu'au prototype.
+Les écrans correspondants reçoivent désormais leur présentation depuis les
+renderers de production. L'écran des trajets exige explicitement ses données
+et son action de suppression : aucun parcours vide ou callback silencieux
+n'est conservé comme défaut du prototype.
+
+Les replis Views, leurs layouts, `MainPageAdapter`, `DeviceListAdapter`,
+`WheelView` et les bascules persistantes restent nécessaires pendant le
+débogage. Ils ne sont pas du code mort. L'interop du graphique, de la Toolbar,
+de l'horloge, du champ MAC, du sélecteur de protocole et du PiP est conservée.
+La migration est progressive, pas une conversion intégrale en widgets
+Compose natifs.
+
+Le retrait définitif des replis est **différé**, pas validé par ce lot :
+
+- [ ] Résoudre la configuration Gradle puis réussir `:app:assembleDebug`,
+      `:app:lintDebug` et `:app:testDebugUnitTest` sans contourner les contrôles.
+- [ ] Exécuter la recette ci-dessus sur appareil et sur les familles de roues
+      concernées, avec vérification du CSV en arrière-plan.
+- [ ] Corriger les écarts de rendu, de navigation et de cycle de vie avant de
+      supprimer le renderer de secours de la fonctionnalité concernée.
+- [ ] Retirer ensuite uniquement les classes/layouts effectivement inutilisés,
+      mettre à jour leurs tests et préférences sans effacer les réglages métier.
+- [ ] Ne retirer une dépendance que lorsque ni l'interop ni un autre écran
+      ne l'utilisent encore.
+
+Dans l'environnement de migration, les tâches Gradle restent bloquées avant
+compilation par la résolution du plugin Android `9.2.1`. Les tests ajoutés
+ne constituent donc pas une recette exécutée ni une preuve de parité.
 
 Pour la validation automatisée, utiliser les tâches existantes :
 `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.

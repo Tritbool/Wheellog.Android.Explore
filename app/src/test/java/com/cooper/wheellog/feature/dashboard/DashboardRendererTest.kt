@@ -21,7 +21,6 @@ import com.cooper.wheellog.ble.BleSessionState
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.data.TripDao
 import com.cooper.wheellog.utils.ThemeEnum
-import com.cooper.wheellog.views.WheelView
 import com.google.common.truth.Truth.assertThat
 import io.github.tritbool.euc.ble.protocols.CommandType
 import io.mockk.*
@@ -65,7 +64,8 @@ class DashboardRendererTest {
         return activity to lifecycle
     }
 
-    @Test fun `actual pager default persisted independent fallback reuses holder and disposes`() {
+    @Test fun `saved false dashboard remains Compose reuses holder and disposes`() {
+        PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean("useComposeUI", false).commit()
         val config = AppConfig(context)
         val session = session()
         val store = ViewModelStore()
@@ -76,35 +76,29 @@ class DashboardRendererTest {
         val recycler = RecyclerView(context)
         val adapter = MainPageAdapter(mutableListOf(R.layout.main_view_main), activity)
         try {
-            assertThat(config.useComposeUI).isTrue()
-            config.useComposeUI = false
-            assertThat(AppConfig(context).useComposeUI).isFalse()
-            assertThat(config.useComposeTelemetry).isTrue()
-            assertThat(config.useComposeEvents).isTrue()
-            assertThat(config.useComposeTrips).isTrue()
-            assertThat(config.useComposeBms).isTrue()
             val holder = adapter.createViewHolder(recycler, R.layout.main_view_main)
             adapter.bindViewHolder(holder, 0)
             val page = holder.itemView
             val compose = page.findViewById<ComposeView>(R.id.mainPageComposeView)
-            val views = page.findViewById<WheelView>(R.id.wheelView)
-            assertThat(compose.visibility).isEqualTo(View.GONE)
-            assertThat(views.visibility).isEqualTo(View.VISIBLE)
+            assertThat(compose.visibility).isEqualTo(View.VISIBLE)
+            assertThat((page as android.view.ViewGroup).childCount).isEqualTo(1)
             adapter.onViewAttachedToWindow(holder)
             lifecycle.currentState = Lifecycle.State.STARTED
             idle()
-            config.useComposeUI = true
+            config.setValue("useComposeUI", true)
             idle()
             assertThat(compose.visibility).isEqualTo(View.VISIBLE)
-            assertThat(views.visibility).isEqualTo(View.GONE)
-            config.useComposeUI = false
+            config.setValue("useComposeUI", false)
             idle()
-            assertThat(views.visibility).isEqualTo(View.VISIBLE)
+            assertThat(compose.visibility).isEqualTo(View.VISIBLE)
             assertThat(holder.itemView).isSameInstanceAs(page)
+            adapter.onViewDetachedFromWindow(holder)
             assertThat(compose.hasComposition).isFalse()
+            adapter.onViewAttachedToWindow(holder)
+            idle()
             adapter.onViewRecycled(holder)
             assertThat(holder.dashboardRenderer).isNull()
-            assertThat(adapter.wheelView).isNull()
+            assertThat(compose.hasComposition).isFalse()
             verify(exactly = 0) { session.sendCommand(any<CommandType>()) }
         } finally {
             adapter.onDetachedFromRecyclerView(recycler)
@@ -132,7 +126,7 @@ class DashboardRendererTest {
             lifecycle.currentState = Lifecycle.State.STARTED
             idle()
             verify(exactly = 1) { preferences.registerOnSharedPreferenceChangeListener(any()) }
-            config.useComposeUI = false
+            config.setValue("useComposeUI", false)
             config.swapSpeedPwm = true
             config.useMph = true
             config.useFahrenheit = true
@@ -142,7 +136,6 @@ class DashboardRendererTest {
             idle()
             val vm = androidx.lifecycle.ViewModelProvider(activity)[DashboardViewModel::class.java]
             val state = vm.uiState.value
-            assertThat(state.useCompose).isFalse()
             assertThat(state.displayMode).isEqualTo(DisplayMode.PWM)
             assertThat(state.useMph).isTrue()
             assertThat(state.temperatureDisplay).isEqualTo("32℉")
@@ -231,17 +224,7 @@ class DashboardRendererTest {
                 val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
                 renderer.draw(Canvas(bitmap), w.toFloat(), h.toFloat(), data.copy(appTheme = theme))
                 assertThat(bitmap.getPixel(w / 2, 10)).isNotEqualTo(0)
-                val fallbackBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-                val view = WheelView(context, null)
-                val actions = DashboardActions(context, session(), AppConfig(context))
-                view.render(data.copy(appTheme = theme), actions)
-                view.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY),
-                    View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY))
-                view.layout(0, 0, w, h)
-                view.draw(Canvas(fallbackBitmap))
-                assertThat(fallbackBitmap.sameAs(bitmap)).isTrue()
-                actions.dispose()
-                fallbackBitmap.recycle()
+                assertThat(renderer.geometry(w.toFloat(), h.toFloat(), data).blocks).hasSize(8)
                 bitmap.recycle()
             }
         }
@@ -298,16 +281,13 @@ class DashboardRendererTest {
         assertThat(config.swapSpeedPwm).isFalse()
     }
 
-    @Test fun `existing stored false uses stable resource key independently of other page flags`() {
+    @Test fun `existing stored false does not affect dashboard mapping or expose a switch`() {
         PreferenceManager.getDefaultSharedPreferences(context).edit()
-            .putBoolean(context.getString(R.string.use_compose_dashboard), false).commit()
+            .putBoolean("useComposeUI", false).commit()
         val config = AppConfig(context)
-        assertThat(context.getString(R.string.use_compose_dashboard)).isEqualTo("useComposeUI")
-        assertThat(config.useComposeUI).isFalse()
-        assertThat(config.useComposeTelemetry).isTrue()
-        assertThat(config.useComposeEvents).isTrue()
-        assertThat(config.useComposeTrips).isTrue()
-        assertThat(config.useComposeBms).isTrue()
+        val state = DashboardViewModel(context, session(), config).uiState.value
+        assertThat(state.infoBlocks).hasSize(8)
+        assertThat(DashboardUiState::class.java.declaredFields.map { it.name }).doesNotContain("useCompose")
     }
 
     @Test fun `packaged English French and Russian legacy titles alias back to resource metrics`() {

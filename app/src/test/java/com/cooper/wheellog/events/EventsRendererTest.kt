@@ -4,11 +4,10 @@ import android.app.Application
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.ScrollView
-import android.widget.TextView
 import androidx.compose.foundation.ScrollState
 import androidx.compose.ui.platform.ComposeView
-import androidx.core.content.res.ResourcesCompat
+import androidx.compose.runtime.State
+import androidx.preference.PreferenceManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -41,9 +40,14 @@ class EventsRendererTest {
     private val context = ApplicationProvider.getApplicationContext<Application>()
 
     private fun idle() = shadowOf(Looper.getMainLooper()).idle()
+    @Suppress("UNCHECKED_CAST")
+    private fun text(renderer: EventsPageRenderer): String =
+        (EventsPageRenderer::class.java.getDeclaredField("text").apply {
+            isAccessible = true
+        }.get(renderer) as State<String>).value
 
     @Test
-    fun `renderer preserves XML appearance fonts and independent scroll while switching`() {
+    fun `renderer preserves Compose text and scroll through theme changes`() {
         context.setTheme(R.style.OriginalTheme)
         val page = LayoutInflater.from(context).inflate(R.layout.main_view_events, null)
         val state = EventsState()
@@ -51,26 +55,11 @@ class EventsRendererTest {
         val scroll = ScrollState(27)
         val renderer = EventsPageRenderer(page, state, scroll, R.style.OriginalTheme)
         try {
-            val text = page.findViewById<TextView>(R.id.events_textbox)
-            val baseline = TextView(context)
-            assertThat(text.text.toString()).isEqualTo(state.text.value)
-            assertThat(text.textSize).isEqualTo(baseline.textSize)
-            assertThat(text.currentTextColor).isEqualTo(baseline.currentTextColor)
-            assertThat(text.paddingLeft).isEqualTo(0)
-            assertThat(text.paddingTop).isEqualTo(0)
-            renderer.preferences(false, R.style.OriginalTheme)
-            assertThat(text.typeface).isEqualTo(ResourcesCompat.getFont(context, R.font.prime))
-            page.measure(
-                View.MeasureSpec.makeMeasureSpec(400, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.EXACTLY)
-            )
-            page.layout(0, 0, 400, 100)
-            val views = page.findViewById<ScrollView>(R.id.events_views_scroll)
-            views.scrollTo(0, 42)
-            renderer.preferences(true, R.style.AJDMTheme)
-            assertThat(text.typeface).isEqualTo(ResourcesCompat.getFont(context, R.font.ajdm))
-            renderer.preferences(false, R.style.OriginalTheme)
-            assertThat(views.scrollY).isEqualTo(42)
+            assertThat(text(renderer)).isEqualTo(state.text.value)
+            assertThat((page as android.view.ViewGroup).childCount).isEqualTo(1)
+            renderer.preferences(R.style.AJDMTheme)
+            renderer.preferences(R.style.OriginalTheme)
+            assertThat(page.findViewById<ComposeView>(R.id.eventsComposeView).visibility).isEqualTo(View.VISIBLE)
             assertThat(scroll.value).isEqualTo(27)
         } finally {
             renderer.dispose()
@@ -87,35 +76,34 @@ class EventsRendererTest {
         every { owner.lifecycle } returns lifecycle
         lifecycle.currentState = Lifecycle.State.CREATED
         val renderer = EventsPageRenderer(page, state, ScrollState(0), R.style.OriginalTheme)
-        val text = page.findViewById<TextView>(R.id.events_textbox)
         try {
             renderer.start(owner)
             lifecycle.currentState = Lifecycle.State.STARTED
             idle()
             state.append("first\n")
             idle()
-            assertThat(text.text.toString()).isEqualTo("first\n")
+            assertThat(text(renderer)).isEqualTo("first\n")
             lifecycle.currentState = Lifecycle.State.CREATED
             idle()
             state.append("second\n")
             idle()
-            assertThat(text.text.toString()).isEqualTo("first\n")
+            assertThat(text(renderer)).isEqualTo("first\n")
             lifecycle.currentState = Lifecycle.State.STARTED
             idle()
-            assertThat(text.text.toString()).isEqualTo("first\nsecond\n")
+            assertThat(text(renderer)).isEqualTo("first\nsecond\n")
             renderer.stop()
             idle()
             state.append("third\n")
             idle()
-            assertThat(text.text.toString()).isEqualTo("first\nsecond\n")
+            assertThat(text(renderer)).isEqualTo("first\nsecond\n")
             renderer.start(owner)
             idle()
-            assertThat(text.text.toString()).isEqualTo(state.text.value)
+            assertThat(text(renderer)).isEqualTo(state.text.value)
             renderer.dispose()
             idle()
             state.append("fourth\n")
             idle()
-            assertThat(text.text.toString()).isEqualTo("first\nsecond\nthird\n")
+            assertThat(text(renderer)).isEqualTo("first\nsecond\nthird\n")
         } finally {
             renderer.dispose()
             lifecycle.currentState = Lifecycle.State.DESTROYED
@@ -124,8 +112,10 @@ class EventsRendererTest {
     }
 
     @Test
-    fun `real pager events route defaults to Compose with live independent fallback without BLE`() {
+    fun `events route ignores saved false preserves live Compose lifecycle without BLE`() {
         context.setTheme(R.style.OriginalTheme)
+        PreferenceManager.getDefaultSharedPreferences(context).edit().clear()
+            .putInt("versionSettings", 1).putBoolean("use_compose_events", false).commit()
         val config = AppConfig(context)
         val model = mockk<BleSessionViewModel>(relaxed = true)
         val activity = mockk<MainActivity>(relaxed = true)
@@ -143,50 +133,46 @@ class EventsRendererTest {
             val holder = adapter.createViewHolder(recycler, R.layout.main_view_events)
             adapter.bindViewHolder(holder, 0)
             val page = holder.itemView
-            val views = page.findViewById<ScrollView>(R.id.events_views_scroll)
             val compose = page.findViewById<ComposeView>(R.id.eventsComposeView)
-            val text = page.findViewById<TextView>(R.id.events_textbox)
-            assertThat(views.visibility).isEqualTo(View.GONE)
+            val renderer = holder.eventsRenderer!!
             assertThat(compose.visibility).isEqualTo(View.VISIBLE)
-            assertThat(text.text.toString()).isEqualTo(EventsLoggingTree.events.text.value)
+            assertThat(text(renderer)).isEqualTo(EventsLoggingTree.events.text.value)
             adapter.onAttachedToRecyclerView(recycler)
             adapter.onViewAttachedToWindow(holder)
             lifecycle.currentState = Lifecycle.State.STARTED
             idle()
             EventsLoggingTree.events.append("live without telemetry\n")
             idle()
-            assertThat(text.text.toString()).isEqualTo(EventsLoggingTree.events.text.value)
-            config.useComposeTelemetry = false
+            assertThat(text(renderer)).isEqualTo(EventsLoggingTree.events.text.value)
+            config.setValue("use_compose_telemetry", false)
             idle()
             assertThat(compose.visibility).isEqualTo(View.VISIBLE)
-            config.useComposeEvents = false
+            config.setValue("use_compose_events", false)
             idle()
-            assertThat(views.visibility).isEqualTo(View.VISIBLE)
-            assertThat(compose.visibility).isEqualTo(View.GONE)
-            EventsLoggingTree.events.append("fallback live\n")
+            assertThat(compose.visibility).isEqualTo(View.VISIBLE)
+            EventsLoggingTree.events.append("Compose live\n")
             idle()
-            assertThat(text.text.toString()).isEqualTo(EventsLoggingTree.events.text.value)
-            config.useComposeEvents = true
+            assertThat(text(renderer)).isEqualTo(EventsLoggingTree.events.text.value)
+            config.setValue("use_compose_events", true)
             idle()
             assertThat(compose.visibility).isEqualTo(View.VISIBLE)
             assertThat(holder.itemView).isSameInstanceAs(page)
             assertThat(adapter.itemCount).isEqualTo(1)
-            assertThat(config.useComposeTelemetry).isFalse()
             adapter.onViewDetachedFromWindow(holder)
             idle()
-            val last = text.text.toString()
+            val last = text(renderer)
             EventsLoggingTree.events.append("detached\n")
             idle()
-            assertThat(text.text.toString()).isEqualTo(last)
+            assertThat(text(renderer)).isEqualTo(last)
             adapter.onViewAttachedToWindow(holder)
             idle()
-            assertThat(text.text.toString()).isEqualTo(EventsLoggingTree.events.text.value)
+            assertThat(text(renderer)).isEqualTo(EventsLoggingTree.events.text.value)
             adapter.onViewRecycled(holder)
             idle()
-            val recycled = text.text.toString()
+            val recycled = text(renderer)
             EventsLoggingTree.events.append("recycled\n")
             idle()
-            assertThat(text.text.toString()).isEqualTo(recycled)
+            assertThat(text(renderer)).isEqualTo(recycled)
             assertThat(holder.eventsRenderer).isNull()
             val insertions = mutableListOf<Int>()
             adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {

@@ -23,7 +23,6 @@ data class DashboardBlock(
  * all display logic lives in the mapper and the ViewModel.
  */
 data class DashboardUiState(
-    val useCompose: Boolean = true,
     val appTheme: Int = com.cooper.wheellog.R.style.OriginalTheme,
     val nightMode: Int = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_UNSPECIFIED,
     val valueOnDial: String = "0",
@@ -52,7 +51,7 @@ data class DashboardUiState(
     val temperatureDisplay: String = "00℃",
     /** Highest board temperature reached this session, in °C. */
     val maxTemperature: Float = 0f,
-    /** Maximum temperature uses the same unprefixed formatter as WheelView. */
+    /** Maximum temperature preserves the historical unprefixed formatter. */
     val maxTemperatureDisplay: String = "00℃",
     val voltage: Float = 0f,
     val current: Float = 0f,

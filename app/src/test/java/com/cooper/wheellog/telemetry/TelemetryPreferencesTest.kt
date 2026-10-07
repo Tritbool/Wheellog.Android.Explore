@@ -39,32 +39,9 @@ class TelemetryPreferencesTest {
     }
 
     @Test
-    fun `telemetry and events default on and persist independent fallbacks`() {
-        val config = AppConfig(context)
-        assertThat(config.useComposeUI).isTrue()
-        assertThat(config.useComposeTelemetry).isTrue()
-        assertThat(config.useComposeEvents).isTrue()
-        assertThat(config.useComposeTrips).isTrue()
-        assertThat(config.useComposeBms).isTrue()
-        config.useComposeBms = false
-        assertThat(AppConfig(context).useComposeBms).isFalse()
-        config.useComposeTrips = false
-        assertThat(AppConfig(context).useComposeTrips).isFalse()
-        assertThat(config.useComposeEvents).isTrue()
-        assertThat(config.useComposeTelemetry).isTrue()
-        config.useComposeUI = true
-        assertThat(config.useComposeTelemetry).isTrue()
-        config.useComposeTelemetry = false
-        assertThat(AppConfig(context).useComposeTelemetry).isFalse()
-        assertThat(AppConfig(context).useComposeEvents).isTrue()
-        config.useComposeEvents = false
-        assertThat(AppConfig(context).useComposeEvents).isFalse()
-        config.useComposeTelemetry = true
-        assertThat(AppConfig(context).useComposeTelemetry).isTrue()
-        assertThat(AppConfig(context).useComposeEvents).isFalse()
-        config.useComposeEvents = true
-        assertThat(AppConfig(context).useComposeEvents).isTrue()
-        assertThat(config.useComposeUI).isTrue()
+    fun `telemetry preferences no longer expose renderer switches`() {
+        assertThat(AppConfig.TelemetryPreferences::class.java.declaredFields.map { it.name }
+            .filter { it.startsWith("useCompose") }).isEmpty()
     }
 
     @Test
@@ -84,14 +61,12 @@ class TelemetryPreferencesTest {
                 flow.collect { emissions.add(it) }
             }
             runCurrent()
-            assertThat(emissions.single().useCompose).isTrue()
-            assertThat(emissions.single().useComposeEvents).isTrue()
-            assertThat(emissions.single().useComposeTrips).isTrue()
-            assertThat(emissions.single().useComposeBms).isTrue()
-            config.useComposeTelemetry = false
-            config.useComposeEvents = false
-            config.useComposeTrips = false
-            config.useComposeBms = false
+            assertThat(emissions.single().useMph).isFalse()
+            listOf("use_compose_telemetry", "use_compose_events", "use_compose_trips", "use_compose_bms")
+                .forEach { config.setValue(it, false) }
+            shadowOf(Looper.getMainLooper()).idle()
+            runCurrent()
+            assertThat(emissions).hasSize(1)
             config.autoUploadEc = true
             config.useMph = true
             config.usePsi = true
@@ -104,10 +79,6 @@ class TelemetryPreferencesTest {
             shadowOf(Looper.getMainLooper()).idle()
             runCurrent()
             val latest = emissions.last()
-            assertThat(latest.useCompose).isFalse()
-            assertThat(latest.useComposeEvents).isFalse()
-            assertThat(latest.useComposeTrips).isFalse()
-            assertThat(latest.useComposeBms).isFalse()
             assertThat(latest.autoUploadEc).isTrue()
             assertThat(latest.useMph).isTrue()
             assertThat(latest.usePsi).isTrue()
@@ -117,15 +88,9 @@ class TelemetryPreferencesTest {
             assertThat(latest.pageGraph).isFalse()
             assertThat(latest.pageEvents).isTrue()
             assertThat(latest.pageTrips).isFalse()
-            config.useComposeTelemetry = true
             config.viewBlocks = arrayOf("Battery")
             shadowOf(Looper.getMainLooper()).idle()
             runCurrent()
-            assertThat(emissions.last().useCompose).isTrue()
-            config.useComposeEvents = true
-            shadowOf(Looper.getMainLooper()).idle()
-            runCurrent()
-            assertThat(emissions.last().useComposeEvents).isTrue()
             assertThat(emissions.last().viewBlocks).containsExactly("Battery")
             assertThat(latest.viewBlocks).containsExactly("Voltage", "Distance").inOrder()
             val count = emissions.size
@@ -140,7 +105,7 @@ class TelemetryPreferencesTest {
                     any<SharedPreferences.OnSharedPreferenceChangeListener>()
                 )
             }
-            config.useComposeTelemetry = false
+            config.useMph = false
             shadowOf(Looper.getMainLooper()).idle()
             runCurrent()
             assertThat(emissions).hasSize(count)

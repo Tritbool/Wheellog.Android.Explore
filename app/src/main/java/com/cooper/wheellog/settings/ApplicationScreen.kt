@@ -42,58 +42,6 @@ fun applicationScreen(
 
         group(name = stringResource(R.string.general_settings_category_title)) {
             switchPref(
-                name = stringResource(R.string.use_compose_container_title),
-                desc = stringResource(R.string.use_compose_container_description),
-                default = appConfig.useComposeContainer
-            ) {
-                appConfig.useComposeContainer = it
-            }
-            switchPref(
-                name = stringResource(R.string.use_compose_scan_title),
-                desc = stringResource(R.string.use_compose_scan_description),
-                default = appConfig.useComposeScan
-            ) {
-                appConfig.useComposeScan = it
-            }
-            switchPref(
-                name = stringResource(R.string.use_compose_dashboard_title),
-                desc = stringResource(R.string.use_compose_dashboard_description),
-                default = appConfig.useComposeUI
-            ) {
-                appConfig.useComposeUI = it
-            }
-            switchPref(
-                name = stringResource(R.string.use_compose_telemetry_title),
-                desc = stringResource(R.string.use_compose_telemetry_description),
-                default = appConfig.useComposeTelemetry
-            ) {
-                appConfig.useComposeTelemetry = it
-            }
-
-            switchPref(
-                name = stringResource(R.string.use_compose_events_title),
-                desc = stringResource(R.string.use_compose_events_description),
-                default = appConfig.useComposeEvents
-            ) {
-                appConfig.useComposeEvents = it
-            }
-
-            switchPref(
-                name = stringResource(R.string.use_compose_bms_title),
-                desc = stringResource(R.string.use_compose_bms_description),
-                default = appConfig.useComposeBms
-            ) {
-                appConfig.useComposeBms = it
-            }
-            switchPref(
-                name = stringResource(R.string.use_compose_trips_title),
-                desc = stringResource(R.string.use_compose_trips_description),
-                default = appConfig.useComposeTrips
-            ) {
-                appConfig.useComposeTrips = it
-            }
-
-            switchPref(
                 name = stringResource(R.string.use_eng_title),
                 desc = stringResource(R.string.use_eng_description),
                 themeIcon = ThemeIconEnum.SettingsLanguage,

@@ -1,7 +1,5 @@
 package com.cooper.wheellog.compose
 
-import android.view.LayoutInflater
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -11,6 +9,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -21,15 +25,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.widget.doAfterTextChanged
 import com.cooper.wheellog.R
 import com.cooper.wheellog.scan.ScanUiState
-import com.google.android.material.textfield.TextInputLayout
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -62,7 +65,7 @@ fun ScanScreen(
             Text(stringResource(if (state.scanning) R.string.scanning else R.string.devices),
                 Modifier.weight(1f).padding(gap), style = titleStyle, maxLines = 1,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            if (state.scanning) AndroidView(factory = { ProgressBar(it) })
+            if (state.scanning) CircularProgressIndicator()
         }
         ScanDivider()
         LazyColumn(
@@ -83,20 +86,21 @@ fun ScanScreen(
             }
         }
         ScanDivider()
-        // Keep the existing Material input/IME and end-icon behavior during coexistence.
-        if (!state.scanning) AndroidView(
+        if (!state.scanning) OutlinedTextField(
+            value = state.manualAddress,
+            onValueChange = onAddressChanged,
             modifier = Modifier.fillMaxWidth(),
-            factory = { ctx ->
-                (LayoutInflater.from(ctx).inflate(R.layout.scan_manual_address, null) as TextInputLayout).apply {
-                    editText!!.setText(state.manualAddress)
-                    editText!!.doAfterTextChanged { onAddressChanged(it.toString()) }
-                    setEndIconOnClickListener { onManualSelect() }
+            label = { Text(stringResource(R.string.current_mac)) },
+            singleLine = true,
+            isError = state.invalidAddress,
+            supportingText = if (state.invalidAddress) ({ Text("incorrect MAC") }) else null,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { onManualSelect() }),
+            trailingIcon = {
+                IconButton(onClick = onManualSelect) {
+                    Icon(painterResource(R.drawable.ic_baseline_login_24),
+                        contentDescription = stringResource(android.R.string.ok))
                 }
-            },
-            update = { input ->
-                if (input.editText!!.text.toString() != state.manualAddress) input.editText!!.setText(state.manualAddress)
-                input.error = if (state.invalidAddress) "incorrect MAC" else null
-                input.errorIconDrawable = null
             }
         )
     }

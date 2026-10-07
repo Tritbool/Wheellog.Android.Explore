@@ -9,7 +9,7 @@ import com.cooper.wheellog.utils.MathsUtil
 import com.cooper.wheellog.utils.StringUtil.toTempString
 import java.util.Locale
 
-/** The legacy params page's selection and formatting, shared by both renderers. */
+/** Historical params selection and formatting used by the Compose telemetry page. */
 object TelemetryPresentation {
     fun fields(type: WHEEL_TYPE): List<Int> = when (type) {
         WHEEL_TYPE.KINGSONG -> listOf(

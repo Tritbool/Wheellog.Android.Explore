@@ -33,29 +33,19 @@ class MigrationWiringTest {
         assertThat(prototype).isInstanceOf(ClassNotFoundException::class.java)
     }
 
-    @Test fun `all migrated renderers default on and every fallback remains independently persistent`() {
+    @Test fun `all renderer switches have been removed even with saved false preferences`() {
         val application = ApplicationProvider.getApplicationContext<Application>()
+        val keys = listOf(
+            "use_compose_container", "useComposeUI", "use_compose_telemetry",
+            "use_compose_events", "use_compose_trips", "use_compose_bms", "use_compose_scan"
+        )
         PreferenceManager.getDefaultSharedPreferences(application).edit().clear()
-            .putInt("versionSettings", 1).commit()
-        val config = AppConfig(application)
-        val read = listOf<(AppConfig) -> Boolean>(
-            { it.useComposeContainer }, { it.useComposeUI }, { it.useComposeTelemetry },
-            { it.useComposeEvents }, { it.useComposeTrips }, { it.useComposeBms }, { it.useComposeScan }
-        )
-        val write = listOf<(AppConfig, Boolean) -> Unit>(
-            { c, v -> c.useComposeContainer = v }, { c, v -> c.useComposeUI = v },
-            { c, v -> c.useComposeTelemetry = v }, { c, v -> c.useComposeEvents = v },
-            { c, v -> c.useComposeTrips = v }, { c, v -> c.useComposeBms = v },
-            { c, v -> c.useComposeScan = v }
-        )
-        assertThat(read.map { it(config) }).containsExactly(true, true, true, true, true, true, true)
-        write.forEachIndexed { selected, set ->
-            set(config, false)
-            val persisted = AppConfig(application)
-            read.forEachIndexed { index, get ->
-                assertThat(get(persisted)).isEqualTo(index != selected)
-            }
-            set(config, true)
+            .putInt("versionSettings", 1).apply { keys.forEach { putBoolean(it, false) } }.commit()
+        AppConfig(application)
+        assertThat(AppConfig::class.java.methods.filter { it.name.startsWith("getUseCompose") }).isEmpty()
+        keys.forEach { key ->
+            val resource = if (key == "useComposeUI") "use_compose_dashboard" else key
+            assertThat(application.resources.getIdentifier(resource, "string", application.packageName)).isEqualTo(0)
         }
     }
 }

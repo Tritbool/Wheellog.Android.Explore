@@ -8,6 +8,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ApplicationProvider
+import androidx.preference.PreferenceManager
+import androidx.compose.runtime.State
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.MainActivity
 import com.cooper.wheellog.MainPageAdapter
@@ -29,11 +31,11 @@ import org.robolectric.annotation.Config
 @Config(application = Application::class, sdk = [28])
 class TelemetryRendererSwitchTest {
     @Test
-    fun `bound params page switches without BLE and catches up after lifecycle restart`() {
+    fun `bound params page ignores renderer preferences and catches up after lifecycle restart`() {
         val context = ApplicationProvider.getApplicationContext<Application>()
         context.setTheme(R.style.OriginalTheme)
         val config = AppConfig(context)
-        config.useComposeTelemetry = false
+        PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean("use_compose_telemetry", false).commit()
         val model = mockk<BleSessionViewModel>(relaxed = true)
         val activity = mockk<MainActivity>(relaxed = true)
         val lifecycle = LifecycleRegistry(activity)
@@ -49,38 +51,45 @@ class TelemetryRendererSwitchTest {
             val holder = adapter.createViewHolder(recycler, R.layout.main_view_params_list)
             adapter.bindViewHolder(holder, 0)
             val page = holder.itemView
-            val views = page.findViewById<View>(R.id.params_views_scroll)
             val compose = page.findViewById<ComposeView>(R.id.paramsComposeView)
-            assertThat(views.visibility).isEqualTo(View.VISIBLE)
-            assertThat(compose.visibility).isEqualTo(View.GONE)
-            // Legacy binding removes the XML waiting message even before a wheel is selected.
-            assertThat(page.findViewById<View>(R.id.tvWaitText)).isNull()
+            assertThat(compose.visibility).isEqualTo(View.VISIBLE)
+            assertThat((page as android.view.ViewGroup).childCount).isEqualTo(1)
+            @Suppress("UNCHECKED_CAST")
+            val theme = MainPageAdapter::class.java.getDeclaredField("telemetryTheme").apply {
+                isAccessible = true
+            }.get(adapter) as State<Int>
 
             adapter.onAttachedToRecyclerView(recycler)
             lifecycle.currentState = Lifecycle.State.STARTED
             shadowOf(Looper.getMainLooper()).idle()
-            config.useComposeTelemetry = true
+            config.setValue("use_compose_telemetry", true)
             shadowOf(Looper.getMainLooper()).idle()
-            assertThat(views.visibility).isEqualTo(View.GONE)
             assertThat(compose.visibility).isEqualTo(View.VISIBLE)
             assertThat(holder.itemView).isSameInstanceAs(page)
             assertThat(adapter.itemCount).isEqualTo(1)
 
             lifecycle.currentState = Lifecycle.State.CREATED
             shadowOf(Looper.getMainLooper()).idle()
-            config.useComposeTelemetry = false
+            config.setValue("use_compose_telemetry", false)
+            config.appThemeInt = com.cooper.wheellog.utils.ThemeEnum.AJDM.value
             shadowOf(Looper.getMainLooper()).idle()
             assertThat(compose.visibility).isEqualTo(View.VISIBLE)
+            assertThat(theme.value).isEqualTo(R.style.OriginalTheme)
             lifecycle.currentState = Lifecycle.State.STARTED
             shadowOf(Looper.getMainLooper()).idle()
-            assertThat(views.visibility).isEqualTo(View.VISIBLE)
-            assertThat(compose.visibility).isEqualTo(View.GONE)
+            assertThat(compose.visibility).isEqualTo(View.VISIBLE)
+            assertThat(theme.value).isEqualTo(R.style.AJDMTheme)
 
             adapter.onDetachedFromRecyclerView(recycler)
             shadowOf(Looper.getMainLooper()).idle()
-            config.useComposeTelemetry = true
+            config.appThemeInt = com.cooper.wheellog.utils.ThemeEnum.Original.value
             shadowOf(Looper.getMainLooper()).idle()
-            assertThat(compose.visibility).isEqualTo(View.GONE)
+            assertThat(theme.value).isEqualTo(R.style.AJDMTheme)
+            adapter.onAttachedToRecyclerView(recycler)
+            shadowOf(Looper.getMainLooper()).idle()
+            assertThat(theme.value).isEqualTo(R.style.OriginalTheme)
+            adapter.onViewRecycled(holder)
+            assertThat(compose.hasComposition).isFalse()
         } finally {
             adapter.onDetachedFromRecyclerView(recycler)
             lifecycle.currentState = Lifecycle.State.DESTROYED

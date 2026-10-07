@@ -4,13 +4,10 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.view.*
-import android.widget.TextView
-import android.widget.ScrollView
 import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.gridlayout.widget.GridLayout
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.lifecycle.Lifecycle
@@ -21,11 +18,8 @@ import com.cooper.wheellog.utils.SomeUtil.getColorEx
 import com.cooper.wheellog.data.TripDao
 import com.cooper.wheellog.data.TripRepository
 import com.cooper.wheellog.ble.BleSessionViewModel
-import com.cooper.wheellog.compose.MainPageScreen
 import com.cooper.wheellog.compose.ParamsListScreen
 import com.cooper.wheellog.telemetry.TelemetryPresentation
-import com.cooper.wheellog.ui.theme.AppTheme
-import com.cooper.wheellog.views.WheelView
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
@@ -44,7 +38,6 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     private val viewModel: BleSessionViewModel by inject()
     private var xAxisLabels = ArrayList<String>()
 
-    var wheelView: WheelView? = null
     private var dashboardRenderer: DashboardPageRenderer? = null
     private var chart1: LineChart? = null
     var position: Int = -1
@@ -64,9 +57,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     private val telemetryItems = mutableStateOf<List<Pair<Int, String>>>(emptyList())
     private val telemetryTheme = mutableStateOf(appConfig.appTheme)
     private val telemetryScroll = ScrollState(0)
-    private var telemetryViewsScrollY = 0
     private val eventsScroll = ScrollState(0)
-    private var eventsViewsScrollY = 0
     private var eventsRenderer: EventsPageRenderer? = null
     private var observing = false
 
@@ -94,13 +85,12 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     telemetryTheme.value = preferences.appTheme
                     if (themeChanged) createSecondPage()
                     refreshTelemetryValues()
-                    switchTelemetryRenderer()
-                    eventsRenderer?.preferences(preferences.useComposeEvents, preferences.appTheme)
+                    eventsRenderer?.preferences(preferences.appTheme)
                     tripsRenderer?.preferences(
-                        preferences.useComposeTrips, preferences.appTheme,
+                        preferences.appTheme,
                         preferences.useMph, preferences.autoUploadEc
                     )
-                    bmsRenderer?.preferences(preferences.useComposeBms, preferences.appTheme)
+                    bmsRenderer?.preferences(preferences.appTheme)
                 }
             }
         }
@@ -118,7 +108,6 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
         telemetryPreferencesJob?.cancel()
         telemetryPreferencesJob = null
-        saveEventsScroll()
         eventsRenderer?.stop()
         tripsRenderer?.stop()
         bmsRenderer?.stop()
@@ -149,7 +138,6 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                 tripsRenderer = null
             }
             if (page == R.layout.main_view_events) {
-                saveEventsScroll()
                 eventsRenderer?.dispose()
                 eventsRenderer = null
             }
@@ -180,7 +168,6 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                 dashboardRenderer?.dispose()
                 holder.dashboardRenderer = DashboardPageRenderer(view, viewModel, appConfig, activity)
                 dashboardRenderer = holder.dashboardRenderer
-                wheelView = dashboardRenderer?.wheelView
             }
             R.layout.main_view_params_list -> {
                 createSecondPage()
@@ -189,10 +176,6 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     setContent {
                         ParamsListScreen(telemetryItems.value, telemetryTheme.value, telemetryScroll)
                     }
-                }
-                switchTelemetryRenderer()
-                view.findViewById<ScrollView>(R.id.params_views_scroll).post {
-                    view.findViewById<ScrollView>(R.id.params_views_scroll).scrollTo(0, telemetryViewsScrollY)
                 }
             }
             R.layout.main_view_graph -> {
@@ -228,10 +211,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     view, EventsLoggingTree.events, eventsScroll, appConfig.appTheme
                 )
                 eventsRenderer = holder.eventsRenderer
-                eventsRenderer?.preferences(appConfig.useComposeEvents, appConfig.appTheme)
-                view.findViewById<ScrollView>(R.id.events_views_scroll).post {
-                    view.findViewById<ScrollView>(R.id.events_views_scroll).scrollTo(0, eventsViewsScrollY)
-                }
+                eventsRenderer?.preferences(appConfig.appTheme)
             }
             R.layout.main_view_trips -> {
                 tripsRenderer?.dispose()
@@ -356,43 +336,10 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
 
     private fun createSecondPage() {
         telemetryItems.value = secondPageValues.toList()
-        val layout = pagesView[R.layout.main_view_params_list]?.findViewById<GridLayout>(R.id.page_two_grid) ?: return
-        layout.removeAllViews()
-        if (secondPageValues.isEmpty()) return
-        val font = androidx.core.content.res.ResourcesCompat.getFont(
-            activity, if (appConfig.appTheme == R.style.AJDMTheme) R.font.ajdm else R.font.prime
-        )
-        for ((key, value) in secondPageValues) {
-            val headerText = (activity.layoutInflater.inflate(
-                R.layout.textview_title_template, layout, false
-            ) as TextView).apply {
-                text = activity.getString(key)
-                typeface = font
-            }
-            val valueText = (activity.layoutInflater.inflate(
-                R.layout.textview_value_template, layout, false
-            ) as TextView).apply {
-                text = value
-                typeface = font
-            }
-            layout.addView(headerText)
-            layout.addView(valueText)
-        }
     }
 
     private fun updateSecondPage() {
         telemetryItems.value = secondPageValues.toList()
-        val layout = pagesView[R.layout.main_view_params_list]?.findViewById<GridLayout>(R.id.page_two_grid) ?: return
-        val count = layout.childCount
-        if (secondPageValues.size * 2 != count) {
-            return
-        }
-        var index = 1
-        for (value in secondPageValues.values) {
-            val valueText = layout.getChildAt(index) as TextView
-            valueText.text = value
-            index += 2
-        }
     }
 
     private fun refreshTelemetryValues() {
@@ -403,21 +350,11 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         updateSecondPage()
     }
 
-    private fun switchTelemetryRenderer() {
-        val page = pagesView[R.layout.main_view_params_list] ?: return
-        val views = page.findViewById<ScrollView>(R.id.params_views_scroll)
-        val compose = page.findViewById<ComposeView>(R.id.paramsComposeView)
-        // Keep each renderer's scroll state while changing visibility; never replace the pager page.
-        views.visibility = if (appConfig.useComposeTelemetry) View.GONE else View.VISIBLE
-        compose.visibility = if (appConfig.useComposeTelemetry) View.VISIBLE else View.GONE
-    }
-
     override fun onViewRecycled(holder: ViewHolder) {
         if (holder.itemViewType == R.layout.main_view_main) {
             if (pagesView[R.layout.main_view_main] === holder.itemView) {
                 pagesView[R.layout.main_view_main] = null
                 dashboardRenderer = null
-                wheelView = null
             }
             holder.dashboardRenderer?.dispose()
             holder.dashboardRenderer = null
@@ -440,7 +377,6 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         }
         if (holder.itemViewType == R.layout.main_view_events) {
             if (pagesView[R.layout.main_view_events] === holder.itemView) {
-                saveEventsScroll()
                 pagesView[R.layout.main_view_events] = null
                 eventsRenderer = null
             }
@@ -448,7 +384,6 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
             holder.eventsRenderer = null
         }
         if (holder.itemViewType == R.layout.main_view_params_list) {
-            telemetryViewsScrollY = holder.itemView.findViewById<ScrollView>(R.id.params_views_scroll).scrollY
             holder.itemView.findViewById<ComposeView>(R.id.paramsComposeView).disposeComposition()
             if (pagesView[R.layout.main_view_params_list] === holder.itemView) {
                 pagesView[R.layout.main_view_params_list] = null
@@ -462,25 +397,19 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         super.onViewRecycled(holder)
     }
 
-    private fun saveEventsScroll() {
-        pagesView[R.layout.main_view_events]?.findViewById<ScrollView>(R.id.events_views_scroll)?.let {
-            eventsViewsScrollY = it.scrollY
-        }
-    }
-
     override fun onViewAttachedToWindow(holder: ViewHolder) {
         super.onViewAttachedToWindow(holder)
         holder.dashboardRenderer?.start()
         holder.bmsRenderer?.apply {
-            preferences(appConfig.useComposeBms, appConfig.appTheme)
+            preferences(appConfig.appTheme)
             start()
         }
         holder.eventsRenderer?.apply {
-            preferences(appConfig.useComposeEvents, appConfig.appTheme)
+            preferences(appConfig.appTheme)
             start(activity)
         }
         holder.tripsRenderer?.apply {
-            preferences(appConfig.useComposeTrips, appConfig.appTheme, appConfig.useMph, appConfig.autoUploadEc)
+            preferences(appConfig.appTheme, appConfig.useMph, appConfig.autoUploadEc)
             start()
         }
     }

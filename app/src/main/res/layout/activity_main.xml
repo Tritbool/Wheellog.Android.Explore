@@ -9,11 +9,6 @@
     android:fitsSystemWindows="true"
     tools:context="com.cooper.wheellog.MainActivity">
     <LinearLayout
-        android:id="@+id/main_views_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-    <LinearLayout
         android:id="@+id/main_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -54,27 +49,8 @@
     </androidx.appcompat.widget.Toolbar>
     </LinearLayout>
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/pager"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-    </androidx.viewpager2.widget.ViewPager2>
-
-    <me.relex.circleindicator.CircleIndicator3
-        android:id="@+id/indicator"
-        android:layout_width="match_parent"
-        android:layout_height="14dp"
-        app:ci_height="2dp"
-        app:ci_width="30dp"
-        app:ci_margin="10dp"
-        app:ci_drawable="@color/accent"
-        app:ci_drawable_unselected="@color/wheelview_arc_dim"
-        android:layout_gravity = "center_horizontal|bottom" />
-    </LinearLayout>
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/main_compose_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
+        android:layout_height="match_parent" />
 </FrameLayout>

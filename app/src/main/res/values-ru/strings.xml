@@ -1,22 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="use_compose_container_title">Основная навигация Compose</string>
-    <string name="use_compose_container_description">Контейнер и страницы Compose. Отключите для навигации Views независимо от содержимого страниц.</string>
-    <string name="use_compose_scan_title">Диалог поиска Compose</string>
-    <string name="use_compose_scan_description">Использовать новый интерфейс поиска. Выключите для возврата к Views.</string>
-    <string name="use_compose_dashboard_title">Приборная панель Compose</string>
-    <string name="use_compose_dashboard_description">Использовать панель Compose. Отключите для возврата к WheelView.</string>
-    <string name="use_compose_bms_title">Страница Smart BMS Compose</string>
-    <string name="use_compose_bms_description">Использовать новый интерфейс Smart BMS. Отключите для возврата к прежней странице.</string>
-    <string name="use_compose_trips_title">Страница поездок Compose</string>
-    <string name="use_compose_trips_description">Использовать новый интерфейс поездок. Отключите для возврата к прежней странице.</string>
     <string name="trip_delete_failed">Не удалось удалить файл поездки.</string>
     <string name="trip_load_failed">Не удалось загрузить поездки.</string>
     <string name="trip_share_failed">Не удалось поделиться файлом поездки.</string>
-    <string name="use_compose_telemetry_title">Страница телеметрии на Compose</string>
-    <string name="use_compose_events_title">Страница событий на Compose</string>
-    <string name="use_compose_events_description">Использовать новую отрисовку событий. Отключите, чтобы вернуться к исходной странице.</string>
-    <string name="use_compose_telemetry_description">Использовать новую отрисовку телеметрии. Отключите, чтобы вернуться к исходной странице.</string>
     <string name="alert1_title">Первое предупреждение</string>
     <string name="alert2_title">Второе предупреждение</string>
     <string name="alert3_title">Третье предупреждение</string>

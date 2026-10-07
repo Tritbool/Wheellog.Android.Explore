@@ -13,7 +13,6 @@ import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.compose.MainPageScreen
 import com.cooper.wheellog.feature.dashboard.DashboardActions
 import com.cooper.wheellog.feature.dashboard.DashboardViewModel
-import com.cooper.wheellog.views.WheelView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -24,7 +23,6 @@ internal class DashboardPageRenderer(
     config: AppConfig,
     private val owner: MainActivity
 ) {
-    val wheelView = page.findViewById<WheelView>(R.id.wheelView)
     private val compose = page.findViewById<ComposeView>(R.id.mainPageComposeView)
     private val actions = DashboardActions(page.context, session, config)
     private val model = ViewModelProvider(owner, object : ViewModelProvider.Factory {
@@ -42,14 +40,10 @@ internal class DashboardPageRenderer(
     }
 
     private fun render(data: com.cooper.wheellog.feature.dashboard.DashboardUiState) {
-        val wasCompose = compose.visibility == View.VISIBLE
         presentation.value = data
-        wheelView.visibility = if (data.useCompose) View.GONE else View.VISIBLE
-        compose.visibility = if (data.useCompose) View.VISIBLE else View.GONE
-        wheelView.render(data, actions)
-        if (data.useCompose && (!wasCompose || !compose.hasComposition)) {
+        if (!compose.hasComposition) {
             compose.setContent { MainPageScreen(presentation.value, actions) }
-        } else if (!data.useCompose && wasCompose) compose.disposeComposition()
+        }
     }
 
     fun start() {
@@ -61,7 +55,6 @@ internal class DashboardPageRenderer(
                     model.uiState.collect { render(it) }
                 } finally {
                     actions.dispose()
-                    wheelView.stop()
                     compose.disposeComposition()
                 }
             }
@@ -72,7 +65,6 @@ internal class DashboardPageRenderer(
         collecting?.cancel()
         collecting = null
         actions.dispose()
-        wheelView.stop()
         compose.disposeComposition()
     }
 

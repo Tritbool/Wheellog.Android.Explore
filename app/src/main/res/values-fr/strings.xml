@@ -1,22 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="use_compose_container_title">Navigation principale Compose</string>
-    <string name="use_compose_container_description">Utiliser le conteneur et le pager Compose. Désactiver pour retrouver la navigation Views, indépendamment des pages.</string>
-    <string name="use_compose_scan_title">Dialogue de scan Compose</string>
-    <string name="use_compose_scan_description">Utiliser le nouvel affichage du scan. Désactiver pour revenir au dialogue Views.</string>
-    <string name="use_compose_dashboard_title">Tableau de bord Compose</string>
-    <string name="use_compose_dashboard_description">Utiliser le tableau de bord Compose. Désactiver pour revenir à WheelView.</string>
-    <string name="use_compose_bms_title">Page Smart BMS Compose</string>
-    <string name="use_compose_bms_description">Utiliser le nouvel affichage Smart BMS. Désactiver pour revenir à la page originale.</string>
-    <string name="use_compose_trips_title">Page des trajets Compose</string>
-    <string name="use_compose_trips_description">Utiliser le nouvel affichage des trajets. Désactiver pour revenir à la page originale.</string>
     <string name="trip_delete_failed">Impossible de supprimer le fichier du trajet.</string>
     <string name="trip_load_failed">Impossible de charger les trajets.</string>
     <string name="trip_share_failed">Impossible de partager le fichier du trajet.</string>
-    <string name="use_compose_telemetry_title">Page de télémétrie Compose</string>
-    <string name="use_compose_events_title">Page des événements Compose</string>
-    <string name="use_compose_events_description">Utiliser le nouvel affichage des événements. Désactivez cette option pour revenir à la page d’origine.</string>
-    <string name="use_compose_telemetry_description">Utiliser le nouvel affichage de télémétrie. Désactivez cette option pour revenir à la page d’origine.</string>
     <string name="unknown_device">Equipement inconnu</string>
 	<string name="ble_not_supported">Bluetooth LE non supporté</string>
 	<string name="error_bluetooth_not_supported">Votre equipement ne supporte pas le bluetooth.</string>

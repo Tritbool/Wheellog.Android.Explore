@@ -44,6 +44,11 @@ class TelemetryPreferencesTest {
         assertThat(config.useComposeUI).isFalse()
         assertThat(config.useComposeTelemetry).isTrue()
         assertThat(config.useComposeEvents).isTrue()
+        assertThat(config.useComposeTrips).isTrue()
+        config.useComposeTrips = false
+        assertThat(AppConfig(context).useComposeTrips).isFalse()
+        assertThat(config.useComposeEvents).isTrue()
+        assertThat(config.useComposeTelemetry).isTrue()
         config.useComposeUI = true
         assertThat(config.useComposeTelemetry).isTrue()
         config.useComposeTelemetry = false
@@ -78,8 +83,11 @@ class TelemetryPreferencesTest {
             runCurrent()
             assertThat(emissions.single().useCompose).isTrue()
             assertThat(emissions.single().useComposeEvents).isTrue()
+            assertThat(emissions.single().useComposeTrips).isTrue()
             config.useComposeTelemetry = false
             config.useComposeEvents = false
+            config.useComposeTrips = false
+            config.autoUploadEc = true
             config.useMph = true
             config.usePsi = true
             config.useFahrenheit = true
@@ -93,6 +101,8 @@ class TelemetryPreferencesTest {
             val latest = emissions.last()
             assertThat(latest.useCompose).isFalse()
             assertThat(latest.useComposeEvents).isFalse()
+            assertThat(latest.useComposeTrips).isFalse()
+            assertThat(latest.autoUploadEc).isTrue()
             assertThat(latest.useMph).isTrue()
             assertThat(latest.usePsi).isTrue()
             assertThat(latest.useFahrenheit).isTrue()

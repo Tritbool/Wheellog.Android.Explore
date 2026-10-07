@@ -17,13 +17,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.cooper.wheellog.utils.Constants.WHEEL_TYPE
-import com.cooper.wheellog.utils.FileUtil
 import com.cooper.wheellog.utils.MathsUtil
 import com.cooper.wheellog.utils.SomeUtil.getColorEx
 import com.cooper.wheellog.utils.StringUtil.inArray
 import com.cooper.wheellog.utils.StringUtil.toTempString
 import com.cooper.wheellog.utils.ThemeManager
-import com.cooper.wheellog.views.TripAdapter
+import com.cooper.wheellog.data.TripDao
+import com.cooper.wheellog.data.TripRepository
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.compose.MainPageScreen
 import com.cooper.wheellog.compose.ParamsListScreen
@@ -54,7 +54,10 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     var position: Int = -1
     private var pagesView = LinkedHashMap<Int, View?>()
 
-    private var listOfTrips: RecyclerView? = null
+    private val tripDao: TripDao by inject()
+    private val tripRepository by lazy { TripRepository(tripDao) }
+    private val tripsScroll = TripsScroll()
+    private var tripsRenderer: TripsPageRenderer? = null
     private var telemetryPreferencesJob: Job? = null
     private val telemetryItems = mutableStateOf<List<Pair<Int, String>>>(emptyList())
     private val telemetryTheme = mutableStateOf(appConfig.appTheme)
@@ -69,6 +72,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         sharedPreferences.registerOnSharedPreferenceChangeListener(this)
         telemetryPreferencesJob?.cancel()
         eventsRenderer?.start(activity)
+        tripsRenderer?.start()
         telemetryPreferencesJob = activity.lifecycleScope.launch {
             activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 appConfig.telemetryPreferences().collect { preferences ->
@@ -78,6 +82,10 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     refreshTelemetryValues()
                     switchTelemetryRenderer()
                     eventsRenderer?.preferences(preferences.useComposeEvents, preferences.appTheme)
+                    tripsRenderer?.preferences(
+                        preferences.useComposeTrips, preferences.appTheme,
+                        preferences.useMph, preferences.autoUploadEc
+                    )
                 }
             }
         }
@@ -91,6 +99,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         telemetryPreferencesJob = null
         saveEventsScroll()
         eventsRenderer?.stop()
+        tripsRenderer?.stop()
     }
 
     fun addPage(page: Int, index: Int = 0) {
@@ -107,6 +116,10 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
 
     fun removePage(page: Int) {
         if (pages.contains(page)) {
+            if (page == R.layout.main_view_trips) {
+                tripsRenderer?.dispose()
+                tripsRenderer = null
+            }
             if (page == R.layout.main_view_events) {
                 saveEventsScroll()
                 eventsRenderer?.dispose()
@@ -120,9 +133,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     }
 
     fun updatePageOfTrips() {
-        if (listOfTrips != null) {
-            (listOfTrips!!.adapter as TripAdapter).updateTrips(FileUtil.fillTrips(activity))
-        }
+        tripsRenderer?.refresh()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -204,12 +215,9 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                 }
             }
             R.layout.main_view_trips -> {
-                listOfTrips = view.findViewById(R.id.list_trips)
-                // listOfTrips?.addItemDecoration(DividerItemDecoration(activity, DividerItemDecoration.VERTICAL))
-                listOfTrips?.adapter = TripAdapter(activity, FileUtil.fillTrips(activity))
-                // for Tests
-                // val models = arrayListOf(TripModel("title", "desc", "asd"))
-                // listOfTrips?.adapter = TripAdapter(activity, models)
+                tripsRenderer?.dispose()
+                holder.tripsRenderer = TripsPageRenderer(view, tripRepository, appConfig, tripsScroll, activity)
+                tripsRenderer = holder.tripsRenderer
             }
             R.layout.main_view_smart_bms -> {
                 createSmartBmsPage()
@@ -532,6 +540,14 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     }
 
     override fun onViewRecycled(holder: ViewHolder) {
+        if (holder.itemViewType == R.layout.main_view_trips) {
+            if (pagesView[R.layout.main_view_trips] === holder.itemView) {
+                pagesView[R.layout.main_view_trips] = null
+                tripsRenderer = null
+            }
+            holder.tripsRenderer?.dispose()
+            holder.tripsRenderer = null
+        }
         if (holder.itemViewType == R.layout.main_view_events) {
             if (pagesView[R.layout.main_view_events] === holder.itemView) {
                 saveEventsScroll()
@@ -562,10 +578,15 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
             preferences(appConfig.useComposeEvents, appConfig.appTheme)
             start(activity)
         }
+        holder.tripsRenderer?.apply {
+            preferences(appConfig.useComposeTrips, appConfig.appTheme, appConfig.useMph, appConfig.autoUploadEc)
+            start()
+        }
     }
 
     override fun onViewDetachedFromWindow(holder: ViewHolder) {
         holder.eventsRenderer?.stop()
+        holder.tripsRenderer?.stop()
         super.onViewDetachedFromWindow(holder)
     }
     //endregion
@@ -1035,32 +1056,13 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                 addPage(R.layout.main_view_trips)
             } else {
                 removePage(R.layout.main_view_trips)
-                listOfTrips = null
             }
             R.string.view_blocks_string -> updateScreen(true)
-            R.string.auto_upload_ec ->
-                GlobalScope.launch {
-                    delay(500)
-                    MainScope().launch {
-                        listOfTrips?.apply {
-                            // redraw
-                            val a = adapter as TripAdapter
-                            if (a.uploadVisible != appConfig.autoUploadEc) {
-                                a.uploadVisible = appConfig.autoUploadEc
-                                val l = layoutManager
-                                adapter = null
-                                layoutManager = null
-                                adapter = a
-                                layoutManager = l
-                                a.notifyDataSetChanged()
-                            }
-                        }
-                    }
-                }
         }
     }
 
     class ViewHolder internal constructor(view: View) : RecyclerView.ViewHolder(view) {
         internal var eventsRenderer: EventsPageRenderer? = null
+        internal var tripsRenderer: TripsPageRenderer? = null
     }
 }

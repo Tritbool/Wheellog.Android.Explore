@@ -65,6 +65,10 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue(R.string.use_compose_events, true)
         set(value) = setValue(R.string.use_compose_events, value)
 
+    var useComposeTrips: Boolean
+        get() = getValue(R.string.use_compose_trips, true)
+        set(value) = setValue(R.string.use_compose_trips, value)
+
     data class TelemetryPreferences(
         val useCompose: Boolean,
         val useMph: Boolean,
@@ -76,19 +80,23 @@ class AppConfig(var context: Context) : KoinComponent {
         val pageGraph: Boolean,
         val pageEvents: Boolean,
         val pageTrips: Boolean,
-        val useComposeEvents: Boolean
+        val useComposeEvents: Boolean,
+        val useComposeTrips: Boolean,
+        val autoUploadEc: Boolean
     )
 
     fun telemetryPreferences(): Flow<TelemetryPreferences> = callbackFlow {
         fun snapshot() = TelemetryPreferences(
             useComposeTelemetry, useMph, usePsi, useFahrenheit, appTheme, dayNightThemeMode,
-            viewBlocks.toList(), pageGraph, pageEvents, pageTrips, useComposeEvents
+            viewBlocks.toList(), pageGraph, pageEvents, pageTrips, useComposeEvents,
+            useComposeTrips, autoUploadEc
         )
         val resources = setOf(
             R.string.use_compose_telemetry, R.string.use_mph, R.string.use_psi,
             R.string.use_fahrenheit, R.string.app_theme, R.string.day_night_theme,
             R.string.view_blocks_string, R.string.show_page_graph,
-            R.string.show_page_events, R.string.show_page_trips, R.string.use_compose_events
+            R.string.show_page_events, R.string.show_page_trips, R.string.use_compose_events,
+            R.string.use_compose_trips, R.string.auto_upload_ec
         )
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == null || getResId(key) in resources) trySend(snapshot())

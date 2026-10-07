@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="use_compose_trips_title">Page des trajets Compose</string>
+    <string name="use_compose_trips_description">Utiliser le nouvel affichage des trajets. Désactiver pour revenir à la page originale.</string>
+    <string name="trip_delete_failed">Impossible de supprimer le fichier du trajet.</string>
+    <string name="trip_load_failed">Impossible de charger les trajets.</string>
+    <string name="trip_share_failed">Impossible de partager le fichier du trajet.</string>
     <string name="use_compose_telemetry_title">Page de télémétrie Compose</string>
     <string name="use_compose_events_title">Page des événements Compose</string>
     <string name="use_compose_events_description">Utiliser le nouvel affichage des événements. Désactivez cette option pour revenir à la page d’origine.</string>

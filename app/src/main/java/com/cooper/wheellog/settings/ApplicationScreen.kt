@@ -55,6 +55,14 @@ fun applicationScreen(
             }
 
             switchPref(
+                name = stringResource(R.string.use_compose_trips_title),
+                desc = stringResource(R.string.use_compose_trips_description),
+                default = appConfig.useComposeTrips
+            ) {
+                appConfig.useComposeTrips = it
+            }
+
+            switchPref(
                 name = stringResource(R.string.use_eng_title),
                 desc = stringResource(R.string.use_eng_description),
                 themeIcon = ThemeIconEnum.SettingsLanguage,

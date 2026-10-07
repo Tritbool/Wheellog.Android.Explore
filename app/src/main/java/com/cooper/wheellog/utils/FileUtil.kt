@@ -41,6 +41,12 @@ class FileUtil(val context: Context) {
         get() = if (isNull) {
             null
         } else file!!.absolutePath
+    val logLocation: String?
+        get() = if (isNull) null else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            uri?.toString()
+        } else {
+            file?.absolutePath
+        }
     val isNull: Boolean
         get() = file == null || file.toString() == "null" || stream == null
 
@@ -353,7 +359,9 @@ class FileUtil(val context: Context) {
                                             f.name,
                                             sizeToKb(f.length()),
                                             contentUri,
-                                            pathLegacyAndroid = f.absolutePath
+                                            pathLegacyAndroid = f.absolutePath,
+                                            fileSize = f.length(),
+                                            lastModified = f.lastModified()
                                         )
                                     )
                                 } catch (e: Exception) {
@@ -377,25 +385,30 @@ class FileUtil(val context: Context) {
                 MediaStore.Downloads.SIZE,
                 MediaStore.Downloads._ID
             )
+            val tripProjection = projection + MediaStore.Downloads.DATE_MODIFIED
             val where =
                 String.format("%s = 'text/comma-separated-values'", MediaStore.Downloads.MIME_TYPE)
-            val cursor = context.contentResolver.query(
+            context.contentResolver.query(
                 uri,
-                projection,
+                tripProjection,
                 where + " AND " + MediaStore.Downloads.DISPLAY_NAME + " NOT LIKE ?",
                 arrayOf("RAW_%"),
                 MediaStore.Downloads.DATE_MODIFIED + " DESC"
-            )
-            if (cursor != null && cursor.moveToFirst()) {
-                do {
-                    val title =
-                        cursor.getString(0.coerceAtLeast(cursor.getColumnIndex(MediaStore.Downloads.DISPLAY_NAME)))
-                    val description =
-                        sizeToKb(cursor.getLong(0.coerceAtLeast(cursor.getColumnIndex(MediaStore.Downloads.SIZE))))
-                    val mediaId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Downloads._ID))
-                    tripModels.add(TripModel(title, description, ContentUris.withAppendedId(uri, mediaId)))
-                } while (cursor.moveToNext())
-                cursor.close()
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    do {
+                        val title =
+                            cursor.getString(0.coerceAtLeast(cursor.getColumnIndex(MediaStore.Downloads.DISPLAY_NAME)))
+                        val description =
+                            sizeToKb(cursor.getLong(0.coerceAtLeast(cursor.getColumnIndex(MediaStore.Downloads.SIZE))))
+                        val mediaId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Downloads._ID))
+                        tripModels.add(TripModel(
+                            title, description, ContentUris.withAppendedId(uri, mediaId),
+                            fileSize = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Downloads.SIZE)),
+                            lastModified = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Downloads.DATE_MODIFIED))
+                        ))
+                    } while (cursor.moveToNext())
+                }
             }
             return tripModels
         }

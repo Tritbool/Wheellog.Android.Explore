@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="use_compose_trips_title">Страница поездок Compose</string>
+    <string name="use_compose_trips_description">Использовать новый интерфейс поездок. Отключите для возврата к прежней странице.</string>
+    <string name="trip_delete_failed">Не удалось удалить файл поездки.</string>
+    <string name="trip_load_failed">Не удалось загрузить поездки.</string>
+    <string name="trip_share_failed">Не удалось поделиться файлом поездки.</string>
     <string name="use_compose_telemetry_title">Страница телеметрии на Compose</string>
     <string name="use_compose_events_title">Страница событий на Compose</string>
     <string name="use_compose_events_description">Использовать новую отрисовку событий. Отключите, чтобы вернуться к исходной странице.</string>

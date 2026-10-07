@@ -1,278 +1,46 @@
 package com.cooper.wheellog.views
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
-import android.graphics.Typeface
-import android.os.Build
-import android.os.Bundle
-import android.text.format.DateFormat
-import android.text.format.DateUtils
-import android.view.ContextThemeWrapper
-import android.view.GestureDetector
 import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
 import android.view.ViewGroup
-import android.widget.PopupMenu
-import androidx.appcompat.app.AlertDialog
+import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.cooper.wheellog.AppConfig
-import com.cooper.wheellog.DialogHelper.setBlackIcon
 import com.cooper.wheellog.R
-import com.cooper.wheellog.data.TripDao
-import com.cooper.wheellog.data.TripDataDbEntry
-import com.cooper.wheellog.data.TripParser
+import com.cooper.wheellog.data.TripItemState
 import com.cooper.wheellog.databinding.ListTripItemBinding
-import com.cooper.wheellog.utils.SomeUtil.doAsync
-import com.cooper.wheellog.utils.MathsUtil
-import com.cooper.wheellog.utils.MathsUtil.kmToMilesMultiplier
 import com.cooper.wheellog.utils.ThemeIconEnum
 import com.cooper.wheellog.utils.ThemeManager
-import com.google.common.io.ByteStreams
-import kotlinx.coroutines.*
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.component.inject
-import timber.log.Timber
-import java.io.File
-import java.text.SimpleDateFormat
-import java.time.Year
-import java.util.Locale
 
+class TripAdapter(private val delete: (TripItemState) -> Unit) : RecyclerView.Adapter<TripAdapter.ViewHolder>() {
+    private var items: List<TripItemState> = emptyList()
+    private var theme = R.style.OriginalTheme
 
-class TripAdapter(var context: Context, private var tripModels: ArrayList<TripModel>) : RecyclerView.Adapter<TripAdapter.ViewHolder>(), KoinComponent {
-    private val appConfig: AppConfig by inject()
-    private var uploadViewVisible: Int = View.VISIBLE
-    private var font = ThemeManager.getTypeface(context)
-
-    var uploadVisible: Boolean
-        get() = uploadViewVisible == View.VISIBLE
-        set(value) { uploadViewVisible = if (value) View.VISIBLE else View.GONE }
-
-    init {
-        uploadVisible = appConfig.autoUploadEc
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    fun updateTrips(tripModels: ArrayList<TripModel>) {
-        this.tripModels.clear() // Clear the old list
-        this.tripModels.addAll(tripModels) // Add all new items
+    @android.annotation.SuppressLint("NotifyDataSetChanged")
+    fun updateTrips(items: List<TripItemState>, theme: Int) {
+        this.items = items
+        this.theme = theme
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val itemBinding = ListTripItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(itemBinding, font)
-    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+        ViewHolder(ListTripItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+
+    override fun getItemCount() = items.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val trip = tripModels[position]
-        holder.bind(trip, uploadViewVisible, this)
-    }
-
-    override fun getItemCount(): Int {
-        return tripModels.size
-    }
-
-    fun removeAt(position: Int) {
-        if (tripModels.size > position) {
-            tripModels.removeAt(position)
-            notifyItemChanged(position)
-            notifyItemRangeRemoved(position, 1)
+        val trip = items[position]
+        holder.binding.apply {
+            val font = ResourcesCompat.getFont(root.context, if (theme == R.style.AJDMTheme) R.font.ajdm else R.font.prime)
+            name.text = trip.title
+            description.text = trip.description
+            description2.text = trip.description2
+            name.typeface = font
+            description.typeface = font
+            description2.typeface = font
+            popupButton.setImageResource(ThemeManager.getId(ThemeIconEnum.TripsPopupButton, theme))
+            popupButton.setOnClickListener { TripActions.menu(popupButton, trip, delete, theme) }
+            root.setOnLongClickListener { TripActions.menu(popupButton, trip, delete, theme); true }
         }
     }
 
-    class ViewHolder internal constructor(private val itemBinding: ListTripItemBinding, val font: Typeface) : RecyclerView.ViewHolder(itemBinding.root), KoinComponent {
-        private val dao: TripDao by inject()
-        private val appConfig: AppConfig by inject()
-        private val context = itemBinding.root.context
-
-
-
-        private fun share(tripModel: TripModel) {
-            val sendIntent: Intent = Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_STREAM, tripModel.uri)
-                type = "text/csv"
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-
-            val shareIntent = Intent.createChooser(sendIntent, null)
-            context.startActivity(shareIntent, Bundle.EMPTY)
-        }
-
-        private fun deleteFile(tripModel: TripModel, adapter: TripAdapter) {
-            AlertDialog.Builder(context)
-                .setTitle(R.string.trip_menu_delete_file)
-                .setMessage(context.getString(R.string.trip_menu_delete_file_confirmation) + " " + tripModel.fileName)
-                .setCancelable(false)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                        val file = tripModel.pathLegacyAndroid?.let { File(it) }
-                        if (file?.exists() == true) {
-                            file.canonicalFile.delete()
-                            if (file.exists()) {
-                                file.delete()
-                            }
-                        }
-                    } else {
-                        get<Context>().contentResolver.delete(tripModel.uri, null, null)
-                    }
-                    adapter.removeAt(adapterPosition)
-
-                    CoroutineScope(Dispatchers.IO + Job()).launch {
-                        dao.apply {
-                            val tripDb = getTripByFileName(tripModel.fileName)
-                            if (tripDb != null) {
-                                delete(tripDb)
-                            }
-                        }
-                    }
-                }
-                .setNegativeButton(android.R.string.cancel) { _, _ -> }
-                .show()
-                .setBlackIcon()
-        }
-
-        private fun formatMi(value: Float): String {
-            return format(MathsUtil.kmToMiles(value))
-        }
-
-        private fun format(value: Float): String {
-            return String.format("%.2f", value)
-        }
-
-        private fun setDescFromDb(trip: TripDataDbEntry?) {
-            if (trip != null && trip.duration != 0) {
-                val min = context.getString(R.string.min)
-                var desc1: String
-                var desc2 = "\u231a ${trip.duration} $min"
-                if (appConfig.useMph) {
-                    val mph = context.getString(R.string.mph)
-                    val miles = context.getString(R.string.miles)
-                    desc1 = "\uD83D\uDE80 ${formatMi(trip.maxSpeed)} $mph" +
-                            "\n\u267f ${formatMi(trip.avgSpeed)} $mph"
-                    desc2 += "\n\uD83D\uDCCF ${formatMi(trip.distance / 1000.0f)} $miles"
-                } else {
-                    val kmh = context.getString(R.string.kmh)
-                    val km = context.getString(R.string.km)
-                    desc1 = "\uD83D\uDE80 ${format(trip.maxSpeed)} $kmh" +
-                            "\n\u267f ${format(trip.avgSpeed)} $kmh"
-                    desc2 += "\n\uD83D\uDCCF ${format(trip.distance / 1000.0f)} $km"
-                }
-                desc1 += "\n\uD83D\uDE31 ${trip.maxPwm}%"
-                if (trip.ecId != 0) {
-                    desc1 += "\n\u26a1 electro.club"
-                }
-                desc2 +=
-                    "\n\u26a1 ${format(trip.consumptionTotal)} ${context.getString(R.string.wh)}" +
-                    "\n\uD83D\uDD0B " +
-                    if (appConfig.useMph) {
-                        "${format(trip.consumptionByKm / kmToMilesMultiplier.toFloat())} ${context.getString(R.string.whmi)}"
-                    } else {
-                        "${format(trip.consumptionByKm)} ${context.getString(R.string.whkm)}"
-                    }
-                itemBinding.description.text = desc1
-                itemBinding.description2.text = desc2
-            }
-        }
-
-        private fun setFriendlyName() {
-            val sdf = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US)
-            try {
-                val dateTime = sdf.parse(itemBinding.name.text.toString())
-                val now = System.currentTimeMillis()
-                var skeleton = "MMMM dd, HH:mm"
-                if (dateTime != null) {
-                    if (DateUtils.isToday(dateTime.time)) {
-                        val text = itemBinding.name.context.getText(R.string.today).toString() +
-                                SimpleDateFormat(", EEE, HH:mm", Locale.getDefault()).format(dateTime)
-                        itemBinding.name.text = text
-                    } else if (now - dateTime.time < 604_800_000) { // current week
-                        itemBinding.name.text = SimpleDateFormat("EEEE, HH:mm", Locale.getDefault()).format(dateTime)
-                    } else {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Year.now().value != Year.parse(itemBinding.name.text.subSequence(0, 4).toString()).value) {
-                            skeleton = "yyyy $skeleton"
-                        }
-                        val bestFormat = DateFormat.getBestDateTimePattern(Locale.getDefault(), skeleton)
-                        val sdfName = SimpleDateFormat(bestFormat, Locale.getDefault())
-                        itemBinding.name.text = sdfName.format(dateTime)
-                    }
-                }
-            } catch (_: Exception) {
-                // ignore
-            }
-        }
-
-        @SuppressLint("UseCompatLoadingForDrawables", "ClickableViewAccessibility", "SetTextI18n")
-        fun bind(tripModel: TripModel, uploadViewVisible: Int, adapter: TripAdapter) {
-            itemBinding.name.text = tripModel.title
-            itemBinding.name.typeface = font
-            itemBinding.description.apply {
-                text = tripModel.description
-                typeface = font
-            }
-            itemBinding.description2.apply {
-                text = ""
-                typeface = font
-            }
-            setFriendlyName()
-
-            var trackIdInEc = -1
-            var trip: TripDataDbEntry? = null
-            itemView.doAsync({
-                trip = dao.getTripByFileName(tripModel.fileName)
-                trackIdInEc =
-                    if (uploadViewVisible == View.VISIBLE && trip != null && trip!!.ecId > 0) {
-                        trip!!.ecId
-                    } else {
-                        -1
-                    }
-                if (trip == null || trip?.duration == 0) {
-                    trip = TripParser.parseFile(context, tripModel.fileName, "", tripModel.uri).second
-                }
-            }) {
-                setDescFromDb(trip)
-                val wrapper = ContextThemeWrapper(context, R.style.OriginalTheme_PopupMenuStyle)
-                val popupMenu = PopupMenu(wrapper,  itemBinding.popupButton).apply {
-                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-                        menu.add(0, 2, 2, R.string.trip_menu_share).icon =
-                            context.getDrawable(ThemeManager.getId(ThemeIconEnum.TripsShare))
-                        menu.add(0, 3, 3, R.string.trip_menu_delete_file).icon =
-                            context.getDrawable(ThemeManager.getId(ThemeIconEnum.TripsDelete))
-                    }
-                    setOnMenuItemClickListener { item ->
-                        when (item.itemId) {
-                            0 -> share(tripModel)
-                            1 -> deleteFile(tripModel, adapter)
-                        }
-                        return@setOnMenuItemClickListener false
-                    }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        setForceShowIcon(true)
-                    }
-                }
-                val gestureDetector = GestureDetector(
-                    context, object : GestureDetector.SimpleOnGestureListener() {
-                        override fun onLongPress(e: MotionEvent) {
-                            super.onLongPress(e)
-                            popupMenu.show()
-                        }
-                    })
-                itemView.setOnTouchListener { _, event ->
-                    gestureDetector.onTouchEvent(event)
-                    true
-                }
-                itemBinding.popupButton.setOnClickListener {
-                    popupMenu.show()
-                }
-            }
-
-            // Themes
-            itemBinding.popupButton.setImageResource(ThemeManager.getId(ThemeIconEnum.TripsPopupButton))
-        }
-    }
+    class ViewHolder(val binding: ListTripItemBinding) : RecyclerView.ViewHolder(binding.root)
 }

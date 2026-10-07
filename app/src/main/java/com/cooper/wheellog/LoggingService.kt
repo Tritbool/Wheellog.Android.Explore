@@ -448,5 +448,7 @@ class LoggingService : Service() {
         fun isInstanceCreated(): Boolean {
             return instance != null
         }
+
+        fun activeLogLocation(): String? = instance?.fileUtil?.logLocation
     }
 }

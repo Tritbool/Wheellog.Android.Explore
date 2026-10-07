@@ -6,7 +6,7 @@ import android.os.Build
 import com.cooper.wheellog.R
 import com.cooper.wheellog.utils.LogHeaderEnum
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.koin.core.component.get
 import timber.log.Timber
 import java.io.BufferedReader
 import java.io.File
@@ -17,10 +17,10 @@ import java.text.ParsePosition
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 import java.util.Locale
+import kotlinx.coroutines.CancellationException
 
 object TripParser: KoinComponent {
-    private val dao: TripDao by inject()
-    private val header = HashMap<LogHeaderEnum, Int>()
+    private val dao: TripDao get() = get()
     private var lastErrorValue: String? = null
 
     val lastError: String
@@ -30,7 +30,16 @@ object TripParser: KoinComponent {
             return res
         }
 
-    fun parseFile(context: Context, fileName: String, path: String, uri: Uri): Pair<List<LogTick>, TripDataDbEntry?> {
+    fun parseFile(
+        context: Context,
+        fileName: String,
+        path: String,
+        uri: Uri,
+        persist: Boolean = true,
+        existingTrip: TripDataDbEntry? = null,
+        checkCancellation: () -> Unit = {}
+    ): Pair<List<LogTick>, TripDataDbEntry?> {
+        checkCancellation()
         lastErrorValue = null
         val inputStream: InputStream?
         try {
@@ -41,15 +50,24 @@ object TripParser: KoinComponent {
                 // Android 10+
                 context.contentResolver.openInputStream(uri)
             }
+        } catch (ex: CancellationException) {
+            throw ex
         } catch (ex: Exception) {
             lastErrorValue = ex.localizedMessage
             Timber.wtf(lastErrorValue)
             return Pair(emptyList(), null)
         }
-        return parseFile(context, fileName, inputStream)
+        return parseFile(context, fileName, inputStream, persist, existingTrip, checkCancellation)
     }
 
-    fun parseFile(context: Context, fileName: String, inputStream: InputStream?): Pair<List<LogTick>, TripDataDbEntry?> {
+    fun parseFile(
+        context: Context,
+        fileName: String,
+        inputStream: InputStream?,
+        persist: Boolean = true,
+        existingTrip: TripDataDbEntry? = null,
+        checkCancellation: () -> Unit = {}
+    ): Pair<List<LogTick>, TripDataDbEntry?> {
         lastErrorValue = null
         if (inputStream == null) {
             lastErrorValue = context.getString(R.string.error_inputstream_null)
@@ -59,19 +77,22 @@ object TripParser: KoinComponent {
 
         // read header
         val reader = BufferedReader(InputStreamReader(inputStream))
-        val headerLine = reader.readLine().split(",").toTypedArray()
-        for (i in headerLine.indices) {
-            try {
-                header[LogHeaderEnum.valueOf(headerLine[i].uppercase())] = i
-            } catch (ignored: IllegalArgumentException) {
-            }
-        }
+        val header = HashMap<LogHeaderEnum, Int>()
         val sdfTime = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
         val sdfFullDate = SimpleDateFormat("dd HH:mm:ss.SSS", Locale.getDefault())
         val resultList = ArrayList<LogTick>()
 
         try {
+            checkCancellation()
+            val headerLine = reader.readLine()?.split(",") ?: return Pair(emptyList(), null)
+            for (i in headerLine.indices) {
+                try {
+                    header[LogHeaderEnum.valueOf(headerLine[i].uppercase())] = i
+                } catch (_: IllegalArgumentException) {
+                }
+            }
             reader.forEachLine { line ->
+                checkCancellation()
                 if (line.isNotEmpty())
                 {
                     val row = line.split(",")
@@ -99,6 +120,8 @@ object TripParser: KoinComponent {
                     resultList.add(logTick)
                 }
             }
+        } catch (ex: CancellationException) {
+            throw ex
         } catch (ex: Exception) {
             lastErrorValue = ex.localizedMessage
             Timber.wtf(lastErrorValue)
@@ -107,15 +130,23 @@ object TripParser: KoinComponent {
             inputStream.close()
         }
 
-        var trip = dao.getTripByFileName(fileName)
+        checkCancellation()
+        if (resultList.isEmpty()) return Pair(emptyList(), null)
+        val databaseTrip = if (persist) dao.getTripByFileName(fileName) else null
+        var trip = existingTrip?.copy(fileName = fileName, id = databaseTrip?.id ?: existingTrip.id) ?: databaseTrip
         if (trip == null) {
             trip = TripDataDbEntry(fileName = fileName)
+        }
+        if (persist && databaseTrip == null) {
             dao.insert(trip)
+            trip = trip.copy(id = dao.getTripByFileName(fileName)?.id ?: trip.id)
         }
         try {
             val first = resultList.first()
             val last = resultList.last()
             trip.apply {
+                maxCurrent = 0f
+                maxPwm = 0f
                 duration = ((last.time - first.time) / 600.0).toInt()
                 if (duration < 0) {
                     // +24 hours in minutes
@@ -126,6 +157,7 @@ object TripParser: KoinComponent {
                 var firstTotalDistance = 0
 
                 resultList.forEach {
+                    checkCancellation()
                     // If time between ticks more than 1 sec, we need to exclude this time
                     // or if time between ticks more than -1 hour (360 sec) next day ticks will be excluded
                     val timeBetween = it.time - beforeTime
@@ -156,7 +188,10 @@ object TripParser: KoinComponent {
                     0F
                 }
             }
-            dao.update(trip)
+            checkCancellation()
+            if (persist) dao.update(trip)
+        } catch (ex: CancellationException) {
+            throw ex
         } catch (ex: Exception) {
             lastErrorValue = ex.localizedMessage
             Timber.wtf(lastErrorValue)

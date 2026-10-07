@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter
 import android.os.Bundle
 import android.os.Looper
 import android.view.View
+import android.view.WindowManager
 import androidx.compose.runtime.State
 import androidx.compose.ui.platform.ComposeView
 import androidx.appcompat.app.AlertDialog
@@ -124,6 +125,9 @@ class ScanActivityTest {
 
     @Test fun `manual validation keeps dialog then returns only MAC and clears password`() {
         val activity = launch()
+        assertThat(dialog(activity).isShowing).isTrue()
+        assertThat(dialog(activity).window!!.attributes.flags and
+            WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM).isEqualTo(0)
         completeScan()
         edit(activity, "bad")
         submit(activity)

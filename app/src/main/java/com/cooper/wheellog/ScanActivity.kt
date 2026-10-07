@@ -87,6 +87,8 @@ class ScanActivity : AppCompatActivity() {
         alertDialog.window?.apply {
             setGravity(Gravity.TOP)
             clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            // AppCompat cannot detect Compose text editors when configuring the dialog.
+            clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
         }
 
         lifecycleScope.launch {

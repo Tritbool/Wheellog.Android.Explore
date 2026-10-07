@@ -1,5 +1,8 @@
 <resources>
     <string name="use_compose_telemetry" translatable="false">use_compose_telemetry</string>
+    <string name="use_compose_events" translatable="false">use_compose_events</string>
+    <string name="use_compose_events_title">Compose events page</string>
+    <string name="use_compose_events_description">Use the new events renderer. Turn off to return to the original page.</string>
     <string name="use_compose_telemetry_title">Compose telemetry page</string>
     <string name="use_compose_telemetry_description">Use the new telemetry renderer. Turn off to return to the original page.</string>
     <string name="kmh">km/h</string>

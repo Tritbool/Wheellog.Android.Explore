@@ -33,6 +33,7 @@ class TelemetryRendererSwitchTest {
         val context = ApplicationProvider.getApplicationContext<Application>()
         context.setTheme(R.style.OriginalTheme)
         val config = AppConfig(context)
+        config.useComposeTelemetry = false
         val model = mockk<BleSessionViewModel>(relaxed = true)
         val activity = mockk<MainActivity>(relaxed = true)
         val lifecycle = LifecycleRegistry(activity)

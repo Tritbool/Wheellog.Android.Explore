@@ -441,8 +441,10 @@ class MainActivity : AppCompatActivity() {
                 pagerAdapter.updateScreen(true)
             }
         })
-        eventsLoggingTree = EventsLoggingTree(applicationContext, pagerAdapter)
-        Timber.plant(eventsLoggingTree!!)
+        if (eventsLoggingTree == null) {
+            eventsLoggingTree = EventsLoggingTree(applicationContext)
+            Timber.plant(eventsLoggingTree!!)
+        }
         val indicator = binding.indicator
         indicator.setViewPager(pager)
         pagerAdapter.registerAdapterDataObserver(indicator.adapterDataObserver)
@@ -611,6 +613,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        eventsLoggingTree?.let {
+            Timber.uproot(it)
+            it.close()
+        }
+        eventsLoggingTree = null
         if (!this.isFinishing) {
             Timber.wtf("Recreate main activity")
             return
@@ -642,9 +649,6 @@ class MainActivity : AppCompatActivity() {
 
             override fun onFinish() {
                 notifications.close()
-                Timber.uproot(eventsLoggingTree!!)
-                eventsLoggingTree!!.close()
-                eventsLoggingTree = null
                 val am = getSystemService(ACTIVITY_SERVICE) as ActivityManager
                 val runningProcesses = am.runningAppProcesses
                 for (process in runningProcesses) {

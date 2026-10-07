@@ -59,12 +59,16 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     private val telemetryItems = mutableStateOf<List<Pair<Int, String>>>(emptyList())
     private val telemetryTheme = mutableStateOf(appConfig.appTheme)
     private val telemetryScroll = ScrollState(0)
+    private val eventsScroll = ScrollState(0)
+    private var eventsViewsScrollY = 0
+    private var eventsRenderer: EventsPageRenderer? = null
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(recyclerView.context)
         sharedPreferences.registerOnSharedPreferenceChangeListener(this)
         telemetryPreferencesJob?.cancel()
+        eventsRenderer?.start(activity)
         telemetryPreferencesJob = activity.lifecycleScope.launch {
             activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 appConfig.telemetryPreferences().collect { preferences ->
@@ -73,6 +77,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     if (themeChanged) createSecondPage()
                     refreshTelemetryValues()
                     switchTelemetryRenderer()
+                    eventsRenderer?.preferences(preferences.useComposeEvents, preferences.appTheme)
                 }
             }
         }
@@ -84,6 +89,8 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
         telemetryPreferencesJob?.cancel()
         telemetryPreferencesJob = null
+        saveEventsScroll()
+        eventsRenderer?.stop()
     }
 
     fun addPage(page: Int, index: Int = 0) {
@@ -94,14 +101,16 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                 pages.add(index, page)
             }
             pagesView[page] = null
-            notifyItemInserted(page)
+            notifyItemInserted(pages.indexOf(page))
         }
     }
 
     fun removePage(page: Int) {
         if (pages.contains(page)) {
             if (page == R.layout.main_view_events) {
-                eventsTextView = null
+                saveEventsScroll()
+                eventsRenderer?.dispose()
+                eventsRenderer = null
             }
             val index = pages.indexOf(page)
             pages.removeAt(index)
@@ -184,9 +193,15 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                 xAxis.valueFormatter = chartAxisValueFormatter
             }
             R.layout.main_view_events -> {
-                eventsTextView = view.findViewById(R.id.events_textbox)
-                eventsTextView?.text = logsCashe
-                eventsTextView?.typeface = ThemeManager.getTypeface(view.context)
+                eventsRenderer?.dispose()
+                holder.eventsRenderer = EventsPageRenderer(
+                    view, EventsLoggingTree.events, eventsScroll, appConfig.appTheme
+                )
+                eventsRenderer = holder.eventsRenderer
+                eventsRenderer?.preferences(appConfig.useComposeEvents, appConfig.appTheme)
+                view.findViewById<ScrollView>(R.id.events_views_scroll).post {
+                    view.findViewById<ScrollView>(R.id.events_views_scroll).scrollTo(0, eventsViewsScrollY)
+                }
             }
             R.layout.main_view_trips -> {
                 listOfTrips = view.findViewById(R.id.list_trips)
@@ -438,11 +453,6 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         }
     }
 
-    private var eventsTextView: TextView? = null
-    private var eventsCurrentCount = 0
-    private var eventsMaxCount = 500
-    private var logsCashe = StringBuffer()
-
     private var chartAxisValueFormatter: IndexAxisValueFormatter = object : IndexAxisValueFormatter () {
         override fun getFormattedValue(value: Float): String {
             return if (value < xAxisLabels.size) xAxisLabels[value.toInt()] else ""
@@ -522,6 +532,15 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     }
 
     override fun onViewRecycled(holder: ViewHolder) {
+        if (holder.itemViewType == R.layout.main_view_events) {
+            if (pagesView[R.layout.main_view_events] === holder.itemView) {
+                saveEventsScroll()
+                pagesView[R.layout.main_view_events] = null
+                eventsRenderer = null
+            }
+            holder.eventsRenderer?.dispose()
+            holder.eventsRenderer = null
+        }
         if (holder.itemViewType == R.layout.main_view_params_list) {
             holder.itemView.findViewById<ComposeView>(R.id.paramsComposeView).disposeComposition()
             if (pagesView[R.layout.main_view_params_list] === holder.itemView) {
@@ -529,6 +548,25 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
             }
         }
         super.onViewRecycled(holder)
+    }
+
+    private fun saveEventsScroll() {
+        pagesView[R.layout.main_view_events]?.findViewById<ScrollView>(R.id.events_views_scroll)?.let {
+            eventsViewsScrollY = it.scrollY
+        }
+    }
+
+    override fun onViewAttachedToWindow(holder: ViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        holder.eventsRenderer?.apply {
+            preferences(appConfig.useComposeEvents, appConfig.appTheme)
+            start(activity)
+        }
+    }
+
+    override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        holder.eventsRenderer?.stop()
+        super.onViewDetachedFromWindow(holder)
     }
     //endregion
 
@@ -1022,5 +1060,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
         }
     }
 
-    class ViewHolder internal constructor(view: View) : RecyclerView.ViewHolder(view)
+    class ViewHolder internal constructor(view: View) : RecyclerView.ViewHolder(view) {
+        internal var eventsRenderer: EventsPageRenderer? = null
+    }
 }

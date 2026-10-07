@@ -58,8 +58,12 @@ class AppConfig(var context: Context) : KoinComponent {
     var useComposeUI: Boolean = false
 
     var useComposeTelemetry: Boolean
-        get() = getValue(R.string.use_compose_telemetry, false)
+        get() = getValue(R.string.use_compose_telemetry, true)
         set(value) = setValue(R.string.use_compose_telemetry, value)
+
+    var useComposeEvents: Boolean
+        get() = getValue(R.string.use_compose_events, true)
+        set(value) = setValue(R.string.use_compose_events, value)
 
     data class TelemetryPreferences(
         val useCompose: Boolean,
@@ -71,19 +75,20 @@ class AppConfig(var context: Context) : KoinComponent {
         val viewBlocks: List<String>,
         val pageGraph: Boolean,
         val pageEvents: Boolean,
-        val pageTrips: Boolean
+        val pageTrips: Boolean,
+        val useComposeEvents: Boolean
     )
 
     fun telemetryPreferences(): Flow<TelemetryPreferences> = callbackFlow {
         fun snapshot() = TelemetryPreferences(
             useComposeTelemetry, useMph, usePsi, useFahrenheit, appTheme, dayNightThemeMode,
-            viewBlocks.toList(), pageGraph, pageEvents, pageTrips
+            viewBlocks.toList(), pageGraph, pageEvents, pageTrips, useComposeEvents
         )
         val resources = setOf(
             R.string.use_compose_telemetry, R.string.use_mph, R.string.use_psi,
             R.string.use_fahrenheit, R.string.app_theme, R.string.day_night_theme,
             R.string.view_blocks_string, R.string.show_page_graph,
-            R.string.show_page_events, R.string.show_page_trips
+            R.string.show_page_events, R.string.show_page_trips, R.string.use_compose_events
         )
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == null || getResId(key) in resources) trySend(snapshot())

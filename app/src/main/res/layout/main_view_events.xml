@@ -1,11 +1,23 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/page_events"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/events_textbox"
+    <ScrollView
+        android:id="@+id/events_views_scroll"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="start|top" />
-</ScrollView>
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/events_textbox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|top" />
+    </ScrollView>
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/eventsComposeView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+</FrameLayout>

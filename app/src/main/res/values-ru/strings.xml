@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="use_compose_telemetry_title">Страница телеметрии на Compose</string>
+    <string name="use_compose_events_title">Страница событий на Compose</string>
+    <string name="use_compose_events_description">Использовать новую отрисовку событий. Отключите, чтобы вернуться к исходной странице.</string>
     <string name="use_compose_telemetry_description">Использовать новую отрисовку телеметрии. Отключите, чтобы вернуться к исходной странице.</string>
     <string name="alert1_title">Первое предупреждение</string>
     <string name="alert2_title">Второе предупреждение</string>

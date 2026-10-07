@@ -39,6 +39,14 @@ fun applicationScreen(
 
         group(name = stringResource(R.string.general_settings_category_title)) {
             switchPref(
+                name = stringResource(R.string.use_compose_telemetry_title),
+                desc = stringResource(R.string.use_compose_telemetry_description),
+                default = appConfig.useComposeTelemetry
+            ) {
+                appConfig.useComposeTelemetry = it
+            }
+
+            switchPref(
                 name = stringResource(R.string.use_eng_title),
                 desc = stringResource(R.string.use_eng_description),
                 themeIcon = ThemeIconEnum.SettingsLanguage,

@@ -5,11 +5,17 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.view.*
 import android.widget.TextView
+import android.widget.ScrollView
+import androidx.compose.foundation.ScrollState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.gridlayout.widget.GridLayout
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.cooper.wheellog.utils.Constants.WHEEL_TYPE
 import com.cooper.wheellog.utils.FileUtil
 import com.cooper.wheellog.utils.MathsUtil
@@ -20,6 +26,8 @@ import com.cooper.wheellog.utils.ThemeManager
 import com.cooper.wheellog.views.TripAdapter
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.compose.MainPageScreen
+import com.cooper.wheellog.compose.ParamsListScreen
+import com.cooper.wheellog.telemetry.TelemetryPresentation
 import com.cooper.wheellog.ui.theme.AppTheme
 import com.cooper.wheellog.views.WheelView
 import com.github.mikephil.charting.charts.LineChart
@@ -30,6 +38,7 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.*
@@ -46,17 +55,35 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     private var pagesView = LinkedHashMap<Int, View?>()
 
     private var listOfTrips: RecyclerView? = null
+    private var telemetryPreferencesJob: Job? = null
+    private val telemetryItems = mutableStateOf<List<Pair<Int, String>>>(emptyList())
+    private val telemetryTheme = mutableStateOf(appConfig.appTheme)
+    private val telemetryScroll = ScrollState(0)
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(recyclerView.context)
         sharedPreferences.registerOnSharedPreferenceChangeListener(this)
+        telemetryPreferencesJob?.cancel()
+        telemetryPreferencesJob = activity.lifecycleScope.launch {
+            activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                appConfig.telemetryPreferences().collect { preferences ->
+                    val themeChanged = telemetryTheme.value != preferences.appTheme
+                    telemetryTheme.value = preferences.appTheme
+                    if (themeChanged) createSecondPage()
+                    refreshTelemetryValues()
+                    switchTelemetryRenderer()
+                }
+            }
+        }
     }
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
         super.onDetachedFromRecyclerView(recyclerView)
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(recyclerView.context)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
+        telemetryPreferencesJob?.cancel()
+        telemetryPreferencesJob = null
     }
 
     fun addPage(page: Int, index: Int = 0) {
@@ -121,6 +148,13 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
             }
             R.layout.main_view_params_list -> {
                 createSecondPage()
+                view.findViewById<ComposeView>(R.id.paramsComposeView).apply {
+                    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                    setContent {
+                        ParamsListScreen(telemetryItems.value, telemetryTheme.value, telemetryScroll)
+                    }
+                }
+                switchTelemetryRenderer()
             }
             R.layout.main_view_graph -> {
                 chart1 = view.findViewById(R.id.chart)
@@ -212,59 +246,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                 }
             }
             R.layout.main_view_params_list -> {
-                if (appConfig.useMph) {
-                    updateFieldForSecondPage(R.string.speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(viewModel.speedDouble)))
-                    updateFieldForSecondPage(R.string.top_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(viewModel.topSpeedDouble)))
-                    updateFieldForSecondPage(R.string.average_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(viewModel.averageSpeedDouble)))
-                    updateFieldForSecondPage(R.string.average_riding_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(viewModel.averageRidingSpeedDouble)))
-                    updateFieldForSecondPage(R.string.dynamic_speed_limit, String.format(Locale.US, "%.1f " + activity.getString(R.string.mph), MathsUtil.kmToMiles(viewModel.speedLimit)))
-                    updateFieldForSecondPage(R.string.distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(viewModel.distanceDouble)))
-                    updateFieldForSecondPage(R.string.wheel_distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(viewModel.wheelDistanceDouble)))
-                    updateFieldForSecondPage(R.string.user_distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(viewModel.userDistanceDouble)))
-                    updateFieldForSecondPage(R.string.total_distance, String.format(Locale.US, "%.2f " + activity.getString(R.string.miles), MathsUtil.kmToMiles(viewModel.totalDistanceDouble)))
-                } else {
-                    updateFieldForSecondPage(R.string.speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), viewModel.speedDouble))
-                    updateFieldForSecondPage(R.string.top_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), viewModel.topSpeedDouble))
-                    updateFieldForSecondPage(R.string.average_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), viewModel.averageSpeedDouble))
-                    updateFieldForSecondPage(R.string.average_riding_speed, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), viewModel.averageRidingSpeedDouble))
-                    updateFieldForSecondPage(R.string.dynamic_speed_limit, String.format(Locale.US, "%.1f " + activity.getString(R.string.kmh), viewModel.speedLimit))
-                    updateFieldForSecondPage(R.string.distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), viewModel.distanceDouble))
-                    updateFieldForSecondPage(R.string.wheel_distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), viewModel.wheelDistanceDouble))
-                    updateFieldForSecondPage(R.string.user_distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), viewModel.userDistanceDouble))
-                    updateFieldForSecondPage(R.string.total_distance, String.format(Locale.US, "%.3f " + activity.getString(R.string.km), viewModel.totalDistanceDouble))
-                }
-                updateFieldForSecondPage(R.string.voltage, String.format(Locale.US, "%.2f " + activity.getString(R.string.volt), viewModel.voltageDouble))
-                updateFieldForSecondPage(R.string.voltage_sag, String.format(Locale.US, "%.2f " + activity.getString(R.string.volt), viewModel.voltageSagDouble))
-
-                updateFieldForSecondPage(R.string.temperature, viewModel.temperatureDouble.toInt().toTempString())
-                updateFieldForSecondPage(R.string.temperature2, viewModel.motorTemperatureDouble.toInt().toTempString())
-                updateFieldForSecondPage(R.string.cpu_temp, viewModel.cpuTemp.toTempString())
-                updateFieldForSecondPage(R.string.imu_temp, viewModel.imuTemp.toTempString())
-
-                updateFieldForSecondPage(R.string.angle, String.format(Locale.US, "%.2f°", viewModel.angle))
-                updateFieldForSecondPage(R.string.roll, String.format(Locale.US, "%.2f°", viewModel.roll))
-                updateFieldForSecondPage(R.string.current, String.format(Locale.US, "%.2f " + activity.getString(R.string.amp), viewModel.currentDouble))
-                updateFieldForSecondPage(R.string.phase_current, String.format(Locale.US, "%.2f " + activity.getString(R.string.amp), viewModel.phaseCurrentDouble))
-                updateFieldForSecondPage(R.string.dynamic_current_limit, String.format(Locale.US, "%.2f " + activity.getString(R.string.amp), viewModel.currentLimit))
-                updateFieldForSecondPage(R.string.torque, String.format(Locale.US, "%.2f " + activity.getString(R.string.newton), viewModel.torque))
-                updateFieldForSecondPage(R.string.power, String.format(Locale.US, "%.2f " + activity.getString(R.string.watt), viewModel.powerDouble))
-                updateFieldForSecondPage(R.string.motor_power, String.format(Locale.US, "%.2f " + activity.getString(R.string.watt), viewModel.motorPower))
-                updateFieldForSecondPage(R.string.battery, String.format(Locale.US, "%d%%", viewModel.batteryLevel))
-                updateFieldForSecondPage(R.string.fan_status, if (viewModel.fanStatus == 0) activity.getString(R.string.off) else activity.getString(R.string.on))
-                updateFieldForSecondPage(R.string.charging_status, if (viewModel.chargingStatus == 0) activity.getString(R.string.discharging) else activity.getString(R.string.charging))
-                updateFieldForSecondPage(R.string.version, String.format(Locale.US, "%s", viewModel.version))
-                updateFieldForSecondPage(R.string.error, String.format(Locale.US, "%s", viewModel.error))
-                updateFieldForSecondPage(R.string.output, String.format(Locale.US, "%d%%", viewModel.output))
-                updateFieldForSecondPage(R.string.cpuload, String.format(Locale.US, "%d%%", viewModel.cpuLoad))
-                updateFieldForSecondPage(R.string.name, viewModel.name)
-                updateFieldForSecondPage(R.string.model, viewModel.model)
-                updateFieldForSecondPage(R.string.serial_number, viewModel.serial)
-                updateFieldForSecondPage(R.string.ride_time, viewModel.rideTimeString)
-                updateFieldForSecondPage(R.string.sleep_timer, viewModel.sleepTimerString)
-                updateFieldForSecondPage(R.string.riding_time, viewModel.ridingTimeString)
-                updateFieldForSecondPage(R.string.mode, viewModel.modeStr)
-                updateFieldForSecondPage(R.string.charging, viewModel.chargeTime)
-                updateSecondPage()
+                refreshTelemetryValues()
             }
             R.layout.main_view_graph -> {
                 if (!updateGraph || chart1 == null) {
@@ -475,10 +457,6 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     //region SecondPage
     private val secondPageValues = LinkedHashMap<Int, String>()
 
-    private fun setupFieldForSecondPage(resId: Int) {
-        secondPageValues[resId] = ""
-    }
-
     private fun updateFieldForSecondPage(resId: Int, value: String) {
         if (secondPageValues.containsKey(resId)) {
             secondPageValues[resId] = value
@@ -486,9 +464,13 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     }
 
     private fun createSecondPage() {
+        telemetryItems.value = secondPageValues.toList()
         val layout = pagesView[R.layout.main_view_params_list]?.findViewById<GridLayout>(R.id.page_two_grid) ?: return
         layout.removeAllViews()
-        val font = ThemeManager.getTypeface(activity)
+        if (secondPageValues.isEmpty()) return
+        val font = androidx.core.content.res.ResourcesCompat.getFont(
+            activity, if (appConfig.appTheme == R.style.AJDMTheme) R.font.ajdm else R.font.prime
+        )
         for ((key, value) in secondPageValues) {
             val headerText = (activity.layoutInflater.inflate(
                 R.layout.textview_title_template, layout, false
@@ -508,6 +490,7 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     }
 
     private fun updateSecondPage() {
+        telemetryItems.value = secondPageValues.toList()
         val layout = pagesView[R.layout.main_view_params_list]?.findViewById<GridLayout>(R.id.page_two_grid) ?: return
         val count = layout.childCount
         if (secondPageValues.size * 2 != count) {
@@ -520,169 +503,38 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
             index += 2
         }
     }
+
+    private fun refreshTelemetryValues() {
+        if (secondPageValues.isEmpty()) return
+        TelemetryPresentation.values(activity, appConfig, viewModel).forEach { (key, value) ->
+            updateFieldForSecondPage(key, value)
+        }
+        updateSecondPage()
+    }
+
+    private fun switchTelemetryRenderer() {
+        val page = pagesView[R.layout.main_view_params_list] ?: return
+        val views = page.findViewById<ScrollView>(R.id.params_views_scroll)
+        val compose = page.findViewById<ComposeView>(R.id.paramsComposeView)
+        // Keep each renderer's scroll state while changing visibility; never replace the pager page.
+        views.visibility = if (appConfig.useComposeTelemetry) View.GONE else View.VISIBLE
+        compose.visibility = if (appConfig.useComposeTelemetry) View.VISIBLE else View.GONE
+    }
+
+    override fun onViewRecycled(holder: ViewHolder) {
+        if (holder.itemViewType == R.layout.main_view_params_list) {
+            holder.itemView.findViewById<ComposeView>(R.id.paramsComposeView).disposeComposition()
+            if (pagesView[R.layout.main_view_params_list] === holder.itemView) {
+                pagesView[R.layout.main_view_params_list] = null
+            }
+        }
+        super.onViewRecycled(holder)
+    }
     //endregion
 
     fun configureSecondDisplay() {
         secondPageValues.clear()
-        when (viewModel.wheelType) {
-            WHEEL_TYPE.KINGSONG -> {
-                setupFieldForSecondPage(R.string.speed)
-                setupFieldForSecondPage(R.string.dynamic_speed_limit)
-                setupFieldForSecondPage(R.string.top_speed)
-                setupFieldForSecondPage(R.string.average_speed)
-                setupFieldForSecondPage(R.string.average_riding_speed)
-                setupFieldForSecondPage(R.string.battery)
-                setupFieldForSecondPage(R.string.output)
-                setupFieldForSecondPage(R.string.cpuload)
-                setupFieldForSecondPage(R.string.temperature)
-                setupFieldForSecondPage(R.string.temperature2)
-                setupFieldForSecondPage(R.string.ride_time)
-                setupFieldForSecondPage(R.string.riding_time)
-                setupFieldForSecondPage(R.string.distance)
-                setupFieldForSecondPage(R.string.wheel_distance)
-                setupFieldForSecondPage(R.string.user_distance)
-                setupFieldForSecondPage(R.string.total_distance)
-                setupFieldForSecondPage(R.string.voltage)
-                setupFieldForSecondPage(R.string.voltage_sag)
-                setupFieldForSecondPage(R.string.current)
-                setupFieldForSecondPage(R.string.power)
-                setupFieldForSecondPage(R.string.fan_status)
-                setupFieldForSecondPage(R.string.charging_status)
-                setupFieldForSecondPage(R.string.charging)
-                setupFieldForSecondPage(R.string.mode)
-                setupFieldForSecondPage(R.string.name)
-                setupFieldForSecondPage(R.string.model)
-                setupFieldForSecondPage(R.string.version)
-                setupFieldForSecondPage(R.string.serial_number)
-            }
-            WHEEL_TYPE.VETERAN -> {
-                setupFieldForSecondPage(R.string.speed)
-                setupFieldForSecondPage(R.string.top_speed)
-                setupFieldForSecondPage(R.string.average_speed)
-                setupFieldForSecondPage(R.string.average_riding_speed)
-                setupFieldForSecondPage(R.string.battery)
-                setupFieldForSecondPage(R.string.temperature)
-                setupFieldForSecondPage(R.string.ride_time)
-                setupFieldForSecondPage(R.string.riding_time)
-                setupFieldForSecondPage(R.string.distance)
-                setupFieldForSecondPage(R.string.wheel_distance)
-                setupFieldForSecondPage(R.string.user_distance)
-                setupFieldForSecondPage(R.string.total_distance)
-                setupFieldForSecondPage(R.string.voltage)
-                setupFieldForSecondPage(R.string.voltage_sag)
-                setupFieldForSecondPage(R.string.current)
-                setupFieldForSecondPage(R.string.phase_current)
-                setupFieldForSecondPage(R.string.power)
-                setupFieldForSecondPage(R.string.angle)
-                setupFieldForSecondPage(R.string.sleep_timer)
-                setupFieldForSecondPage(R.string.charging_status)
-                setupFieldForSecondPage(R.string.charging)
-                setupFieldForSecondPage(R.string.model)
-                setupFieldForSecondPage(R.string.version)
-            }
-            WHEEL_TYPE.GOTWAY -> {
-                setupFieldForSecondPage(R.string.speed)
-                setupFieldForSecondPage(R.string.top_speed)
-                setupFieldForSecondPage(R.string.average_speed)
-                setupFieldForSecondPage(R.string.average_riding_speed)
-                setupFieldForSecondPage(R.string.battery)
-                setupFieldForSecondPage(R.string.temperature)
-                setupFieldForSecondPage(R.string.temperature2)
-                setupFieldForSecondPage(R.string.ride_time)
-                setupFieldForSecondPage(R.string.riding_time)
-                setupFieldForSecondPage(R.string.distance)
-                setupFieldForSecondPage(R.string.wheel_distance)
-                setupFieldForSecondPage(R.string.user_distance)
-                setupFieldForSecondPage(R.string.total_distance)
-                setupFieldForSecondPage(R.string.voltage)
-                setupFieldForSecondPage(R.string.voltage_sag)
-                setupFieldForSecondPage(R.string.current)
-                setupFieldForSecondPage(R.string.phase_current)
-                setupFieldForSecondPage(R.string.power)
-                setupFieldForSecondPage(R.string.model)
-                setupFieldForSecondPage(R.string.version)
-                setupFieldForSecondPage(R.string.charging)
-            }
-            WHEEL_TYPE.INMOTION_V2 -> {
-                setupFieldForSecondPage(R.string.speed)
-                setupFieldForSecondPage(R.string.dynamic_speed_limit)
-                setupFieldForSecondPage(R.string.torque)
-                setupFieldForSecondPage(R.string.top_speed)
-                setupFieldForSecondPage(R.string.average_speed)
-                setupFieldForSecondPage(R.string.average_riding_speed)
-                setupFieldForSecondPage(R.string.battery)
-                setupFieldForSecondPage(R.string.temperature)
-                setupFieldForSecondPage(R.string.temperature2)
-                setupFieldForSecondPage(R.string.cpu_temp)
-                setupFieldForSecondPage(R.string.imu_temp)
-                setupFieldForSecondPage(R.string.angle)
-                setupFieldForSecondPage(R.string.roll)
-                setupFieldForSecondPage(R.string.ride_time)
-                setupFieldForSecondPage(R.string.riding_time)
-                setupFieldForSecondPage(R.string.distance)
-                setupFieldForSecondPage(R.string.wheel_distance)
-                setupFieldForSecondPage(R.string.user_distance)
-                setupFieldForSecondPage(R.string.total_distance)
-                setupFieldForSecondPage(R.string.voltage)
-                setupFieldForSecondPage(R.string.voltage_sag)
-                setupFieldForSecondPage(R.string.current)
-                setupFieldForSecondPage(R.string.dynamic_current_limit)
-                setupFieldForSecondPage(R.string.power)
-                setupFieldForSecondPage(R.string.motor_power)
-                setupFieldForSecondPage(R.string.mode)
-                setupFieldForSecondPage(R.string.model)
-                setupFieldForSecondPage(R.string.version)
-                setupFieldForSecondPage(R.string.serial_number)
-            }
-            WHEEL_TYPE.INMOTION -> {
-                setupFieldForSecondPage(R.string.speed)
-                setupFieldForSecondPage(R.string.top_speed)
-                setupFieldForSecondPage(R.string.average_speed)
-                setupFieldForSecondPage(R.string.average_riding_speed)
-                setupFieldForSecondPage(R.string.battery)
-                setupFieldForSecondPage(R.string.temperature)
-                setupFieldForSecondPage(R.string.imu_temp)
-                setupFieldForSecondPage(R.string.angle)
-                setupFieldForSecondPage(R.string.roll)
-                setupFieldForSecondPage(R.string.ride_time)
-                setupFieldForSecondPage(R.string.riding_time)
-                setupFieldForSecondPage(R.string.distance)
-                setupFieldForSecondPage(R.string.wheel_distance)
-                setupFieldForSecondPage(R.string.user_distance)
-                setupFieldForSecondPage(R.string.total_distance)
-                setupFieldForSecondPage(R.string.voltage)
-                setupFieldForSecondPage(R.string.voltage_sag)
-                setupFieldForSecondPage(R.string.current)
-                setupFieldForSecondPage(R.string.power)
-                setupFieldForSecondPage(R.string.mode)
-                setupFieldForSecondPage(R.string.model)
-                setupFieldForSecondPage(R.string.version)
-                setupFieldForSecondPage(R.string.serial_number)
-                setupFieldForSecondPage(R.string.charging)
-            }
-            WHEEL_TYPE.NINEBOT_Z, WHEEL_TYPE.NINEBOT -> {
-                setupFieldForSecondPage(R.string.speed)
-                setupFieldForSecondPage(R.string.top_speed)
-                setupFieldForSecondPage(R.string.average_speed)
-                setupFieldForSecondPage(R.string.average_riding_speed)
-                setupFieldForSecondPage(R.string.battery)
-                setupFieldForSecondPage(R.string.temperature)
-                setupFieldForSecondPage(R.string.ride_time)
-                setupFieldForSecondPage(R.string.riding_time)
-                setupFieldForSecondPage(R.string.distance)
-                setupFieldForSecondPage(R.string.user_distance)
-                setupFieldForSecondPage(R.string.total_distance)
-                setupFieldForSecondPage(R.string.voltage)
-                setupFieldForSecondPage(R.string.voltage_sag)
-                setupFieldForSecondPage(R.string.current)
-                setupFieldForSecondPage(R.string.power)
-                setupFieldForSecondPage(R.string.model)
-                setupFieldForSecondPage(R.string.version)
-                setupFieldForSecondPage(R.string.error)
-                setupFieldForSecondPage(R.string.serial_number)
-            }
-            else -> {}
-        }
+        TelemetryPresentation.fields(viewModel.wheelType).forEach { secondPageValues[it] = "" }
         createSecondPage()
     }
 

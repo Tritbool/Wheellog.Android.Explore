@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="use_compose_telemetry_title">Page de télémétrie Compose</string>
+    <string name="use_compose_telemetry_description">Utiliser le nouvel affichage de télémétrie. Désactivez cette option pour revenir à la page d’origine.</string>
     <string name="unknown_device">Equipement inconnu</string>
 	<string name="ble_not_supported">Bluetooth LE non supporté</string>
 	<string name="error_bluetooth_not_supported">Votre equipement ne supporte pas le bluetooth.</string>

@@ -54,6 +54,13 @@ paramètres de télémétrie. Les Views restent activées par défaut et constit
 la référence. Le dashboard, le scan, les services, le BLE et la navigation
 principale ne sont pas migrés dans cette étape.
 
+Pour essayer le nouvel affichage, ouvrir les réglages de l'application,
+rubrique générale, et activer **Page de télémétrie Compose**. Cette option est
+persistante, désactivée par défaut et indépendante du dashboard Compose.
+La désactiver restaure immédiatement les Views, sans changer de page ni
+redémarrer la session BLE. Chaque affichage conserve son propre défilement
+pendant la bascule.
+
 ### Référence fonctionnelle à conserver
 
 - `MainActivity` et `ViewPager2` restent les hôtes : dashboard, paramètres,

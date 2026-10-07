@@ -1,89 +1,101 @@
 package com.cooper.wheellog.compose
 
+import android.widget.TextView
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.cooper.wheellog.utils.MathsUtil
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import com.cooper.wheellog.R
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.ble.BleSessionViewModel
+import com.cooper.wheellog.telemetry.TelemetryPresentation
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import org.koin.compose.koinInject
-import java.util.Locale
 
 @Composable
-fun ParamsListScreen(viewModel: BleSessionViewModel = koinInject()) {
-    val appConfig: AppConfig = koinInject()
-    val useMph = appConfig.useMph
-    val usePsi = appConfig.usePsi
-    val state by viewModel.sessionState.collectAsState()
-    val sessionDistance = state.sessionDistance ?: state.wheelDistance ?: 0.0
-
-    val items = listOf(
-        "Speed" to formatSpeed(state.currentSpeed, useMph),
-        "Tire pressure" to formatPressure(state.currentPressure, usePsi),
-        "Top Speed" to formatSpeed(state.sessionTopSpeed ?: viewModel.topSpeedDouble, useMph),
-        "Average Speed" to formatSpeed(viewModel.averageSpeedDouble, useMph),
-        "Average Riding Speed" to formatSpeed(viewModel.averageRidingSpeedDouble, useMph),
-        "Distance" to formatDistance(sessionDistance, useMph),
-        "Wheel Distance" to formatDistance(viewModel.wheelDistanceDouble, useMph),
-        "User Distance" to formatDistance(viewModel.userDistanceDouble, useMph),
-        "Total Distance" to formatDistance(state.totalDistance ?: 0.0, useMph),
-        "Voltage" to String.format(Locale.US, "%.2f V", state.currentVoltage),
-        "Voltage Sag" to String.format(Locale.US, "%.2f V", viewModel.voltageSagDouble),
-        "Current" to String.format(Locale.US, "%.2f A", state.currentCurrent),
-        "Power" to String.format(Locale.US, "%.2f W", state.currentPower),
-        "Motor Power" to String.format(Locale.US, "%.2f W", viewModel.motorPower),
-        "Battery" to "${state.batteryLevel}%",
-        "Board Temperature" to "${state.currentTemperature.toInt()}°C",
-        "Motor Temperature" to "${viewModel.motorTemperatureDouble.toInt()}°C",
-        "CPU Temp" to "${viewModel.cpuTemp}°C",
-        "IMU Temp" to "${viewModel.imuTemp}°C",
-        "Output" to "${viewModel.output}%",
-        "Angle" to String.format(Locale.US, "%.2f°", state.angle ?: 0.0),
-        "Roll" to String.format(Locale.US, "%.2f°", state.lastData?.roll ?: 0.0),
-        "Ride Time" to viewModel.rideTimeString,
-        "Riding Time" to viewModel.ridingTimeString,
-        "Sleep Timer" to viewModel.sleepTimerString,
-        "Mode" to (state.lastData?.mode ?: ""),
-        "Manufacturer" to state.deviceManufacturer,
-        "Model" to state.deviceModel,
-        "Version" to (state.firmwareVersion ?: "Unknown"),
-        "Serial" to (state.serialNumber ?: "Unknown"),
-        "Charging" to (String.format(Locale.US, "%b", state.isCharging))
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+fun ParamsListScreen(
+    viewModel: BleSessionViewModel = koinInject(),
+    appConfig: AppConfig = koinInject()
+) {
+    val context = LocalContext.current
+    val owner = LocalView.current.findViewTreeLifecycleOwner()
+    val presentation by produceState(
+        initialValue = appConfig.appTheme to emptyList<Pair<Int, String>>(),
+        owner, viewModel, appConfig, context
     ) {
-        items.forEach { (label, value) ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(label, fontSize = 16.sp)
-                Text(value, fontSize = 18.sp)
+        owner?.lifecycle?.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            combine(viewModel.sessionState, appConfig.telemetryPreferences()) { _, preferences ->
+                val values = TelemetryPresentation.values(context, appConfig, viewModel)
+                preferences.appTheme to TelemetryPresentation.fields(viewModel.wheelType).map {
+                    it to values.getValue(it)
+                }
+            }.collect { value = it }
+        }
+    }
+    ParamsListScreen(presentation.second, presentation.first, rememberScrollState())
+}
+
+@Composable
+fun ParamsListScreen(items: List<Pair<Int, String>>, appTheme: Int, scrollState: ScrollState) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    // Resolve the same XML appearances using the host's resource theme, not Material's palette.
+    val title = remember(context, appTheme) { TextView(context, null, 0, R.style.Stats_Title) }
+    val value = remember(context, appTheme) { TextView(context, null, 0, R.style.Stats) }
+    val font = remember(appTheme) {
+        FontFamily(Font(if (appTheme == R.style.AJDMTheme) R.font.ajdm else R.font.prime))
+    }
+    val titleStyle = TextStyle(
+        color = Color(title.currentTextColor),
+        fontSize = with(density) { title.textSize.toSp() },
+        fontFamily = font,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Right,
+        platformStyle = PlatformTextStyle(includeFontPadding = true)
+    )
+    val valueStyle = TextStyle(
+        color = Color(value.currentTextColor),
+        fontSize = with(density) { value.textSize.toSp() },
+        fontFamily = font,
+        textAlign = TextAlign.Left,
+        platformStyle = PlatformTextStyle(includeFontPadding = true)
+    )
+    Column(Modifier.fillMaxSize().verticalScroll(scrollState)) {
+        items.forEach { (resource, text) ->
+            Row(Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(resource),
+                    modifier = Modifier.weight(1f).alignByBaseline().padding(
+                        start = with(density) { title.paddingLeft.toDp() },
+                        top = with(density) { title.paddingTop.toDp() },
+                        end = with(density) { title.paddingRight.toDp() },
+                        bottom = with(density) { title.paddingBottom.toDp() }
+                    ),
+                    style = titleStyle
+                )
+                Text(text = text, modifier = Modifier.weight(1f).alignByBaseline(), style = valueStyle)
             }
         }
     }
 }
-
-private fun formatPressure(kPa: Double, usePsi: Boolean): String =
-    if (usePsi) String.format(Locale.US, "%.1f PSI", MathsUtil.kPaToPSI(kPa))
-    else String.format(Locale.US, "%.1f kPa", MathsUtil.kPaToBar(kPa))
-
-
-private fun formatSpeed(kmh: Double, useMph: Boolean): String =
-    if (useMph) String.format(Locale.US, "%.1f mph", MathsUtil.kmToMiles(kmh))
-    else String.format(Locale.US, "%.1f km/h", kmh)
-
-private fun formatDistance(km: Double, useMph: Boolean): String =
-    if (useMph) String.format(Locale.US, "%.2f mi", MathsUtil.kmToMiles(km))
-    else String.format(Locale.US, "%.3f km", km)

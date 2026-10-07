@@ -47,19 +47,21 @@ Let's start
 - Install SDK and connect android device
 - Click `Run` button - Enjoy!
 
-## Migration Compose : première étape
+## Migration Compose : télémétrie et événements
 
-Le périmètre initial est limité à la coexistence Views/Compose et à la page des
-paramètres de télémétrie. Les Views restent activées par défaut et constituent
-la référence. Le dashboard, le scan, les services, le BLE et la navigation
+Les pages de télémétrie et d'événements utilisent désormais Compose par défaut.
+Les Views restent la référence de comparaison et un affichage de secours.
+Le dashboard, les trajets, le BMS, le scan, les services, le BLE et la navigation
 principale ne sont pas migrés dans cette étape.
 
-Pour essayer le nouvel affichage, ouvrir les réglages de l'application,
-rubrique générale, et activer **Page de télémétrie Compose**. Cette option est
-persistante, désactivée par défaut et indépendante du dashboard Compose.
-La désactiver restaure immédiatement les Views, sans changer de page ni
-redémarrer la session BLE. Chaque affichage conserve son propre défilement
-pendant la bascule.
+Les réglages généraux permettent de désactiver séparément Compose pour la
+télémétrie et les événements. Les options sont persistantes et indépendantes
+du dashboard Compose. Un choix explicite de retour aux Views déjà enregistré
+reste respecté : réactiver la bascule si nécessaire après mise à jour.
+La désactivation restaure les Views sans redémarrer la session BLE.
+Chaque affichage conserve son propre défilement pendant la bascule.
+La page des événements doit aussi être activée dans les réglages des pages ;
+le choix de son moteur de rendu ne force pas sa visibilité.
 
 ### Référence fonctionnelle à conserver
 
@@ -80,10 +82,11 @@ pendant la bascule.
 - L'enregistrement CSV reste piloté par le service au premier plan, même
   lorsque l'interface est arrêtée.
 
-### Recette avant activation par défaut
+### Recette de parité
 
-Effectuer les comparaisons avec les mêmes données et préférences, en activant
-uniquement la bascule de la page des paramètres, puis revenir aux Views.
+Effectuer les comparaisons avec les mêmes données et préférences, puis utiliser
+les bascules pour revenir aux Views. L'activation par défaut facilite les essais,
+mais ne signifie pas que la recette visuelle ou sur roue réelle est validée.
 
 - [ ] Captures Views/Compose en portrait et paysage, thèmes Original/AJDM,
       clair/sombre, français/anglais et plusieurs tailles de texte.
@@ -95,14 +98,20 @@ uniquement la bascule de la page des paramètres, puis revenir aux Views.
       la page Compose, sans commande envoyée à la roue.
 - [ ] Bascule dans les deux sens, défilement, navigation entre pages,
       rotation et retour au premier plan.
+- [ ] Événements ajoutés en direct sans nouveau paquet BLE, mêmes messages
+      en Views et Compose, historique et séparateur conservés au redémarrage.
+- [ ] Journal borné, messages complets, absence de doublons après navigation
+      et suppression/réactivation de la page des événements.
 - [ ] Scan, menus, notifications, touches volume, alarmes et PiP inchangés ;
       CSV toujours alimenté en arrière-plan, sans doublons.
 - [ ] Validation sur roue réelle des parcours BLE concernés.
 
 Ces contrôles visuels et matériels ne sont pas remplacés par les tests
 unitaires. Les prototypes Compose des autres pages et leurs écarts connus
-(journal figé, trajets simplifiés, BMS incomplet, gestes du dashboard différents)
+(trajets simplifiés, BMS incomplet, gestes du dashboard différents)
 restent hors périmètre ; ils ne doivent pas servir de référence de migration.
+Le journal auparavant figé et les caches divergents de la page des événements
+sont remplacés par une source observable commune aux deux affichages.
 
 Pour la validation automatisée, utiliser les tâches existantes :
 `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.

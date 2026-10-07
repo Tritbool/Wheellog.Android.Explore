@@ -4,10 +4,8 @@ import android.app.Application
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.ScrollView
-import android.widget.TextView
+import androidx.compose.runtime.State
 import androidx.compose.ui.platform.ComposeView
-import androidx.gridlayout.widget.GridLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -37,6 +35,11 @@ import org.robolectric.annotation.Config
 class BmsRendererTest {
     private val context = ApplicationProvider.getApplicationContext<Application>()
     private fun idle() = shadowOf(Looper.getMainLooper()).idle()
+    @Suppress("UNCHECKED_CAST")
+    private fun presentation(renderer: BmsPageRenderer): BmsPresentation =
+        (BmsPageRenderer::class.java.getDeclaredField("presentation").apply {
+            isAccessible = true
+        }.get(renderer) as State<BmsPresentation>).value
     private fun snapshot(cells: Int = 0, second: Int = 0, voltage: Double = 100.0) = BmsSnapshot(
         WHEEL_TYPE.GOTWAY, "Rocket", "", BmsMapper.pack(SmartBms().apply { cellNum = cells; this.voltage = voltage }),
         BmsMapper.pack(SmartBms().apply { cellNum = second }), 80, voltage, -2.0, 25.0, 35.0
@@ -47,7 +50,8 @@ class BmsRendererTest {
         PreferenceManager.getDefaultSharedPreferences(context).edit().clear().putInt("versionSettings", 1).commit()
     }
 
-    @Test fun `actual pager defaults on independent persisted fallback retains page and recycles composition`() {
+    @Test fun `saved false BMS remains Compose retains page and recycles composition`() {
+        PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean("use_compose_bms", false).commit()
         val config = AppConfig(context)
         val model = mockk<BleSessionViewModel>(relaxed = true)
         val state = MutableStateFlow(snapshot(50, 50))
@@ -69,21 +73,14 @@ class BmsRendererTest {
             adapter.bindViewHolder(holder, 2)
             val page = holder.itemView
             val compose = page.findViewById<ComposeView>(R.id.bmsComposeView)
-            val views = page.findViewById<ScrollView>(R.id.bms_views_scroll)
             assertThat(compose.visibility).isEqualTo(View.VISIBLE)
-            assertThat(views.visibility).isEqualTo(View.GONE)
-            config.useComposeTelemetry = false; config.useComposeEvents = false; config.useComposeTrips = false
-            holder.bmsRenderer!!.preferences(config.useComposeBms, config.appTheme)
+            assertThat((page as android.view.ViewGroup).childCount).isEqualTo(1)
+            holder.bmsRenderer!!.preferences(config.appTheme)
             assertThat(compose.visibility).isEqualTo(View.VISIBLE)
-            config.useComposeBms = false
-            holder.bmsRenderer!!.preferences(config.useComposeBms, config.appTheme)
-            assertThat(AppConfig(context).useComposeBms).isFalse()
-            assertThat(views.visibility).isEqualTo(View.VISIBLE)
-            val grid = page.findViewById<GridLayout>(R.id.page_smart_bms_grid)
-            assertThat(grid.columnCount).isEqualTo(4)
-            assertThat(grid.childCount).isEqualTo(2 + 62 * 4)
-            config.useComposeBms = true
-            holder.bmsRenderer!!.preferences(true, config.appTheme)
+            config.setValue("use_compose_bms", false)
+            assertThat(presentation(holder.bmsRenderer!!).showSecond).isTrue()
+            assertThat(presentation(holder.bmsRenderer!!).rows).hasSize(62)
+            holder.bmsRenderer!!.preferences(R.style.AJDMTheme)
             assertThat(holder.itemView).isSameInstanceAs(page)
             adapter.position = 2
             verify { model.bmsView = true }
@@ -92,11 +89,12 @@ class BmsRendererTest {
             clearMocks(model, answers = false, recordedCalls = true)
             state.value = snapshot()
             holder.bmsRenderer!!.refresh()
-            assertThat(grid.columnCount).isEqualTo(2)
-            assertThat(grid.childCount).isEqualTo(11)
+            assertThat(presentation(holder.bmsRenderer!!).showSecond).isFalse()
+            assertThat(presentation(holder.bmsRenderer!!).rows).hasSize(5)
             verify(exactly = 0) { model.bmsView = any() }
             adapter.onViewRecycled(holder)
             assertThat(holder.bmsRenderer).isNull()
+            assertThat(compose.hasComposition).isFalse()
         } finally {
             adapter.onDetachedFromRecyclerView(recycler)
             lifecycle.currentState = Lifecycle.State.DESTROYED
@@ -118,9 +116,11 @@ class BmsRendererTest {
         every { owner.lifecycle } returns lifecycle
         lifecycle.currentState = Lifecycle.State.CREATED
         val page = LayoutInflater.from(context).inflate(R.layout.main_view_smart_bms, null)
-        val renderer = BmsPageRenderer(page, model, config, BmsScroll(), owner)
-        val grid = page.findViewById<GridLayout>(R.id.page_smart_bms_grid)
-        fun voltage() = (grid.getChildAt(4) as TextView).text.toString()
+        val scroll = BmsScroll()
+        BmsScroll::class.java.getDeclaredField("compose").apply { isAccessible = true }
+            .set(scroll, androidx.compose.foundation.ScrollState(27))
+        val renderer = BmsPageRenderer(page, model, config, scroll, owner)
+        fun voltage() = presentation(renderer).rows.first { it.label == R.string.bmsVoltage }.first
         try {
             renderer.start()
             idle()
@@ -131,11 +131,12 @@ class BmsRendererTest {
             lifecycle.currentState = Lifecycle.State.STARTED
             idle()
             assertThat(voltage()).isEqualTo("101.00 V")
-            config.useComposeBms = false
+            config.setValue("use_compose_bms", false)
             config.useFahrenheit = true
             idle()
-            assertThat(page.findViewById<ScrollView>(R.id.bms_views_scroll).visibility).isEqualTo(View.VISIBLE)
-            assertThat((grid.getChildAt(8) as TextView).text.toString()).isEqualTo("25.0°C")
+            assertThat(page.findViewById<ComposeView>(R.id.bmsComposeView).visibility).isEqualTo(View.VISIBLE)
+            assertThat(presentation(renderer).rows.first { it.label == R.string.bmsTemp1 }.first).isEqualTo("25.0°C")
+            assertThat(scroll.compose.value).isEqualTo(27)
             renderer.stop()
             idle()
             state.value = snapshot(voltage = 102.0)
@@ -170,19 +171,18 @@ class BmsRendererTest {
         lifecycle.currentState = Lifecycle.State.STARTED
         val page = LayoutInflater.from(context).inflate(R.layout.main_view_smart_bms, null)
         val renderer = BmsPageRenderer(page, model, config, BmsScroll(), owner)
-        val grid = page.findViewById<GridLayout>(R.id.page_smart_bms_grid)
         try {
             renderer.start()
             idle()
-            assertThat(grid.childCount).isEqualTo(71)
-            assertThat((grid.getChildAt(1) as TextView).text.toString()).isEqualTo(context.getString(R.string.bmsSn))
+            assertThat(presentation(renderer).rows).hasSize(35)
+            assertThat(presentation(renderer).rows.first().label).isEqualTo(R.string.bmsSn)
             state.value = state.value.copy(protoVer = "S2")
             idle()
-            assertThat(grid.childCount).isEqualTo(11)
-            assertThat((grid.getChildAt(1) as TextView).text.toString()).isEqualTo(context.getString(R.string.bmsRemPerc))
+            assertThat(presentation(renderer).rows).hasSize(5)
+            assertThat(presentation(renderer).rows.first().label).isEqualTo(R.string.bmsRemPerc)
             state.value = state.value.copy(protoVer = "")
             idle()
-            assertThat(grid.childCount).isEqualTo(71)
+            assertThat(presentation(renderer).rows).hasSize(35)
         } finally {
             renderer.dispose()
             lifecycle.currentState = Lifecycle.State.DESTROYED

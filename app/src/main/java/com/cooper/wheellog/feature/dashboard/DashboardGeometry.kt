@@ -10,7 +10,7 @@ data class DashboardRect(val left: Float, val top: Float, val right: Float, val 
     fun contains(x: Float, y: Float) = x >= left && x < right && y >= top && y < bottom
 }
 
-/** WheelView's pixel geometry, shared by both renderers and gesture hit testing. */
+/** Original dashboard pixel geometry, shared by the Compose canvas and gesture hit testing. */
 data class DashboardGeometry(
     val outer: DashboardRect,
     val middle: DashboardRect,

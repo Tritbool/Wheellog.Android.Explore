@@ -38,7 +38,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import androidx.viewpager2.widget.ViewPager2
 import com.cooper.wheellog.ble.BleSessionState
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.DialogHelper.checkAndShowPrivatePolicyDialog
@@ -79,7 +78,6 @@ class MainActivity : AppCompatActivity() {
 
     //region private variables
     private lateinit var binding: ActivityMainBinding
-    lateinit var pager: ViewPager2
     lateinit var pagerAdapter: MainPageAdapter
     private var containerRenderer: MainContainerRenderer? = null
     lateinit var pipView: ComposeView
@@ -419,8 +417,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createPager(savedInstanceState: Bundle?) {
-        pager = binding.pager
-        pager.offscreenPageLimit = 10
         val pages = ArrayList<Int>()
         pages.add(R.layout.main_view_main)
         pages.add(R.layout.main_view_params_list)
@@ -440,12 +436,7 @@ class MainActivity : AppCompatActivity() {
         }
         containerRenderer = MainContainerRenderer(binding, pagerAdapter,
             savedInstanceState?.takeIf { it.containsKey("mainSelectedPage") }?.getInt("mainSelectedPage"))
-        containerRenderer?.render(appConfig.useComposeContainer)
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                appConfig.containerPreferences().collect { containerRenderer?.render(it) }
-            }
-        }
+        containerRenderer?.render()
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)

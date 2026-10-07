@@ -1,23 +1,7 @@
-<FrameLayout android:id="@+id/page_smart_bms"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/page_smart_bms"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android">
-    <ScrollView
-        android:id="@+id/bms_views_scroll"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <androidx.gridlayout.widget.GridLayout
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/page_smart_bms_grid"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:columnCount="4"
-            app:orientation="horizontal">
-
-        </androidx.gridlayout.widget.GridLayout>
-
-    </ScrollView>
+    android:layout_height="match_parent">
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/bmsComposeView"
         android:layout_width="match_parent"

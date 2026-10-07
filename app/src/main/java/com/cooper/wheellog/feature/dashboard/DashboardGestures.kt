@@ -12,7 +12,7 @@ import com.cooper.wheellog.utils.Alarms
 import com.cooper.wheellog.utils.SomeUtil
 import io.github.tritbool.euc.ble.protocols.CommandType
 
-/** All commands live in event callbacks, shared by Compose and the fallback. */
+/** Dashboard commands live in gesture callbacks, never in Compose drawing or recomposition. */
 class DashboardActions(
     private val context: Context,
     private val session: BleSessionViewModel,

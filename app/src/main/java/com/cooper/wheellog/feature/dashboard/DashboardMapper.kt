@@ -63,7 +63,7 @@ object DashboardMapper {
         val batteryFraction = (battery / 100f).coerceIn(0f, 1f)
         val batteryLowestFraction = if (batteryLowest > 100) 0f
             else (batteryLowest / 100f).coerceIn(0f, 1f)
-        // Temperature arc uses 80 °C as 100 % (same as WheelView: 40 segments for 0-80 °C).
+        // Temperature arc preserves 80 °C as 100 %: 40 segments for 0-80 °C.
         val temperatureFraction = (temp.coerceIn(0f, 80f) / 80f)
         val maxTemperatureFraction = (maxTemp.coerceIn(0f, 80f) / 80f)
 
@@ -84,7 +84,6 @@ object DashboardMapper {
 
         return DashboardUiState(
             isConnected = state.isConnected,
-            useCompose = appConfig.useComposeUI,
             appTheme = appConfig.appTheme,
             nightMode = appConfig.dayNightThemeMode,
             speedWarning = !appConfig.pwmBasedAlarms && appConfig.alarm1Speed > 0 &&

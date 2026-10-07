@@ -69,7 +69,7 @@ class TripsRendererTest {
             lifecycle.currentState = Lifecycle.State.STARTED
             idle()
             coVerify(exactly = 3) { repository.loadItems(any(), false, any()) }
-            renderer.preferences(true, R.style.AJDMTheme, true, true)
+            renderer.preferences(R.style.AJDMTheme, true, true)
             idle()
             coVerify(exactly = 1) { repository.loadItems(any(), true, any()) }
             renderer.stop()
@@ -84,7 +84,8 @@ class TripsRendererTest {
         }
     }
 
-    @Test fun `real pager trips route defaults on with persistent independent fallback and cleanup`() {
+    @Test fun `trips route ignores saved false preserves Compose scroll and cleans up`() {
+        PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean("use_compose_trips", false).commit()
         val config = AppConfig(context)
         val model = mockk<BleSessionViewModel>(relaxed = true)
         val dao = mockk<TripDao>(relaxed = true)
@@ -104,25 +105,28 @@ class TripsRendererTest {
             adapter.bindViewHolder(holder, 0)
             val page = holder.itemView
             val compose = page.findViewById<ComposeView>(R.id.tripsComposeView)
-            val views = page.findViewById<RecyclerView>(R.id.list_trips)
             assertThat(compose.visibility).isEqualTo(View.VISIBLE)
-            assertThat(views.visibility).isEqualTo(View.GONE)
-            config.useComposeTelemetry = false
-            config.useComposeEvents = false
-            holder.tripsRenderer!!.preferences(config.useComposeTrips, config.appTheme, false, false)
+            assertThat((page as android.view.ViewGroup).childCount).isEqualTo(1)
+            val scroll = MainPageAdapter::class.java.getDeclaredField("tripsScroll").apply {
+                isAccessible = true
+            }.get(adapter) as TripsScroll
+            TripsScroll::class.java.getDeclaredField("compose").apply { isAccessible = true }
+                .set(scroll, androidx.compose.foundation.lazy.LazyListState(4, 17))
+            holder.tripsRenderer!!.preferences(config.appTheme, false, false)
             assertThat(compose.visibility).isEqualTo(View.VISIBLE)
-            config.useComposeTrips = false
-            holder.tripsRenderer!!.preferences(config.useComposeTrips, config.appTheme, false, false)
-            assertThat(views.visibility).isEqualTo(View.VISIBLE)
-            assertThat(compose.visibility).isEqualTo(View.GONE)
-            assertThat(AppConfig(context).useComposeTrips).isFalse()
-            config.useComposeTrips = true
-            holder.tripsRenderer!!.preferences(config.useComposeTrips, config.appTheme, false, false)
+            config.setValue("use_compose_trips", false)
+            holder.tripsRenderer!!.preferences(R.style.AJDMTheme, false, false)
+            assertThat(scroll.compose.firstVisibleItemIndex).isEqualTo(4)
+            assertThat(scroll.compose.firstVisibleItemScrollOffset).isEqualTo(17)
             assertThat(holder.itemView).isSameInstanceAs(page)
             assertThat(compose.visibility).isEqualTo(View.VISIBLE)
             adapter.onViewRecycled(holder)
             assertThat(holder.tripsRenderer).isNull()
-            assertThat(views.adapter).isNull()
+            assertThat(compose.hasComposition).isFalse()
+            val recreated = adapter.createViewHolder(recycler, R.layout.main_view_trips)
+            adapter.bindViewHolder(recreated, 0)
+            assertThat(scroll.compose.firstVisibleItemIndex).isEqualTo(4)
+            adapter.onViewRecycled(recreated)
             verify { model wasNot Called }
             verify { dao wasNot Called }
         } finally {

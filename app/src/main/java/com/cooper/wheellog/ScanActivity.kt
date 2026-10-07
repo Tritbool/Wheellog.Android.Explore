@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.coroutineScope
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 
@@ -42,7 +41,6 @@ class ScanActivity : AppCompatActivity() {
     private val appConfig: AppConfig by inject()
     // Shared app-wide singleton (see bleModule); must use `inject()`, not `viewModel()`.
     private val viewModel: BleSessionViewModel by inject()
-    private var mDeviceListAdapter: DeviceListAdapter? = null
     private var renderer: ScanPageRenderer? = null
     private var uiState = ScanUiState()
     private var scanRequested = false
@@ -60,14 +58,13 @@ class ScanActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityScanBinding.inflate(layoutInflater, null, false)
-        mDeviceListAdapter = DeviceListAdapter(this)
         uiState = ScanUiState(
             manualAddress = savedInstanceState?.getString("scanManualAddress") ?: appConfig.lastMac,
             invalidAddress = savedInstanceState?.getBoolean("scanInvalidAddress") ?: false
         )
         binding.root.setViewTreeLifecycleOwner(this)
         binding.root.setViewTreeSavedStateRegistryOwner(this)
-        renderer = ScanPageRenderer(binding, mDeviceListAdapter!!, uiState,
+        renderer = ScanPageRenderer(binding, uiState,
             ::selectDevice, ::forceProtocol,
             { address -> updateUi(uiState.copy(manualAddress = address)) }, ::selectManualAddress)
         updateUi(uiState)
@@ -90,28 +87,23 @@ class ScanActivity : AppCompatActivity() {
         alertDialog.window?.apply {
             setGravity(Gravity.TOP)
             clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            // AppCompat cannot detect Compose text editors when configuring the dialog.
+            clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
         }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                coroutineScope {
-                    launch {
-                        appConfig.scanPreferences().collect { updateUi(uiState) }
+                viewModel.sessionState
+                    .map { Triple(it.scanResults, it.isScanning, it.lastError) }
+                    .distinctUntilChanged()
+                    .collect { (devices, scanning, error) ->
+                        updateUi(uiState.copy(devices = ScanPresentation.devices(
+                            devices, getString(R.string.unknown_device))))
+                        if (scanRequested && (scanning || scanStarted || error != null)) {
+                            scanStarted = scanStarted || scanning
+                            if (!scanning) finishScanUi()
+                        }
                     }
-                    launch {
-                        viewModel.sessionState
-                            .map { Triple(it.scanResults, it.isScanning, it.lastError) }
-                            .distinctUntilChanged()
-                            .collect { (devices, scanning, error) ->
-                                updateUi(uiState.copy(devices = ScanPresentation.devices(
-                                    devices, getString(R.string.unknown_device))))
-                                if (scanRequested && (scanning || scanStarted || error != null)) {
-                                    scanStarted = scanStarted || scanning
-                                    if (!scanning) finishScanUi()
-                                }
-                            }
-                    }
-                }
             }
         }
 
@@ -156,13 +148,13 @@ class ScanActivity : AppCompatActivity() {
 
     private fun updateUi(state: ScanUiState) {
         uiState = state
-        renderer?.render(state, appConfig.useComposeScan)
+        renderer?.render(state)
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     override fun onResume() {
         super.onResume()
-        renderer?.start(uiState, appConfig.useComposeScan)
+        renderer?.start(uiState)
         if (closing || protocolDialog?.isShowing == true) return
         updateUi(uiState)
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -254,10 +246,8 @@ class ScanActivity : AppCompatActivity() {
         val device = item.device
         val deviceAddress = device.address
         val deviceName = device.name
-        val index = (0 until mDeviceListAdapter!!.count).firstOrNull {
-            mDeviceListAdapter!!.getDevice(it).address == address
-        }
-        val advData = index?.let { mDeviceListAdapter!!.getAdvData(it) }.orEmpty()
+        // Raw advertising payloads are not collected by this scan flow.
+        val advData = ""
         Timber.i("Device selected MAC = %s", deviceAddress)
         Timber.i("Device selected Name = %s", deviceName)
         Timber.i("Device selected Data = %s", advData)

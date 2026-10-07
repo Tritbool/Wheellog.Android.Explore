@@ -6,16 +6,18 @@ import android.bluetooth.BluetoothAdapter
 import android.os.Bundle
 import android.os.Looper
 import android.view.View
-import android.widget.ListView
+import android.view.WindowManager
+import androidx.compose.runtime.State
+import androidx.compose.ui.platform.ComposeView
 import androidx.appcompat.app.AlertDialog
 import androidx.preference.PreferenceManager
 import androidx.test.core.app.ApplicationProvider
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.R
 import com.cooper.wheellog.ScanActivity
+import com.cooper.wheellog.ScanPageRenderer
 import com.cooper.wheellog.ble.BleSessionState
 import com.cooper.wheellog.ble.BleSessionViewModel
-import com.google.android.material.textfield.TextInputLayout
 import com.google.common.truth.Truth.assertThat
 import io.github.tritbool.euc.ble.models.EUCDevice
 import io.github.tritbool.euc.ble.protocols.EUCProtocol
@@ -53,7 +55,7 @@ class ScanActivityTest {
             Manifest.permission.BLUETOOTH_ADMIN)
         shadowOf(BluetoothAdapter.getDefaultAdapter()).setEnabled(true)
         config = AppConfig(application)
-        config.useComposeScan = false
+        config.setValue("use_compose_scan", false)
         config.lastMac = "AA:BB:CC:DD:EE:FF"
         session = mockk(relaxed = true)
         every { session.sessionState } returns flow
@@ -68,8 +70,27 @@ class ScanActivityTest {
     }
 
     private fun idle() = shadowOf(Looper.getMainLooper()).idle()
-    private fun TextInputLayout.submit() =
-        findViewById<View>(com.google.android.material.R.id.text_input_end_icon).performClick()
+    private fun renderer(activity: ScanActivity) = activity.javaClass.getDeclaredField("renderer")
+        .apply { isAccessible = true }.get(activity) as ScanPageRenderer
+    @Suppress("UNCHECKED_CAST")
+    private fun state(activity: ScanActivity) = (ScanPageRenderer::class.java.getDeclaredField("state")
+        .apply { isAccessible = true }.get(renderer(activity)) as State<ScanUiState>).value
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> callback(activity: ScanActivity, name: String): T =
+        ScanPageRenderer::class.java.getDeclaredField(name).apply { isAccessible = true }
+            .get(renderer(activity)) as T
+    private fun edit(activity: ScanActivity, value: String) {
+        callback<(String) -> Unit>(activity, "onAddressChanged")(value)
+    }
+    private fun submit(activity: ScanActivity) {
+        callback<() -> Unit>(activity, "onManualSelect")()
+    }
+    private fun select(activity: ScanActivity, address: String) {
+        callback<(String) -> Unit>(activity, "onSelect")(address)
+    }
+    private fun forceProtocol(activity: ScanActivity, address: String) {
+        callback<(String) -> Unit>(activity, "onForceProtocol")(address)
+    }
     private fun launch(saved: Bundle? = null): ScanActivity {
         controller = Robolectric.buildActivity(ScanActivity::class.java).create(saved).start().resume().visible()
         idle()
@@ -94,26 +115,27 @@ class ScanActivityTest {
 
     @Test fun `one scan per resume timeout stops radio and shows manual entry`() {
         val activity = launch()
-        val root = dialog(activity)
         verify(exactly = 1) { session.startScan() }
-        assertThat(root.findViewById<TextInputLayout>(R.id.manual_address)!!.visibility).isEqualTo(View.GONE)
+        assertThat(state(activity).scanning).isTrue()
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(10))
-        assertThat(root.findViewById<TextInputLayout>(R.id.manual_address)!!.visibility).isEqualTo(View.VISIBLE)
+        assertThat(state(activity).scanning).isFalse()
         verify(exactly = 1) { session.stopScan() }
         assertThat(activity.isFinishing).isFalse()
     }
 
     @Test fun `manual validation keeps dialog then returns only MAC and clears password`() {
         val activity = launch()
+        assertThat(dialog(activity).isShowing).isTrue()
+        assertThat(dialog(activity).window!!.attributes.flags and
+            WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM).isEqualTo(0)
         completeScan()
-        val input = dialog(activity).findViewById<TextInputLayout>(R.id.manual_address)!!
-        input.editText!!.setText("bad")
-        input.submit()
-        assertThat(input.error.toString()).isEqualTo("incorrect MAC")
+        edit(activity, "bad")
+        submit(activity)
+        assertThat(state(activity).invalidAddress).isTrue()
         assertThat(activity.isFinishing).isFalse()
         config.passwordForWheel = "old"
-        input.editText!!.setText("12:34:56:78:9A:BC")
-        input.submit()
+        edit(activity, "12:34:56:78:9A:BC")
+        submit(activity)
         val result = shadowOf(activity).resultIntent
         assertThat(result.getStringExtra("MAC")).isEqualTo("12:34:56:78:9A:BC")
         assertThat(result.hasExtra("NAME")).isFalse()
@@ -124,17 +146,20 @@ class ScanActivityTest {
 
     @Test fun `discovery click retains order raw name and the activity result contract`() {
         val activity = launch()
+        config.advDataForWheel = "previous-wheel-payload"
+        config.passwordForWheel = "previous-wheel-password"
         val first = device(name = null)
         val second = device("AA:BB:CC:DD:EE:00", "Other")
         completeScan(listOf(first, second))
-        val list = dialog(activity).findViewById<ListView>(android.R.id.list)!!
-        assertThat(list.adapter.count).isEqualTo(2)
-        list.performItemClick(null, 1, 1)
+        assertThat(state(activity).devices.map { it.address }).containsExactly(first.address, second.address).inOrder()
+        select(activity, second.address)
         val result = shadowOf(activity).resultIntent
         assertThat(result.getStringExtra("MAC")).isEqualTo(second.address)
         assertThat(result.getStringExtra("NAME")).isEqualTo("Other")
         assertThat(result.hasExtra("PROTOCOL_ID")).isFalse()
         assertThat(config.advDataForWheel).isEmpty()
+        assertThat(config.passwordForWheel).isEmpty()
+        assertThat(config.lastMac).isEqualTo(second.address)
         verify(exactly = 0) { session.connect(any()) }
     }
 
@@ -143,25 +168,29 @@ class ScanActivityTest {
         every { protocol.manufacturer } returns "Custom"
         every { session.getAvailableProtocols() } returns listOf(protocol)
         val activity = launch()
+        config.advDataForWheel = "previous-wheel-payload"
+        config.passwordForWheel = "previous-wheel-password"
         completeScan(listOf(device()))
-        val list = dialog(activity).findViewById<ListView>(android.R.id.list)!!
-        list.onItemLongClickListener.onItemLongClick(list, null, 0, 0)
+        forceProtocol(activity, state(activity).devices.first().address)
         var picker = ShadowDialog.getLatestDialog() as AlertDialog
         picker.getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
         assertThat(activity.isFinishing).isFalse()
-        list.onItemLongClickListener.onItemLongClick(list, null, 0, 0)
+        forceProtocol(activity, state(activity).devices.first().address)
         picker = ShadowDialog.getLatestDialog() as AlertDialog
         picker.listView.performItemClick(null, 1, 1)
         assertThat(shadowOf(activity).resultIntent.getStringExtra("PROTOCOL_ID"))
             .isEqualTo(protocol.javaClass.simpleName)
+        assertThat(shadowOf(activity).resultIntent.getStringExtra("MAC")).isEqualTo("11:22:33:44:55:66")
+        assertThat(shadowOf(activity).resultIntent.getStringExtra("NAME")).isEqualTo("Wheel")
+        assertThat(config.advDataForWheel).isEmpty()
+        assertThat(config.passwordForWheel).isEmpty()
         verify(exactly = 0) { session.forceProtocol(any()) }
     }
 
     @Test fun `auto protocol choice leaves protocol extra absent`() {
         val activity = launch()
         completeScan(listOf(device()))
-        val list = dialog(activity).findViewById<ListView>(android.R.id.list)!!
-        list.onItemLongClickListener.onItemLongClick(list, null, 0, 0)
+        forceProtocol(activity, state(activity).devices.first().address)
         (ShadowDialog.getLatestDialog() as AlertDialog).listView.performItemClick(null, 0, 0)
         assertThat(shadowOf(activity).resultIntent.hasExtra("PROTOCOL_ID")).isFalse()
         assertThat(config.advDataForWheel).isEmpty()
@@ -199,43 +228,46 @@ class ScanActivityTest {
     @Test fun `MAC edit and error survive activity recreation`() {
         val activity = launch()
         completeScan()
-        val input = dialog(activity).findViewById<TextInputLayout>(R.id.manual_address)!!
-        input.editText!!.setText("draft")
-        input.submit()
+        edit(activity, "draft")
+        submit(activity)
         val saved = Bundle()
         controller!!.saveInstanceState(saved).pause().stop().destroy()
         controller = null
         val recreated = launch(saved)
         completeScan()
-        val restored = dialog(recreated).findViewById<TextInputLayout>(R.id.manual_address)!!
-        assertThat(restored.editText!!.text.toString()).isEqualTo("draft")
-        assertThat(restored.error.toString()).isEqualTo("incorrect MAC")
+        assertThat(state(recreated).manualAddress).isEqualTo("draft")
+        assertThat(state(recreated).invalidAddress).isTrue()
     }
 
-    @Test fun `fallback is independent persisted and does not restart scanning on a switch`() {
+    @Test fun `saved false is ignored and preference writes cannot switch renderer or restart scanning`() {
         val activity = launch()
         completeScan(listOf(device()))
         val root = dialog(activity)
         clearMocks(session, answers = false, recordedCalls = true)
-        config.useComposeScan = true
+        config.setValue("use_compose_scan", true)
         idle()
         assertThat(root.findViewById<View>(R.id.scan_compose_view)!!.visibility).isEqualTo(View.VISIBLE)
-        assertThat(root.findViewById<View>(R.id.scan_views_content)!!.visibility).isEqualTo(View.GONE)
-        assertThat(AppConfig(application).useComposeScan).isTrue()
-        config.useComposeScan = false
+        config.setValue("use_compose_scan", false)
         idle()
-        assertThat(root.findViewById<View>(R.id.scan_views_content)!!.visibility).isEqualTo(View.VISIBLE)
-        assertThat(config.useComposeTelemetry && config.useComposeUI && config.useComposeBms).isTrue()
+        val compose = root.findViewById<ComposeView>(R.id.scan_compose_view)!!
+        assertThat(compose.visibility).isEqualTo(View.VISIBLE)
+        assertThat(compose.hasComposition).isTrue()
+        verify(exactly = 0) { session.startScan() }
+        verify(exactly = 0) { session.stopScan() }
+        controller!!.pause()
+        assertThat(compose.hasComposition).isFalse()
+        controller!!.resume()
+        idle()
+        assertThat(compose.hasComposition).isTrue()
+        clearMocks(session, answers = false, recordedCalls = true)
         verify(exactly = 0) { session.startScan() }
         verify(exactly = 0) { session.stopScan() }
     }
 
-    @Test fun `Compose callback uses the same address based result action as Views`() {
-        config.useComposeScan = true
+    @Test fun `Compose callback uses the address based result action`() {
         val activity = launch()
         completeScan(listOf(device(name = "Compose wheel")))
-        activity.javaClass.getDeclaredMethod("selectDevice", String::class.java)
-            .apply { isAccessible = true }.invoke(activity, "11:22:33:44:55:66")
+        select(activity, "11:22:33:44:55:66")
         val result = shadowOf(activity).resultIntent
         assertThat(result.getStringExtra("MAC")).isEqualTo("11:22:33:44:55:66")
         assertThat(result.getStringExtra("NAME")).isEqualTo("Compose wheel")
@@ -246,9 +278,7 @@ class ScanActivityTest {
         val activity = launch()
         flow.value = flow.value.copy(lastError = "Failed to start scan", isScanning = false)
         idle()
-        val root = dialog(activity)
-        assertThat(root.findViewById<View>(R.id.scanProgress)!!.visibility).isEqualTo(View.GONE)
-        assertThat(root.findViewById<TextInputLayout>(R.id.manual_address)!!.visibility).isEqualTo(View.VISIBLE)
+        assertThat(state(activity).scanning).isFalse()
         clearMocks(session, answers = false, recordedCalls = true)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(11))
         verify(exactly = 0) { session.stopScan() }

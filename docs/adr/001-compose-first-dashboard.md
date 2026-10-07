@@ -1,7 +1,7 @@
 # ADR 001 – Compose-First Dashboard
 
 **Date:** 2026-07-17  
-**Status:** Accepted  
+**Status:** Accepted; feature-flag rollout superseded on 2026-10-07
 
 ---
 
@@ -14,6 +14,12 @@ global state, makes unit testing impossible, and blocks a clean Compose migratio
 
 ## Decision
 
+**Update (2026-10-07):** The production container, dashboard, telemetry, events,
+BMS, trips and scan content are now Compose-only. All seven renderer switches
+are removed; previously saved `false` preferences are ignored. The original
+gradual-rollout decision below is historical where it mentions a fallback.
+Native header/dialog and MPAndroidChart interoperability remains, as does view binding.
+
 Replace the legacy `WheelView`-based dashboard with a fully Compose-driven screen:
 
 | Layer | Solution |
@@ -22,7 +28,7 @@ Replace the legacy `WheelView`-based dashboard with a fully Compose-driven scree
 | Mapping | `DashboardMapper` – pure function `BleSessionState + AppConfig → DashboardUiState` |
 | ViewModel | `DashboardViewModel` – owns `StateFlow<DashboardUiState>`, exposes `toggleDisplayMode()` |
 | Gauge | `DashboardGauge` – `@Composable` Canvas implementation, input = `DashboardUiState` only |
-| Feature flag | `AppConfig.useComposeUI` – `true` activates the new screen; `false` falls back to legacy `WheelView` |
+| Renderer selection | Compose-only; the original `AppConfig.useComposeUI` flag and legacy `WheelView` fallback are removed |
 
 ## Data flow
 
@@ -43,8 +49,8 @@ EUCData (BLE lib)
   is a pure render function.
 - **Animation**: Jetpack Compose `animateFloatAsState` provides smooth transitions with
   less boilerplate than the manual `Handler.postDelayed` loop in `WheelView`.
-- **Gradual migration**: the `useComposeUI` flag lets us run both implementations
-  side-by-side on the same device without touching other screens.
+- **Gradual migration (superseded)**: the original `useComposeUI` flag allowed
+  side-by-side validation. Production rendering is now unconditionally Compose.
 
 ## Alternatives considered
 
@@ -56,7 +62,9 @@ EUCData (BLE lib)
 
 ## Consequences
 
-- `WheelView` and its XML layout remain as the legacy fallback behind the feature flag.
-- `WheelView` will be deleted after `useComposeUI = true` is proven stable.
+- The original retention of `WheelView` behind a feature flag is superseded:
+  the class, legacy dashboard widget and flag have been removed.
+- `DashboardCanvasRenderer` remains the drawing engine used by the Compose gauge;
+  removing the fallback is not evidence of completed device/hardware validation.
 - Future feature additions (new metrics, dark/light theme variants) should go into
-  `DashboardUiState`/`DashboardMapper`, not into `WheelView`.
+  `DashboardUiState`/`DashboardMapper`, without restoring the removed fallback.

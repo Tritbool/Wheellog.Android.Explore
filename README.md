@@ -47,20 +47,20 @@ Let's start
 - Install SDK and connect android device
 - Click `Run` button - Enjoy!
 
-## Migration Compose : télémétrie et événements
+## Migration Compose : télémétrie, événements et trajets
 
-Les pages de télémétrie et d'événements utilisent désormais Compose par défaut.
+Les pages de télémétrie, d'événements et de trajets utilisent Compose par défaut.
 Les Views restent la référence de comparaison et un affichage de secours.
-Le dashboard, les trajets, le BMS, le scan, les services, le BLE et la navigation
+Le dashboard, le BMS, le scan, les services, le BLE et la navigation
 principale ne sont pas migrés dans cette étape.
 
 Les réglages généraux permettent de désactiver séparément Compose pour la
-télémétrie et les événements. Les options sont persistantes et indépendantes
+télémétrie, les événements et les trajets. Les options sont persistantes et indépendantes
 du dashboard Compose. Un choix explicite de retour aux Views déjà enregistré
 reste respecté : réactiver la bascule si nécessaire après mise à jour.
 La désactivation restaure les Views sans redémarrer la session BLE.
 Chaque affichage conserve son propre défilement pendant la bascule.
-La page des événements doit aussi être activée dans les réglages des pages ;
+Les pages événements et trajets doivent aussi être activées dans les réglages des pages ;
 le choix de son moteur de rendu ne force pas sa visibilité.
 
 ### Référence fonctionnelle à conserver
@@ -102,16 +102,29 @@ mais ne signifie pas que la recette visuelle ou sur roue réelle est validée.
       en Views et Compose, historique et séparateur conservés au redémarrage.
 - [ ] Journal borné, messages complets, absence de doublons après navigation
       et suppression/réactivation de la page des événements.
+- [ ] Trajets : mêmes dates lisibles, deux colonnes de statistiques, unités,
+      police, couleurs et menu accessible par bouton ou appui long.
+- [ ] Partage CSV via le sélecteur Android avec autorisation de lecture ;
+      suppression uniquement après confirmation, fichier et base cohérents.
+- [ ] En cas d'échec de suppression, message d'erreur et trajet conservé.
+- [ ] Liste actualisée au retour au premier plan, après import, arrêt du
+      logging et suppression, sans résultat périmé remplaçant une liste récente.
 - [ ] Scan, menus, notifications, touches volume, alarmes et PiP inchangés ;
       CSV toujours alimenté en arrière-plan, sans doublons.
 - [ ] Validation sur roue réelle des parcours BLE concernés.
 
 Ces contrôles visuels et matériels ne sont pas remplacés par les tests
 unitaires. Les prototypes Compose des autres pages et leurs écarts connus
-(trajets simplifiés, BMS incomplet, gestes du dashboard différents)
+(BMS incomplet, gestes du dashboard différents)
 restent hors périmètre ; ils ne doivent pas servir de référence de migration.
 Le journal auparavant figé et les caches divergents de la page des événements
 sont remplacés par une source observable commune aux deux affichages.
+Les trajets reprennent les statistiques existantes et leurs dates lisibles ;
+la lecture des fichiers et de la base est effectuée hors du rendu Compose.
+Les actions de partage/suppression reprennent les menus existants, avec
+correction des identifiants de menu incohérents dans le fallback Views.
+Les fonctions d'upload et d'ouverture electro.club auparavant incomplètes
+ne sont pas réactivées par cette migration.
 
 Pour la validation automatisée, utiliser les tâches existantes :
 `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.

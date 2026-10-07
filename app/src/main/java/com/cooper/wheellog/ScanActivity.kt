@@ -11,13 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
 import android.view.KeyEvent
-import android.view.View
 import android.view.WindowManager
-import android.widget.AdapterView.OnItemClickListener
-import android.widget.AdapterView.OnItemLongClickListener
-import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
@@ -26,14 +20,20 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.databinding.ActivityScanBinding
+import com.cooper.wheellog.scan.ScanPresentation
+import com.cooper.wheellog.scan.ScanUiState
 import com.cooper.wheellog.utils.PermissionsUtil
 import com.cooper.wheellog.utils.StringUtil
 import io.github.tritbool.euc.ble.models.EUCDevice
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.coroutineScope
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 
@@ -43,42 +43,34 @@ class ScanActivity : AppCompatActivity() {
     // Shared app-wide singleton (see bleModule); must use `inject()`, not `viewModel()`.
     private val viewModel: BleSessionViewModel by inject()
     private var mDeviceListAdapter: DeviceListAdapter? = null
-    private var pb: ProgressBar? = null
-    private var scanTitle: TextView? = null
+    private var renderer: ScanPageRenderer? = null
+    private var uiState = ScanUiState()
+    private var scanRequested = false
+    private var scanStarted = false
+    private var closing = false
+    private var protocolDialog: AlertDialog? = null
 
     // Stops scanning after 10 seconds.
     private val scanPeriodHandler = Handler(Looper.getMainLooper())
     private val scanPeriod: Long = 10_000
     private lateinit var alertDialog: AlertDialog
-    private lateinit var macLayout: LinearLayout
+    private val timeout = Runnable { scanLeDevice(false) }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityScanBinding.inflate(layoutInflater, null, false)
-        pb = binding.scanProgress
-        scanTitle = binding.scanTitle
         mDeviceListAdapter = DeviceListAdapter(this)
-        binding.list.onItemClickListener = onItemClickListener
-        binding.list.onItemLongClickListener = onItemLongClickListener
-        binding.list.adapter = mDeviceListAdapter
-        macLayout = binding.lastMacText
-        binding.lastMacText.editText!!.setText(appConfig.lastMac)
-        binding.lastMacText.setEndIconOnClickListener {
-            val deviceAddress = binding.lastMacText.editText?.text.toString()
-            if (!StringUtil.isCorrectMac(deviceAddress)) {
-                binding.lastMacText.error = "incorrect MAC"
-                binding.lastMacText.errorIconDrawable = null
-                return@setEndIconOnClickListener
-            }
-            scanLeDevice(false)
-            val intent = Intent()
-            intent.putExtra("MAC", deviceAddress)
-            appConfig.lastMac = deviceAddress
-            setResult(RESULT_OK, intent)
-            appConfig.passwordForWheel = ""
-            close()
-        }
+        uiState = ScanUiState(
+            manualAddress = savedInstanceState?.getString("scanManualAddress") ?: appConfig.lastMac,
+            invalidAddress = savedInstanceState?.getBoolean("scanInvalidAddress") ?: false
+        )
+        binding.root.setViewTreeLifecycleOwner(this)
+        binding.root.setViewTreeSavedStateRegistryOwner(this)
+        renderer = ScanPageRenderer(binding, mDeviceListAdapter!!, uiState,
+            ::selectDevice, ::forceProtocol,
+            { address -> updateUi(uiState.copy(manualAddress = address)) }, ::selectManualAddress)
+        updateUi(uiState)
         alertDialog = AlertDialog.Builder(this, R.style.OriginalTheme_Dialog_Alert)
             .setView(binding.root)
             .setCancelable(false)
@@ -100,18 +92,26 @@ class ScanActivity : AppCompatActivity() {
             clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
         }
 
-        // Observe scan results only: any other session state change (telemetry, connection,
-        // ...) must not rebuild the device list.
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.sessionState
-                    .map { it.scanResults }
-                    .distinctUntilChanged()
-                    .collect { devices ->
-                        if (mDeviceListAdapter?.setDevices(devices) == true) {
-                            mDeviceListAdapter?.notifyDataSetChanged()
-                        }
+                coroutineScope {
+                    launch {
+                        appConfig.scanPreferences().collect { updateUi(uiState) }
                     }
+                    launch {
+                        viewModel.sessionState
+                            .map { Triple(it.scanResults, it.isScanning, it.lastError) }
+                            .distinctUntilChanged()
+                            .collect { (devices, scanning, error) ->
+                                updateUi(uiState.copy(devices = ScanPresentation.devices(
+                                    devices, getString(R.string.unknown_device))))
+                                if (scanRequested && (scanning || scanStarted || error != null)) {
+                                    scanStarted = scanStarted || scanning
+                                    if (!scanning) finishScanUi()
+                                }
+                            }
+                    }
+                }
             }
         }
 
@@ -127,7 +127,10 @@ class ScanActivity : AppCompatActivity() {
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     private fun close() {
+        if (closing) return
+        closing = true
         stopScanning()
+        protocolDialog?.dismiss()
         alertDialog.dismiss()
         finish()
     }
@@ -140,12 +143,28 @@ class ScanActivity : AppCompatActivity() {
     @SuppressLint("MissingPermission")
     private fun stopScanning() {
         scanPeriodHandler.removeCallbacksAndMessages(null)
+        finishScanUi()
         runCatching { viewModel.stopScan() }
+    }
+
+    private fun finishScanUi() {
+        scanRequested = false
+        scanStarted = false
+        scanPeriodHandler.removeCallbacks(timeout)
+        updateUi(uiState.copy(scanning = false))
+    }
+
+    private fun updateUi(state: ScanUiState) {
+        uiState = state
+        renderer?.render(state, appConfig.useComposeScan)
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     override fun onResume() {
         super.onResume()
+        renderer?.start(uiState, appConfig.useComposeScan)
+        if (closing || protocolDialog?.isShowing == true) return
+        updateUi(uiState)
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         if (bluetoothAdapter?.isEnabled == true) {
             if (!PermissionsUtil.checkBlePermissions(this)) {
@@ -178,6 +197,22 @@ class ScanActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         stopScanning()
+        renderer?.stop()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("scanManualAddress", uiState.manualAddress)
+        outState.putBoolean("scanInvalidAddress", uiState.invalidAddress)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+        renderer?.dispose()
+        renderer = null
+        stopScanning()
+        protocolDialog?.dismiss()
+        if (::alertDialog.isInitialized) alertDialog.dismiss()
+        super.onDestroy()
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
@@ -187,18 +222,42 @@ class ScanActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (grantResults.all { r -> r == PackageManager.PERMISSION_GRANTED }) {
+        if (requestCode == 1 && grantResults.isNotEmpty() &&
+            grantResults.all { r -> r == PackageManager.PERMISSION_GRANTED } &&
+            lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
+            BluetoothAdapter.getDefaultAdapter()?.isEnabled == true && !closing
+        ) {
             scanLeDevice(true)
         }
     }
 
     @SuppressLint("MissingPermission")
-    private val onItemClickListener = OnItemClickListener { _, _, i, _ ->
+    private fun selectManualAddress() {
+        if (closing) return
+        val address = uiState.manualAddress
+        if (!StringUtil.isCorrectMac(address)) {
+            updateUi(uiState.copy(invalidAddress = true))
+            return
+        }
+        val intent = Intent().putExtra("MAC", address)
+        appConfig.lastMac = address
+        appConfig.passwordForWheel = ""
+        setResult(RESULT_OK, intent)
+        close()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun selectDevice(address: String) {
+        if (closing) return
+        val item = uiState.devices.firstOrNull { it.address == address } ?: return
         stopScanning()
-        val device = mDeviceListAdapter!!.getDevice(i)
+        val device = item.device
         val deviceAddress = device.address
         val deviceName = device.name
-        val advData = mDeviceListAdapter!!.getAdvData(i)
+        val index = (0 until mDeviceListAdapter!!.count).firstOrNull {
+            mDeviceListAdapter!!.getDevice(it).address == address
+        }
+        val advData = index?.let { mDeviceListAdapter!!.getAdvData(it) }.orEmpty()
         Timber.i("Device selected MAC = %s", deviceAddress)
         Timber.i("Device selected Name = %s", deviceName)
         Timber.i("Device selected Data = %s", advData)
@@ -218,11 +277,11 @@ class ScanActivity : AppCompatActivity() {
      * protocol before connecting, bypassing auto-detection entirely.
      */
     @SuppressLint("MissingPermission")
-    private val onItemLongClickListener = OnItemLongClickListener { _, _, i, _ ->
+    private fun forceProtocol(address: String) {
+        if (closing) return
+        val device = uiState.devices.firstOrNull { it.address == address }?.device ?: return
         stopScanning()
-        val device = mDeviceListAdapter!!.getDevice(i)
         showProtocolPickerDialog(device)
-        true
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
@@ -234,9 +293,11 @@ class ScanActivity : AppCompatActivity() {
         val labels = candidates.map { it.manufacturer }
         val items = (listOf(getString(R.string.protocol_select_auto)) + labels).toTypedArray()
 
-        AlertDialog.Builder(this, R.style.OriginalTheme_Dialog_Alert)
+        protocolDialog?.dismiss()
+        protocolDialog = AlertDialog.Builder(this, R.style.OriginalTheme_Dialog_Alert)
             .setTitle(title)
             .setItems(items) { _, which ->
+                if (closing) return@setItems
                 val intent = Intent()
                 intent.putExtra("MAC", device.address)
                 intent.putExtra("NAME", device.name)
@@ -262,17 +323,16 @@ class ScanActivity : AppCompatActivity() {
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     private fun scanLeDevice(enable: Boolean) {
         if (enable) {
-            scanPeriodHandler.postDelayed({ scanLeDevice(false) }, scanPeriod)
+            if (closing || scanRequested || protocolDialog?.isShowing == true) return
+            scanRequested = true
+            scanStarted = false
+            updateUi(uiState.copy(scanning = true))
+            scanPeriodHandler.removeCallbacks(timeout)
+            scanPeriodHandler.postDelayed(timeout, scanPeriod)
             // NE PAS appeler stopScan() ici — startScan() le fait déjà dans BLEManager
             viewModel.startScan()
-            pb!!.visibility = View.VISIBLE
-            scanTitle!!.setText(R.string.scanning)
-            macLayout.visibility = View.GONE
         } else {
             stopScanning()
-            pb!!.visibility = View.GONE
-            scanTitle!!.setText(R.string.devices)
-            macLayout.visibility = View.VISIBLE
         }
     }
 }

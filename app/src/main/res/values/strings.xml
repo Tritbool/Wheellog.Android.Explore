@@ -1,4 +1,7 @@
 <resources>
+    <string name="use_compose_scan" translatable="false">use_compose_scan</string>
+    <string name="use_compose_scan_title">Compose scan dialog</string>
+    <string name="use_compose_scan_description">Use the new scan renderer. Turn off to return to the Views dialog.</string>
     <string name="use_compose_dashboard" translatable="false">useComposeUI</string>
     <string name="use_compose_dashboard_title">Compose dashboard</string>
     <string name="use_compose_dashboard_description">Use the Compose dashboard. Turn off to return to WheelView.</string>

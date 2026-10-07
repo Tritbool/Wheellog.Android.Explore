@@ -83,6 +83,19 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue(R.string.use_compose_bms, true)
         set(value) = setValue(R.string.use_compose_bms, value)
 
+    var useComposeScan: Boolean
+        get() = getValue(R.string.use_compose_scan, true)
+        set(value) = setValue(R.string.use_compose_scan, value)
+
+    fun scanPreferences(): Flow<Boolean> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == null || getResId(key) == R.string.use_compose_scan) trySend(useComposeScan)
+        }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        trySend(useComposeScan)
+        awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.conflate().distinctUntilChanged()
+
     data class TelemetryPreferences(
         val useCompose: Boolean,
         val useMph: Boolean,

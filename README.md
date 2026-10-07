@@ -47,15 +47,16 @@ Let's start
 - Install SDK and connect android device
 - Click `Run` button - Enjoy!
 
-## Migration Compose : dashboard, télémétrie, événements, trajets et Smart BMS
+## Migration Compose : dashboard, télémétrie, événements, trajets, Smart BMS et scan
 
 Le dashboard et les pages de télémétrie, d'événements, de trajets et Smart BMS utilisent Compose par défaut.
+Le contenu du dialogue de scan utilise aussi Compose par défaut.
 Les Views restent la référence de comparaison et un affichage de secours.
-Le scan, les services, le BLE et la navigation
+Les services, le BLE et la navigation
 principale ne sont pas migrés dans cette étape.
 
 Les réglages généraux permettent de désactiver séparément Compose pour la
-télémétrie, les événements, les trajets, le BMS et le dashboard. Les options sont persistantes et indépendantes.
+télémétrie, les événements, les trajets, le BMS, le dashboard et le scan. Les options sont persistantes et indépendantes.
 Un choix explicite de retour aux Views déjà enregistré
 reste respecté : réactiver la bascule si nécessaire après mise à jour.
 La désactivation restaure les Views sans redémarrer la session BLE.
@@ -135,6 +136,16 @@ mais ne signifie pas que la recette visuelle ou sur roue réelle est validée.
       de la page sans commandes ou collecteurs dupliqués.
 - [ ] Scan, menus, notifications, touches volume, alarmes et PiP inchangés ;
       CSV toujours alimenté en arrière-plan, sans doublons.
+- [ ] Scan : même dialogue en haut sans assombrissement, titre/progression,
+      hauteur de liste, nom inconnu, ordre de découverte et adresses.
+- [ ] Fin du scan à 10 secondes, arrêt sur Retour/Home/recréation, reprise
+      au retour ; Bluetooth désactivé, permissions refusées/accordées et scan refusé.
+- [ ] Tap sur un appareil et appui long : résultat `MAC`/`NAME`, choix automatique
+      sans `PROTOCOL_ID`, protocole forcé avec son identifiant exact, annulation sans connexion.
+- [ ] MAC manuelle : validation et erreur existantes, clavier/curseur,
+      brouillon conservé lors d'une bascule et d'une recréation ; mot de passe effacé à la sélection.
+- [ ] Bascule scan Views/Compose sans nouveau scan ni changement de résultat ;
+      défilement conservé séparément et aucune action depuis la recomposition.
 - [ ] Validation sur roue réelle des parcours BLE concernés.
 
 Ces contrôles visuels et matériels ne sont pas remplacés par les tests
@@ -167,6 +178,13 @@ partagent la présentation, le catalogue de blocs et les actions ; le repli
 n'est donc plus une copie indépendante du moteur historique.
 L'ancien geste du prototype qui échangeait vitesse/PWM au tap est supprimé :
 ce choix reste un réglage, indépendant de la grandeur affichée sur l'arc.
+Le lot scan conserve `ScanActivity`, sa fenêtre transparente, le dialogue
+Android et le sélecteur de protocole existant. Compose remplace le titre et
+la liste ; la saisie MAC Material et l'indicateur de progression restent des
+Views intégrées via `AndroidView`, volontairement, pour conserver leur rendu
+et leur comportement clavier. Les deux affichages partagent un état de scan
+et les mêmes callbacks d'activité. Permissions, durée, arrêt/reprise et
+résultat vers `MainActivity` ne sont jamais pilotés par la recomposition.
 
 Pour la validation automatisée, utiliser les tâches existantes :
 `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.

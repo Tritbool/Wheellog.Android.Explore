@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="use_compose_scan_title">Диалог поиска Compose</string>
+    <string name="use_compose_scan_description">Использовать новый интерфейс поиска. Выключите для возврата к Views.</string>
     <string name="use_compose_dashboard_title">Приборная панель Compose</string>
     <string name="use_compose_dashboard_description">Использовать панель Compose. Отключите для возврата к WheelView.</string>
     <string name="use_compose_bms_title">Страница Smart BMS Compose</string>

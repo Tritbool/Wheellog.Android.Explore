@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.textfield.TextInputLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/last_mac_text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:endIconDrawable="@drawable/ic_baseline_login_24"
+    app:endIconTint="@color/primary_dark"
+    app:endIconCheckable="true"
+    app:endIconMode="custom">
+    <com.google.android.material.textfield.TextInputEditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/current_mac" />
+</com.google.android.material.textfield.TextInputLayout>

@@ -45,8 +45,7 @@ data class DashboardGeometry(
                 .roundToInt().coerceAtLeast(1).toFloat()
             val speed = DashboardRect(cx - speedSize / 2, cy - speedSize / 2, cx + speedSize / 2, cy + speedSize / 2)
             val boxes = mutableListOf<DashboardRect>()
-            val showBlocks = if (landscape) w / h > 1.4f else h / w > 1.1f
-            if (count > 0 && showBlocks) {
+            if (count > 0 && w > 2 * pad && h > 2 * pad) {
                 var cols = 2
                 var rows = ceil(count / 2.0).toInt()
                 var top = if (landscape) pad else pad + outer.top + diameter / 2 +
@@ -60,18 +59,20 @@ data class DashboardGeometry(
                         rows = ceil(count.toDouble() / cols).toInt()
                     }
                 }
-                val boxH = ((h - top - pad) / rows - pad).coerceAtLeast(1f)
+                val boxH = (h - top - pad) / rows - pad
                 val boxW = (if (landscape) (w - diameter - pad) / cols - outerStroke
-                    else (w - pad) / cols - pad).coerceAtLeast(1f)
-                repeat(rows) {
-                    repeat(cols) { col ->
-                        if (boxes.size < count) {
-                            val left = if (landscape && col == 1) w - boxW - pad
-                                else pad + col * (boxW + pad)
-                            boxes += DashboardRect(left, top, left + boxW, top + boxH)
+                    else (w - pad) / cols - pad)
+                if (boxH > 0 && boxW > 0) {
+                    repeat(rows) {
+                        repeat(cols) { col ->
+                            if (boxes.size < count) {
+                                val left = if (landscape && col == 1) w - boxW - pad
+                                    else pad + col * (boxW + pad)
+                                boxes += DashboardRect(left, top, left + boxW, top + boxH)
+                            }
                         }
+                        top += boxH + pad
                     }
-                    top += boxH + pad
                 }
             }
             return DashboardGeometry(outer, middle, inner, speed, boxes, outerStroke, innerStroke, landscape)

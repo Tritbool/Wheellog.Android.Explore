@@ -360,4 +360,14 @@ class DashboardMapperTest {
         assertThat(result.mainDialFraction).isEqualTo(0f)
         assertThat(result.batteryFraction).isEqualTo(.8f)
     }
+
+    @Test fun `session top speed reset cannot fall back to historical wheel maximum`() {
+        val historical = eucData()
+        every { historical.topSpeed } returns 88.0
+        val active = connectedState(historical).copy(sessionTopSpeed = 32.0)
+        assertThat(DashboardMapper.map(active, null, appConfig).topSpeed).isEqualTo(32f)
+        val reset = active.copy(sessionTopSpeed = null)
+        assertThat(reset.topSpeed).isEqualTo(88.0)
+        assertThat(DashboardMapper.map(reset, null, appConfig).topSpeed).isEqualTo(0f)
+    }
 }

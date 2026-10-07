@@ -217,6 +217,21 @@ class DashboardViewModelTest {
         assertThat(dashboardViewModel.uiState.value.batteryLowest).isEqualTo(60)
     }
 
+    @Test fun `session reset clears top speed block despite historical maximum still reported by wheel`() = runTest {
+        every { appConfig.viewBlocks } returns arrayOf("Top Speed")
+        val active = connectedState().copy(sessionTopSpeed = 32.0)
+        every { active.lastData!!.topSpeed } returns 88.0
+        sessionStateFlow.value = active
+        advanceUntilIdle()
+        assertThat(dashboardViewModel.uiState.value.topSpeed).isEqualTo(32f)
+        assertThat(dashboardViewModel.uiState.value.infoBlocks.single().value).isEqualTo("32.0 km/h")
+        sessionStateFlow.value = active.copy(sessionTopSpeed = null)
+        advanceUntilIdle()
+        assertThat(sessionStateFlow.value.topSpeed).isEqualTo(88.0)
+        assertThat(dashboardViewModel.uiState.value.topSpeed).isEqualTo(0f)
+        assertThat(dashboardViewModel.uiState.value.infoBlocks.single().value).isEqualTo("0.0 km/h")
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private fun connectedState(speed: Double = 20.0, battery: Int = 80) = BleSessionState(

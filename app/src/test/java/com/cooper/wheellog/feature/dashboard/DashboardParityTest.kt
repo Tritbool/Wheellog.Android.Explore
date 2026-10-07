@@ -74,7 +74,23 @@ class DashboardParityTest {
         assertThat(landscape.inner.width).isLessThan(portrait.inner.width)
         assertThat(landscape.blocks.first().cx).isLessThan(landscape.outer.left)
         assertThat(landscape.blocks[1].cx).isGreaterThan(landscape.outer.right)
-        assertThat(DashboardGeometry.calculate(400f, 400f, 1f, false, 8).blocks).isEmpty()
+        val square = DashboardGeometry.calculate(400f, 400f, 1f, false, 8)
+        assertThat(square.blocks).hasSize(8)
+        val moderateLandscape = DashboardGeometry.calculate(500f, 400f, 1f, true, 8)
+        assertThat(moderateLandscape.blocks).hasSize(8)
+        assertThat(moderateLandscape.blocks[0].cx).isLessThan(moderateLandscape.outer.left)
+        assertThat(moderateLandscape.blocks[1].cx).isGreaterThan(moderateLandscape.outer.right)
+        listOf(square, moderateLandscape).forEach { geometry ->
+            geometry.blocks.forEachIndexed { index, box ->
+                assertThat(box.width).isGreaterThan(0f)
+                assertThat(box.height).isGreaterThan(0f)
+                assertThat(box.left).isAtLeast(10f)
+                assertThat(box.right).isAtMost(if (geometry.landscape) 490f else 390f)
+                assertThat(box.bottom).isAtMost(390f)
+                assertThat(geometry.blockAt(box.cx, box.cy)).isEqualTo(index)
+            }
+        }
+        assertThat(DashboardGeometry.calculate(410f, 400f, 1f, false, 8).blocks).isEmpty()
         assertThat(DashboardGeometry.calculate(100f, 110f, 4f, true, 27).blocks).isEmpty()
         assertThat(DashboardGeometry.calculate(400f, 800f, 1f, false, 1).blocks).hasSize(1)
     }

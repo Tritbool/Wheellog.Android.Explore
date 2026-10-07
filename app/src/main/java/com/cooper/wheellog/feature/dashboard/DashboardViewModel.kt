@@ -56,7 +56,7 @@ class DashboardViewModel(
             R.string.average_riding_speed to speed(bleViewModel.averageRidingSpeedDouble),
             R.string.riding_time to base.rideTimeFormatted,
             R.string.speed to speed((session.currentSpeed * 10).toInt() / 10.0),
-            R.string.top_speed to speed(session.sessionTopSpeed ?: session.topSpeed ?: 0.0),
+            R.string.top_speed to speed(session.sessionTopSpeed ?: 0.0),
             R.string.distance to if (!mph && distanceKm < 1) number(distanceKm * 1000, 0, R.string.metre)
                 else distance(distanceKm, 2),
             R.string.total to number(if (mph) MathsUtil.kmToMiles(session.totalDistance ?: 0.0)

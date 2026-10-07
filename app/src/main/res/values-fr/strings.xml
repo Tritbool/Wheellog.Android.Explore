@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="use_compose_container_title">Navigation principale Compose</string>
+    <string name="use_compose_container_description">Utiliser le conteneur et le pager Compose. Désactiver pour retrouver la navigation Views, indépendamment des pages.</string>
     <string name="use_compose_scan_title">Dialogue de scan Compose</string>
     <string name="use_compose_scan_description">Utiliser le nouvel affichage du scan. Désactiver pour revenir au dialogue Views.</string>
     <string name="use_compose_dashboard_title">Tableau de bord Compose</string>

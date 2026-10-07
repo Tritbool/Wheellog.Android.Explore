@@ -64,13 +64,23 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
     private val telemetryItems = mutableStateOf<List<Pair<Int, String>>>(emptyList())
     private val telemetryTheme = mutableStateOf(appConfig.appTheme)
     private val telemetryScroll = ScrollState(0)
+    private var telemetryViewsScrollY = 0
     private val eventsScroll = ScrollState(0)
     private var eventsViewsScrollY = 0
     private var eventsRenderer: EventsPageRenderer? = null
+    private var observing = false
+
+    internal fun pageIds(): List<Int> = pages.toList()
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(recyclerView.context)
+        startObserving()
+    }
+
+    internal fun startObserving() {
+        if (observing) return
+        observing = true
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity.application)
         sharedPreferences.registerOnSharedPreferenceChangeListener(this)
         telemetryPreferencesJob?.cancel()
         eventsRenderer?.start(activity)
@@ -98,7 +108,13 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
         super.onDetachedFromRecyclerView(recyclerView)
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(recyclerView.context)
+        stopObserving()
+    }
+
+    internal fun stopObserving() {
+        if (!observing) return
+        observing = false
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity.application)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
         telemetryPreferencesJob?.cancel()
         telemetryPreferencesJob = null
@@ -175,6 +191,9 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
                     }
                 }
                 switchTelemetryRenderer()
+                view.findViewById<ScrollView>(R.id.params_views_scroll).post {
+                    view.findViewById<ScrollView>(R.id.params_views_scroll).scrollTo(0, telemetryViewsScrollY)
+                }
             }
             R.layout.main_view_graph -> {
                 chart1 = view.findViewById(R.id.chart)
@@ -429,10 +448,16 @@ class MainPageAdapter(private var pages: MutableList<Int>, val activity: MainAct
             holder.eventsRenderer = null
         }
         if (holder.itemViewType == R.layout.main_view_params_list) {
+            telemetryViewsScrollY = holder.itemView.findViewById<ScrollView>(R.id.params_views_scroll).scrollY
             holder.itemView.findViewById<ComposeView>(R.id.paramsComposeView).disposeComposition()
             if (pagesView[R.layout.main_view_params_list] === holder.itemView) {
                 pagesView[R.layout.main_view_params_list] = null
             }
+        }
+        if (holder.itemViewType == R.layout.main_view_graph &&
+            pagesView[R.layout.main_view_graph] === holder.itemView) {
+            pagesView[R.layout.main_view_graph] = null
+            chart1 = null
         }
         super.onViewRecycled(holder)
     }

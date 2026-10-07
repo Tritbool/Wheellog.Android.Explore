@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="use_compose_container_title">Основная навигация Compose</string>
+    <string name="use_compose_container_description">Контейнер и страницы Compose. Отключите для навигации Views независимо от содержимого страниц.</string>
     <string name="use_compose_scan_title">Диалог поиска Compose</string>
     <string name="use_compose_scan_description">Использовать новый интерфейс поиска. Выключите для возврата к Views.</string>
     <string name="use_compose_dashboard_title">Приборная панель Compose</string>

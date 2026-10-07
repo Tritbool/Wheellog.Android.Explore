@@ -47,16 +47,18 @@ Let's start
 - Install SDK and connect android device
 - Click `Run` button - Enjoy!
 
-## Migration Compose : dashboard, télémétrie, événements, trajets, Smart BMS et scan
+## Migration Compose : pages, scan et conteneur principal
 
 Le dashboard et les pages de télémétrie, d'événements, de trajets et Smart BMS utilisent Compose par défaut.
 Le contenu du dialogue de scan utilise aussi Compose par défaut.
+Le conteneur principal utilise un `HorizontalPager` Compose et un indicateur
+de pages Compose par défaut, dans la vraie `MainActivity`.
 Les Views restent la référence de comparaison et un affichage de secours.
-Les services, le BLE et la navigation
-principale ne sont pas migrés dans cette étape.
+Les services et le BLE ne sont pas déplacés vers Compose.
 
 Les réglages généraux permettent de désactiver séparément Compose pour la
-télémétrie, les événements, les trajets, le BMS, le dashboard et le scan. Les options sont persistantes et indépendantes.
+télémétrie, les événements, les trajets, le BMS, le dashboard, le scan et le
+conteneur principal. Les options sont persistantes et indépendantes.
 Un choix explicite de retour aux Views déjà enregistré
 reste respecté : réactiver la bascule si nécessaire après mise à jour.
 La désactivation restaure les Views sans redémarrer la session BLE.
@@ -68,8 +70,10 @@ existantes de sélection par constructeur/modèle et de repli sont conservées.
 
 ### Référence fonctionnelle à conserver
 
-- `MainActivity` et `ViewPager2` restent les hôtes : dashboard, paramètres,
-  graphique/trajets/événements optionnels et insertion du BMS selon la roue.
+- `MainActivity` reste l'hôte. Les deux pagers utilisent le même catalogue :
+  dashboard, paramètres, graphique/trajets/événements optionnels et insertion
+  du BMS selon la roue. La sélection suit l'identité de la page plutôt que
+  son index lorsqu'une page est ajoutée ou retirée.
 - La page des paramètres conserve les champs et leur ordre par famille :
   KingSong, Veteran, Gotway, InMotion V2, InMotion, Ninebot/Ninebot Z.
   Les familles non reconnues ne reçoivent pas une liste générique inventée.
@@ -113,6 +117,18 @@ mais ne signifie pas que la recette visuelle ou sur roue réelle est validée.
       nouveau paquet BLE, y compris après déconnexion, sans ligne CSV supplémentaire.
 - [ ] Bascule dans les deux sens, défilement, navigation entre pages,
       rotation et retour au premier plan.
+- [ ] Conteneur : mêmes marges, horloge/police, menus/icônes actives,
+      glissement entre pages et indicateur, portrait/paysage, thèmes Original/AJDM.
+- [ ] Activer/retirer graphique, trajets et événements depuis les réglages ;
+      insertion/retrait du BMS sans changer la page consultée si elle existe encore.
+- [ ] Bascule conteneur Compose/Views en conservant la page sélectionnée,
+      sans connexion, commande ou logging supplémentaire ; aucun collecteur dupliqué.
+- [ ] Recréation : restaurer la page sélectionnée par identité, y compris
+      le BMS lorsqu'il réapparaît ; suppression de la page sélectionnée avec repli valide.
+- [ ] Réglages : animation, navigation interne et Retour conservés lors
+      d'une bascule du conteneur ; double Retour pour quitter hors réglages.
+- [ ] PiP : entrée/sortie, Home, reprise, changements de taille et widget
+      existant ; clavier, barres système et Snackbar non masqués.
 - [ ] Événements ajoutés en direct sans nouveau paquet BLE, mêmes messages
       en Views et Compose, historique et séparateur conservés au redémarrage.
 - [ ] Journal borné, messages complets, absence de doublons après navigation
@@ -185,6 +201,16 @@ Views intégrées via `AndroidView`, volontairement, pour conserver leur rendu
 et leur comportement clavier. Les deux affichages partagent un état de scan
 et les mêmes callbacks d'activité. Permissions, durée, arrêt/reprise et
 résultat vers `MainActivity` ne sont jamais pilotés par la recomposition.
+Le lot conteneur ne démarre pas `MainActivityCompose` ni son catalogue prototype.
+Les pages utilisent les renderers des lots précédents via un pont `AndroidView`
+vers `MainPageAdapter`, avec les mêmes notifications d'attachement, de retrait
+et de recyclage. Le graphique MPAndroidChart reste en interop : ses marges et
+ses traitements existants sont conservés, pas réimplémentés.
+La vraie Toolbar/ActionBar, l'horloge, le NavHost des réglages et le widget PiP
+gardent leurs instances dans un en-tête View réutilisé. Ce lot migre donc le
+conteneur, le pager et son indicateur, pas les menus ni le graphique vers des
+widgets Compose natifs. Le repli restaure `ViewPager2` sans modifier les
+bascules de rendu de chaque page.
 
 Pour la validation automatisée, utiliser les tâches existantes :
 `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.

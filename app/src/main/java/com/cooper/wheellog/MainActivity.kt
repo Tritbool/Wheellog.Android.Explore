@@ -30,6 +30,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -38,7 +39,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.viewpager2.widget.ViewPager2
-import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.cooper.wheellog.ble.BleSessionState
 import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.DialogHelper.checkAndShowPrivatePolicyDialog
@@ -81,6 +81,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     lateinit var pager: ViewPager2
     lateinit var pagerAdapter: MainPageAdapter
+    private var containerRenderer: MainContainerRenderer? = null
     lateinit var pipView: ComposeView
     var mMenu: Menu? = null
     private var miSearch: MenuItem? = null
@@ -417,7 +418,7 @@ class MainActivity : AppCompatActivity() {
         pagerAdapter.updateScreen(true)
     }
 
-    private fun createPager() {
+    private fun createPager(savedInstanceState: Bundle?) {
         pager = binding.pager
         pager.offscreenPageLimit = 10
         val pages = ArrayList<Int>()
@@ -433,21 +434,18 @@ class MainActivity : AppCompatActivity() {
             pages.add(R.layout.main_view_events)
         }
         pagerAdapter = MainPageAdapter(pages, this)
-        pager.adapter = pagerAdapter
-        pager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                pagerAdapter.position = position
-                pagerAdapter.updateScreen(true)
-            }
-        })
         if (eventsLoggingTree == null) {
             eventsLoggingTree = EventsLoggingTree(applicationContext)
             Timber.plant(eventsLoggingTree!!)
         }
-        val indicator = binding.indicator
-        indicator.setViewPager(pager)
-        pagerAdapter.registerAdapterDataObserver(indicator.adapterDataObserver)
+        containerRenderer = MainContainerRenderer(binding, pagerAdapter,
+            savedInstanceState?.takeIf { it.containsKey("mainSelectedPage") }?.getInt("mainSelectedPage"))
+        containerRenderer?.render(appConfig.useComposeContainer)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                appConfig.containerPreferences().collect { containerRenderer?.render(it) }
+            }
+        }
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -486,8 +484,10 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.settingsView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        binding.pipView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
-        createPager()
+        createPager(savedInstanceState)
         pipView = binding.pipView
 
         binding.textClock.typeface = ThemeManager.getTypeface(applicationContext)
@@ -596,6 +596,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        containerRenderer?.let { outState.putInt("mainSelectedPage", it.pageToSave) }
         super.onSaveInstanceState(outState)
         outState.putInt("connectionState", mConnectionState.ordinal)
     }
@@ -612,6 +613,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        containerRenderer?.dispose()
+        containerRenderer = null
         super.onDestroy()
         eventsLoggingTree?.let {
             Timber.uproot(it)

@@ -1,4 +1,7 @@
 <resources>
+    <string name="use_compose_container" translatable="false">use_compose_container</string>
+    <string name="use_compose_container_title">Compose main navigation</string>
+    <string name="use_compose_container_description">Use the Compose main container and pager. Disable to restore Views navigation independently of each page.</string>
     <string name="use_compose_scan" translatable="false">use_compose_scan</string>
     <string name="use_compose_scan_title">Compose scan dialog</string>
     <string name="use_compose_scan_description">Use the new scan renderer. Turn off to return to the Views dialog.</string>

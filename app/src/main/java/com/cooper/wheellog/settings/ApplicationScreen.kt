@@ -42,6 +42,13 @@ fun applicationScreen(
 
         group(name = stringResource(R.string.general_settings_category_title)) {
             switchPref(
+                name = stringResource(R.string.use_compose_container_title),
+                desc = stringResource(R.string.use_compose_container_description),
+                default = appConfig.useComposeContainer
+            ) {
+                appConfig.useComposeContainer = it
+            }
+            switchPref(
                 name = stringResource(R.string.use_compose_scan_title),
                 desc = stringResource(R.string.use_compose_scan_description),
                 default = appConfig.useComposeScan

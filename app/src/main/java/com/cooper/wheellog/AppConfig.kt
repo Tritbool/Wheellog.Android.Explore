@@ -83,6 +83,19 @@ class AppConfig(var context: Context) : KoinComponent {
         get() = getValue(R.string.use_compose_bms, true)
         set(value) = setValue(R.string.use_compose_bms, value)
 
+    var useComposeContainer: Boolean
+        get() = getValue(R.string.use_compose_container, true)
+        set(value) = setValue(R.string.use_compose_container, value)
+
+    fun containerPreferences(): Flow<Boolean> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == null || getResId(key) == R.string.use_compose_container) trySend(useComposeContainer)
+        }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        trySend(useComposeContainer)
+        awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.conflate().distinctUntilChanged()
+
     var useComposeScan: Boolean
         get() = getValue(R.string.use_compose_scan, true)
         set(value) = setValue(R.string.use_compose_scan, value)

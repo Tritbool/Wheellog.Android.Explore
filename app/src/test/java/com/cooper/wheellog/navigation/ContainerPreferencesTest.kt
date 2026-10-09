@@ -22,6 +22,30 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [28])
 class ContainerPreferencesTest {
+    @Test fun `retired watch menu choices are ignored without losing reset`() {
+        val application = ApplicationProvider.getApplicationContext<Application>()
+        val preferences = PreferenceManager.getDefaultSharedPreferences(application)
+        preferences.edit().clear().putInt("versionSettings", 1)
+            .putString("main_menu_buttons", "watch;reset;miband").commit()
+        val config = AppConfig(application)
+        assertThat(config.mainMenuButtons.toList()).containsExactly("reset")
+        config.mainMenuButtons = emptyArray()
+        assertThat(config.mainMenuButtons.toList()).isEmpty()
+    }
+
+    @Test fun `retired notification choices are ignored while supported controls remain`() {
+        val application = ApplicationProvider.getApplicationContext<Application>()
+        val connection = application.getString(R.string.icon_connection)
+        val light = application.getString(R.string.icon_light)
+        val miband = application.getString(R.string.icon_miband)
+        PreferenceManager.getDefaultSharedPreferences(application).edit().clear()
+            .putInt("versionSettings", 1)
+            .putString(application.getString(R.string.notification_buttons),
+                "$miband;$connection;$light").commit()
+        assertThat(AppConfig(application).notificationButtons.toList())
+            .containsExactly(connection, light).inOrder()
+    }
+
     @Test fun `saved false cannot enable a native pager or install a switching listener`() {
         val application = ApplicationProvider.getApplicationContext<Application>()
         application.setTheme(R.style.OriginalTheme)

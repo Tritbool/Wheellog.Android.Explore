@@ -125,7 +125,6 @@ class NotificationUtil(private val context: Context) : KoinComponent {
         }
 
         if (appConfig.appTheme == R.style.AJDMTheme) {
-            notificationView.setImageViewResource(R.id.icon, R.drawable.ajdm_notification_icon)
             notificationView.setInt(
                 R.id.status_bar_latest_event_content,
                 "setBackgroundResource",

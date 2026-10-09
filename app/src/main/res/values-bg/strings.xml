@@ -97,7 +97,7 @@
 	<string name="reset_max_values_title">Занулете максималните стойности</string>
 	<string name="reset_max_values_description">Нулирайте максималните стойности на скорост, PWM, ток, мощност</string>
 	<string name="reset_user_distance_title">Занулете пробега на потребителя</string>
-    <string name="about_app_title">За WheelLog</string>
+    <string name="about_app_title">За TuxWheel</string>
 	<string name="settings_title">Настройки</string>
     <string name="amp">A</string>
 	<string name="max_speed_dial_title">Максимална скорост</string>

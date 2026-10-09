@@ -102,7 +102,7 @@
 	<string name="reset_max_values_title">Réinitialisation les valeurs maximales</string>
 	<string name="reset_max_values_description">Réinitialisation les valeurs maximales de vitesse, PWM, courant, puissance</string>
 	<string name="reset_user_distance_title">Réinitialisation distance utilisateur</string>
-    <string name="about_app_title">A propos de WheelLog</string>
+    <string name="about_app_title">A propos de TuxWheel</string>
 	<string name="settings_title">Paramètres</string>
     <string name="amp">A</string>
 	<string name="max_speed_dial_title">Vitesse Max</string>

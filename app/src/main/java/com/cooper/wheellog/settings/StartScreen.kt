@@ -106,7 +106,7 @@ fun startScreen(
                             context.startActivity(
                                 Intent(
                                     Intent.ACTION_VIEW,
-                                    "https://github.com/Wheellog/Wheellog.Android".toUri(),
+                                    "https://github.com/Tritbool/TuxWheel".toUri(),
                                 ),
                             )
                         }
@@ -116,7 +116,7 @@ fun startScreen(
                             context.startActivity(
                                 Intent(
                                     Intent.ACTION_VIEW,
-                                    "https://github.com/Wheellog/Wheellog.Android/wiki".toUri()
+                                    "https://github.com/Tritbool/TuxWheel#usage".toUri()
                                 ),
                             )
                         }
@@ -126,7 +126,7 @@ fun startScreen(
                             context.startActivity(
                                 Intent(
                                     Intent.ACTION_VIEW,
-                                    "https://github.com/Wheellog/Wheellog.Android/issues".toUri()
+                                    "https://github.com/Tritbool/TuxWheel/issues".toUri()
                                 ),
                             )
                         }

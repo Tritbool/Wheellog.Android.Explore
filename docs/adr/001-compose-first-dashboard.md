@@ -1,5 +1,7 @@
 # ADR 001 – Compose-First Dashboard
 
+<img src="../../app/src/main/res/drawable-nodpi/tuxwheel.png" alt="TuxWheel icon" width="32" />
+
 **Date:** 2026-07-17  
 **Status:** Accepted; feature-flag rollout superseded on 2026-10-07
 
@@ -47,8 +49,9 @@ EUCData (BLE lib)
 - **Single source of truth**: `DashboardUiState` encodes every piece of information the
   gauge needs (fractions pre-computed, formatted strings pre-built).  The composable
   is a pure render function.
-- **Animation**: Jetpack Compose `animateFloatAsState` provides smooth transitions with
-  less boilerplate than the manual `Handler.postDelayed` loop in `WheelView`.
+- **Animation**: `DashboardGauge` schedules redraws in a `LaunchedEffect(state)`
+  with `delay(30)` while `DashboardCanvasRenderer.animating` remains true.
+  The renderer owns the transitions; the gauge does not use `animateFloatAsState`.
 - **Gradual migration (superseded)**: the original `useComposeUI` flag allowed
   side-by-side validation. Production rendering is now unconditionally Compose.
 

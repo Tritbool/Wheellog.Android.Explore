@@ -633,7 +633,6 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Exception) {
             // ignore
         }
-        ThemeManager.changeAppIcon(this@MainActivity)
         object : CountDownTimer((2 * 60 * 1000L), 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (!LoggingService.isInstanceCreated()) {

@@ -95,7 +95,7 @@
     <string name="reset_max_values_title">重置最高大值</string>
     <string name="reset_max_values_description">重置速度、PWM、电流、功率的最高大值</string>
     <string name="reset_user_distance_title">重置用户距离</string>
-    <string name="about_app_title">关于WheelLog</string>
+    <string name="about_app_title">关于TuxWheel</string>
     <string name="settings_title">设置</string>
     <string name="amp">A</string>
     <string name="max_speed_dial_title">最大速度</string>

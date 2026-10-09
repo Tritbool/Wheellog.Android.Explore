@@ -333,7 +333,7 @@
     <string name="beep_on_single_tap_title">"한 번 탭할 때 비프음"</string>
     <string name="beep_on_single_tap_description">"메인 화면에서 한 번 탭하면 비프음이 울립니다"</string>
     <string name="beep_on_volume_up_title">"음량 키로 비프음"</string>
-    <string name="beep_on_volume_up_description">"음량 버튼으로 비프음을 울립니다. WheelLog에서 볼륨을 조절할 수 없습니다."</string>
+    <string name="beep_on_volume_up_description">"음량 버튼으로 비프음을 울립니다. TuxWheel에서 볼륨을 조절할 수 없습니다."</string>
     <string name="custom_beep_title">"비프음 파일 선택"</string>
     <string name="bug_report">"버그 리포트"</string>
     <string name="power_off">"전원 끔"</string>

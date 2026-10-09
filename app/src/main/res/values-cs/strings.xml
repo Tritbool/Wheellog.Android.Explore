@@ -97,7 +97,7 @@
 	<string name="reset_max_values_title">Vynulovat maximální hodnoty</string>
 	<string name="reset_max_values_description">Vynulovat maximální hodnoty rychlosti, PWM, proudu, výkonu</string>
 	<string name="reset_user_distance_title">Vynulovat uživatelskou vzdálenost</string>
-    <string name="about_app_title">O WheelLogu</string>
+    <string name="about_app_title">O TuxWheel</string>
 	<string name="settings_title">Nastavení</string>
     <string name="amp">A</string>
 	<string name="max_speed_dial_title">Maximální rychlost</string>

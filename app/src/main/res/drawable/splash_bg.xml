@@ -4,7 +4,9 @@
         android:drawable="@color/wheelview_speed_text"/>
     <item
         android:top="@dimen/notification_content_margin_top"
-        android:drawable="@drawable/splash_black"
+        android:width="100dp"
+        android:height="100dp"
+        android:drawable="@drawable/tuxwheel"
         android:gravity="center">
     </item>
 </layer-list>

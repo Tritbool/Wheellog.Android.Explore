@@ -162,7 +162,7 @@
     <string name="reset_lowest_battery_title">Reset battery sag</string>
     <string name="reset_user_distance_title">Reset user distance</string>
     <string name="profile_name_title">Edit profile name</string>
-    <string name="about_app_title">About WheelLog</string>
+    <string name="about_app_title">About TuxWheel</string>
     <string name="settings_title">Settings</string>
     <string name="amp">A</string>
     <string name="newton">N*m</string>
@@ -275,7 +275,7 @@
     <string name="auto_voltage_title">Auto detect wheel voltage</string>
     <string name="auto_voltage_description">If possible, switch off if voltage is irrelevant</string>
     <string name="ks18l_scaler_title">Wrong 18L distance</string>
-    <string name="ks18l_scaler_description">18L used to show distance incorrectly. WheelLog corrects this number, but if you want to see the wrong raw numbers from the wheel - check this</string>
+    <string name="ks18l_scaler_description">18L used to show distance incorrectly. TuxWheel corrects this number, but if you want to see the wrong raw numbers from the wheel - check this</string>
     <string name="extreme_mode_title">Extreme Mode</string>
     <string name="extreme_mode_description">For stunts only! Not intended for normal riding!</string>
     <string name="trick_title">Trick</string>
@@ -486,7 +486,7 @@
     <string name="github_desc">"Thanks to all contributors."</string>
     <string name="telegram">Telegram</string>
     <string name="FAQ">FAQ</string>
-    <string name="about_app_desc">This app is free and open source. It is developed by volunteers in their free time. If you like this app, you can support the project by donating.</string>
+    <string name="about_app_desc">TuxWheel is free and open source, based on WheelLog. Bluetooth communication is powered by EUC_BLE_LIBRARY.</string>
     <string name="power_off">Power off</string>
     <string name="reset_trip">Reset trip</string>
     <string name="reset_trip_message">Are you sure you want to reset trip distance on the wheel?</string>

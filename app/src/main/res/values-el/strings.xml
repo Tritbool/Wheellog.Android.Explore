@@ -97,7 +97,7 @@
 	<string name="reset_max_values_title">Επαναφέρετε τις μέγιστες τιμές</string>
 	<string name="reset_max_values_description">Επαναφέρετε τις μέγιστες τιμές ταχύτητας, PWM, ρεύματος, ισχύος</string>
 	<string name="reset_user_distance_title">Επαναφορά της απόστασης χρήστη</string>
-    <string name="about_app_title">Σχετικά με το WheelLog</string>
+    <string name="about_app_title">Σχετικά με το TuxWheel</string>
 	<string name="settings_title">Ρυθμίσεις</string>
     <string name="amp">A</string>
 	<string name="max_speed_dial_title">Μέγιστη ταχύτητα</string>

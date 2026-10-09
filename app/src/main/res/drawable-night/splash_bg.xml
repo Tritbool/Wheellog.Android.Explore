@@ -4,7 +4,9 @@
         android:drawable="@android:color/black"/>
     <item
         android:top="@dimen/notification_content_margin_top"
-        android:drawable="@drawable/splash"
+        android:width="100dp"
+        android:height="100dp"
+        android:drawable="@drawable/tuxwheel"
         android:gravity="center">
     </item>
 </layer-list>

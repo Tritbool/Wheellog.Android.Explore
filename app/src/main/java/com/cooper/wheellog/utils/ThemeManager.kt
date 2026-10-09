@@ -1,8 +1,6 @@
 package com.cooper.wheellog.utils
 
-import android.content.ComponentName
 import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
 import androidx.annotation.DrawableRes
@@ -33,29 +31,23 @@ object ThemeManager: KoinComponent {
 
     init {
         // notification
-        original[ThemeIconEnum.NotificationIcon] = R.drawable.ic_stat_wheel
+        original[ThemeIconEnum.NotificationIcon] = R.drawable.ic_stat_tuxwheel
         original[ThemeIconEnum.NotificationConnecting] = R.drawable.ic_action_wheel_light_orange
         original[ThemeIconEnum.NotificationConnected] = R.drawable.ic_action_wheel_orange
         original[ThemeIconEnum.NotificationDisconnected] = R.drawable.ic_action_wheel_grey
         original[ThemeIconEnum.NotificationLogOn] = R.drawable.ic_action_logging_orange
         original[ThemeIconEnum.NotificationLogOff] = R.drawable.ic_action_logging_grey
-        original[ThemeIconEnum.NotificationWatchOn] = R.drawable.ic_action_watch_orange
-        original[ThemeIconEnum.NotificationWatchOff] = R.drawable.ic_action_watch_grey
         original[ThemeIconEnum.NotificationHorn] = R.drawable.ic_horn_32_gray
         original[ThemeIconEnum.NotificationLight] = R.drawable.ic_sun_32_gray
-        ajdm[ThemeIconEnum.NotificationIcon] = R.drawable.wheel_ajdm_w
+        ajdm[ThemeIconEnum.NotificationIcon] = R.drawable.ic_stat_tuxwheel
         ajdm[ThemeIconEnum.NotificationConnecting] = R.drawable.ajdm_wheel_new_g
         ajdm[ThemeIconEnum.NotificationConnected] = R.drawable.ajdm_wheel_new
         ajdm[ThemeIconEnum.NotificationDisconnected] = R.drawable.ajdm_wheel_new_b
         ajdm[ThemeIconEnum.NotificationLogOn] = R.drawable.ajdm_log_new
         ajdm[ThemeIconEnum.NotificationLogOff] = R.drawable.ajdm_log_new_b
-        ajdm[ThemeIconEnum.NotificationWatchOn] = R.drawable.ajdm_watch_new
-        ajdm[ThemeIconEnum.NotificationWatchOff] = R.drawable.ajdm_watch_new_b
         ajdm[ThemeIconEnum.NotificationHorn] = R.drawable.horn_ajdm_b
         ajdm[ThemeIconEnum.NotificationLight] = R.drawable.light_ajdm_b
         // menu
-        original[ThemeIconEnum.MenuWatchOn] = R.drawable.ic_action_watch_orange
-        original[ThemeIconEnum.MenuWatchOff] = R.drawable.ic_action_watch_white
         original[ThemeIconEnum.MenuLogOn] = R.drawable.ic_action_logging_orange
         original[ThemeIconEnum.MenuLogOff] = R.drawable.ic_action_logging_white
         original[ThemeIconEnum.MenuWheelOn] = R.drawable.ic_action_wheel_orange
@@ -63,8 +55,6 @@ object ThemeManager: KoinComponent {
         original[ThemeIconEnum.MenuWheelOff] = R.drawable.ic_action_wheel_white
         original[ThemeIconEnum.MenuSettings] = R.drawable.ic_baseline_settings_24
         original[ThemeIconEnum.MenuBluetooth] = R.drawable.ic_action_bluetooth_searching_white
-        ajdm[ThemeIconEnum.MenuWatchOn] = R.drawable.ajdm_watch_g
-        ajdm[ThemeIconEnum.MenuWatchOff] = R.drawable.ajdm_watch_new
         ajdm[ThemeIconEnum.MenuLogOn] = R.drawable.ajdm_log_new_g
         ajdm[ThemeIconEnum.MenuLogOff] = R.drawable.ajdm_log_new
         ajdm[ThemeIconEnum.MenuWheelOn] = R.drawable.ajdm_wheel_new_g
@@ -75,7 +65,6 @@ object ThemeManager: KoinComponent {
         // settings page
         original[ThemeIconEnum.SettingsSpeedometer] = R.drawable.ic_speedometer_white_24dp
         original[ThemeIconEnum.SettingsLog] = R.drawable.ic_show_chart_white_24dp
-        original[ThemeIconEnum.SettingsWatch] = R.drawable.ic_baseline_watch_24
         original[ThemeIconEnum.SettingsBug] = R.drawable.ic_baseline_bug_report_24
         original[ThemeIconEnum.SettingsAbout] = R.drawable.ic_baseline_info_24
         original[ThemeIconEnum.SettingsVibration] = R.drawable.ic_baseline_vibration_24
@@ -94,7 +83,6 @@ object ThemeManager: KoinComponent {
         original[ThemeIconEnum.SettingsAutoMute] = R.drawable.ic_baseline_volume_off_24
         ajdm[ThemeIconEnum.SettingsSpeedometer] = R.drawable.ajdm_sett5_new
         ajdm[ThemeIconEnum.SettingsLog] = R.drawable.ajdm_log_new_set
-        ajdm[ThemeIconEnum.SettingsWatch] = R.drawable.ajdm_watch_new
         ajdm[ThemeIconEnum.SettingsBug] = R.drawable.ajdm_flow
         ajdm[ThemeIconEnum.SettingsAbout] = R.drawable.ajdm_info
         ajdm[ThemeIconEnum.SettingsVibration] = R.drawable.ajdm_alarm
@@ -121,29 +109,4 @@ object ThemeManager: KoinComponent {
         } ?: R.drawable.transparent
     }
 
-    fun changeAppIcon(pkg: Context) {
-        // change main launcher icon
-        val pm = pkg.packageManager
-        val original = ComponentName(pkg, "com.cooper.wheellog.OriginalIconAlias")
-        val ajdm = ComponentName(pkg, "com.cooper.wheellog.AjdmIconAlias")
-        if (appConfig.appTheme == R.style.AJDMTheme) {
-            pm.setComponentEnabledSetting(
-                    ajdm,
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                    PackageManager.DONT_KILL_APP)
-            pm.setComponentEnabledSetting(
-                    original,
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                    PackageManager.DONT_KILL_APP)
-        } else {
-            pm.setComponentEnabledSetting(
-                    ajdm,
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                    PackageManager.DONT_KILL_APP)
-            pm.setComponentEnabledSetting(
-                    original,
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                    PackageManager.DONT_KILL_APP)
-        }
-    }
 }

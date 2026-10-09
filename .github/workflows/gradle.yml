@@ -66,5 +66,5 @@ jobs:
         message: |
           ${{ github.event.pull_request.title }}
           ${{ github.base_ref }} <= ${{ github.head_ref }}
-          PR: https://github.com/Wheellog/Wheellog.Android/pull/${{github.event.number}}
+          PR: https://github.com/${{ github.repository }}/pull/${{github.event.number}}
         document: app/build/outputs/apk/debug/app-debug.apk

@@ -32,7 +32,6 @@ class AppConfig(var context: Context) : KoinComponent {
         val currentVer = 1
         if (version < currentVer && sharedPreferences.edit()?.clear()?.commit() == true) {
             setValue("versionSettings", currentVer)
-            PreferenceManager.setDefaultValues(context, R.xml.preferences, false)
         }
     }
 
@@ -160,7 +159,10 @@ class AppConfig(var context: Context) : KoinComponent {
         }
 
     var notificationButtons: Array<String>
-        get() = this.notificationButtonsString?.split(separator)?.toTypedArray()
+        get() = this.notificationButtonsString?.split(separator)?.filter { button ->
+            listOf(R.string.icon_connection, R.string.icon_logging,
+                R.string.icon_beep, R.string.icon_light).any { context.getString(it) == button }
+        }?.toTypedArray()
             ?: arrayOf(
                 context.getString(R.string.icon_connection),
                 context.getString(R.string.icon_logging)
@@ -250,10 +252,6 @@ class AppConfig(var context: Context) : KoinComponent {
             setValue(R.string.auto_log, value)
         }
 
-    var autoWatch: Boolean
-        get() = getValue(R.string.auto_watch, false)
-        set(value) = setValue(R.string.auto_watch, value)
-
     var autoUploadEc: Boolean
         get() = getValue(R.string.auto_upload_ec, false)
         set(value) = setValue(R.string.auto_upload_ec, value)
@@ -291,22 +289,10 @@ class AppConfig(var context: Context) : KoinComponent {
         set(value) = setValue(R.string.continue_this_day_log_exception, value)
     //endregion    
 
-    //region watch
-    var hornMode: Int
-        get() = getValue(R.string.horn_mode, 0)
-        set(value) = setValue(R.string.horn_mode, value)
-
-    var garminConnectIqEnable: Boolean
-        get() = getValue(R.string.garmin_connectiq_enable, false)
-        set(value) = setValue(R.string.garmin_connectiq_enable, value)
-
-    var useGarminBetaCompanion: Boolean
-        get() = getValue(R.string.garmin_connectiq_use_beta, false)
-        set(value) = setValue(R.string.garmin_connectiq_use_beta, value)
-
+    //region toolbar
     var mainMenuButtons: Array<String>
-        get() = getValue<String?>("main_menu_buttons", null)?.split(separator)?.toTypedArray()
-            ?: arrayOf("watch")
+        get() = getValue<String?>("main_menu_buttons", null)?.split(separator)
+            ?.filter { it == "reset" }?.toTypedArray() ?: emptyArray()
         set(value) = setValue("main_menu_buttons", value.joinToString(separator))
 
     var showClock: Boolean

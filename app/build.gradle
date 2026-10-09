@@ -89,7 +89,6 @@ dependencies {
     // Compose
     implementation libs.compose.foundation
     implementation libs.compose.runtime
-    implementation libs.compose.runtime.livedata
     implementation libs.compose.ui
     implementation libs.compose.ui.tooling
     implementation libs.compose.material3
@@ -113,7 +112,6 @@ dependencies {
     implementation libs.core.ktx
     implementation libs.appcompat
     implementation libs.material
-    implementation libs.gridlayout
     implementation libs.preference.ktx
     implementation libs.constraintlayout
     implementation libs.legacy.support.v4
@@ -131,7 +129,6 @@ dependencies {
     // UI
     implementation libs.timber
     implementation libs.mpandroidchart
-    implementation libs.circleindicator
     implementation libs.guava
 
     // Test

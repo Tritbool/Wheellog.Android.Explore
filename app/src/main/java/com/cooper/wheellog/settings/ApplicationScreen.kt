@@ -188,7 +188,6 @@ fun applicationScreen(
                     stringResource(R.string.icon_logging) to stringResource(R.string.icon_logging),
                     stringResource(R.string.icon_beep) to stringResource(R.string.icon_beep),
                     stringResource(R.string.icon_light) to stringResource(R.string.icon_light),
-                    stringResource(R.string.icon_miband) to stringResource(R.string.icon_miband),
                 ),
                 defaultKeys = appConfig.notificationButtons.toList()
             ) {
@@ -199,13 +198,9 @@ fun applicationScreen(
             multiList(
                 name = stringResource(R.string.main_menu_buttons_title),
                 entries = mapOf(
-                    "watch" to stringResource(R.string.start_pebble_service),
-                    "miband" to stringResource(R.string.miband_desc),
                     "reset" to stringResource(R.string.reset_max_values_title),
                 ),
                 keyIcons = mapOf(
-                    "watch" to R.drawable.ic_action_watch_white,
-                    "miband" to R.drawable.ajdm_ic_mi_med,
                     "reset" to R.drawable.ic_action_reset,
                 ),
                 defaultKeys = appConfig.mainMenuButtons.toList()

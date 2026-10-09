@@ -97,7 +97,7 @@
 	<string name="reset_max_values_title">Spitzengeschwindigkeit zurücksetzen</string>
 	<string name="reset_max_values_description">Скинути максимальні значення швидкісти, PWM, силі струма, потужністи</string>
 	<string name="reset_user_distance_title">Benutzerentfernung zurücksetzen</string>
-    <string name="about_app_title">Über WheelLog</string>
+    <string name="about_app_title">Über TuxWheel</string>
 	<string name="settings_title">Einstellungen</string>
 	<string name="amp">A</string>
 	<string name="max_speed_dial_title">Max. Geschwindigkeit</string>

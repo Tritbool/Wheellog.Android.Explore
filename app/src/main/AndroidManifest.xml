@@ -2,10 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <queries>
-        <package android:name="com.garmin.android.apps.connectmobile" />
-    </queries>
-
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
@@ -41,12 +37,6 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
-
-    <uses-permission android:name="com.samsung.wmanager.APP" />
-    <uses-permission android:name="com.samsung.wmanager.ENABLE_NOTIFICATION" />
-    <uses-permission android:name="com.samsung.accessory.permission.ACCESSORY_FRAMEWORK" />
-    <uses-permission android:name="com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY" />
-    <uses-permission android:name="com.samsung.WATCH_APP_TYPE.Companion" />
 
     <uses-permission-sdk-23 android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
@@ -100,6 +90,5 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
-        <!-- <activity-alias used to change app icon dynamically>   : default icon, set enabled true    -->
     </application>
 </manifest>

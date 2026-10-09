@@ -20,13 +20,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.DialogHelper.setBlackIcon
-import com.cooper.wheellog.ElectroClub
 import com.cooper.wheellog.R
 import com.cooper.wheellog.data.TripDao
 import com.cooper.wheellog.data.TripDataDbEntry
 import com.cooper.wheellog.data.TripParser
 import com.cooper.wheellog.databinding.ListTripItemBinding
-import com.cooper.wheellog.map.MapActivity
 import com.cooper.wheellog.utils.SomeUtil.doAsync
 import com.cooper.wheellog.utils.MathsUtil
 import com.cooper.wheellog.utils.MathsUtil.kmToMilesMultiplier
@@ -91,32 +89,7 @@ class TripAdapter(var context: Context, private var tripModels: ArrayList<TripMo
         private val appConfig: AppConfig by inject()
         private val context = itemBinding.root.context
 
-        private fun showMap(tripModel: TripModel) {
-            context.startActivity(Intent(context, MapActivity::class.java).apply {
-                putExtra("uri", tripModel.uri.toString())
-                putExtra("path", tripModel.pathLegacyAndroid)
-                putExtra("title", tripModel.title)
-            }, Bundle.EMPTY)
-        }
 
-        private fun uploadToEc(tripModel: TripModel) {
-            val inputStream =
-                get<Context>().contentResolver.openInputStream(tripModel.uri)
-            if (inputStream == null) {
-                Timber.i("Failed to create inputStream for %s", tripModel.title)
-            } else {
-                val data = ByteStreams.toByteArray(inputStream)
-                inputStream.close()
-                ElectroClub.instance.uploadTrack(data, tripModel.title, false) { }
-            }
-        }
-
-        private fun showTrackEc(trackIdInEc: Int) {
-            if (trackIdInEc != -1) {
-                val browserIntent = Intent(Intent.ACTION_VIEW, ElectroClub.instance.getUrlFromTrackId(trackIdInEc))
-                context.startActivity(browserIntent, Bundle.EMPTY)
-            }
-        }
 
         private fun share(tripModel: TripModel) {
             val sendIntent: Intent = Intent().apply {
@@ -176,28 +149,26 @@ class TripAdapter(var context: Context, private var tripModels: ArrayList<TripMo
             if (trip != null && trip.duration != 0) {
                 val min = context.getString(R.string.min)
                 var desc1: String
-                var desc2 = "⌚ ${trip.duration} $min"
+                var desc2 = "\u231a ${trip.duration} $min"
                 if (appConfig.useMph) {
                     val mph = context.getString(R.string.mph)
                     val miles = context.getString(R.string.miles)
                     desc1 = "\uD83D\uDE80 ${formatMi(trip.maxSpeed)} $mph" +
-                            "\n\uD83D\uDCE1 ${formatMi(trip.maxSpeedGps)} $mph" +
-                            "\n♿ ${formatMi(trip.avgSpeed)} $mph"
+                            "\n\u267f ${formatMi(trip.avgSpeed)} $mph"
                     desc2 += "\n\uD83D\uDCCF ${formatMi(trip.distance / 1000.0f)} $miles"
                 } else {
                     val kmh = context.getString(R.string.kmh)
                     val km = context.getString(R.string.km)
                     desc1 = "\uD83D\uDE80 ${format(trip.maxSpeed)} $kmh" +
-                            "\n\uD83D\uDCE1 ${format(trip.maxSpeedGps)} $kmh" +
-                            "\n♿ ${format(trip.avgSpeed)} $kmh"
+                            "\n\u267f ${format(trip.avgSpeed)} $kmh"
                     desc2 += "\n\uD83D\uDCCF ${format(trip.distance / 1000.0f)} $km"
                 }
                 desc1 += "\n\uD83D\uDE31 ${trip.maxPwm}%"
                 if (trip.ecId != 0) {
-                    desc1 += "\n\uD83C\uDF10 electro.club"
+                    desc1 += "\n\u26a1 electro.club"
                 }
                 desc2 +=
-                    "\n⚡ ${format(trip.consumptionTotal)} ${context.getString(R.string.wh)}" +
+                    "\n\u26a1 ${format(trip.consumptionTotal)} ${context.getString(R.string.wh)}" +
                     "\n\uD83D\uDD0B " +
                     if (appConfig.useMph) {
                         "${format(trip.consumptionByKm / kmToMilesMultiplier.toFloat())} ${context.getString(R.string.whmi)}"
@@ -266,33 +237,17 @@ class TripAdapter(var context: Context, private var tripModels: ArrayList<TripMo
             }) {
                 setDescFromDb(trip)
                 val wrapper = ContextThemeWrapper(context, R.style.OriginalTheme_PopupMenuStyle)
-                val ecAvailable = appConfig.ecToken != null
                 val popupMenu = PopupMenu(wrapper,  itemBinding.popupButton).apply {
                     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-                        menu.add(0, 0, 0, R.string.trip_menu_view_map).icon =
-                            context.getDrawable(ThemeManager.getId(ThemeIconEnum.TripsMap))
-                        menu.add(0, 1, 1, R.string.trip_menu_upload_to_ec).apply {
-                            icon =
-                                context.getDrawable(ThemeManager.getId(ThemeIconEnum.TripsUpload))
-                            isVisible = trackIdInEc == -1 && ecAvailable
-                        }
-                        menu.add(0, 2, 2, R.string.trip_menu_open_in_ec).apply {
-                            icon =
-                                context.getDrawable(ThemeManager.getId(ThemeIconEnum.TripsOpenEc))
-                            isVisible = trackIdInEc != -1 && ecAvailable
-                        }
-                        menu.add(0, 3, 3, R.string.trip_menu_share).icon =
+                        menu.add(0, 2, 2, R.string.trip_menu_share).icon =
                             context.getDrawable(ThemeManager.getId(ThemeIconEnum.TripsShare))
-                        menu.add(0, 4, 4, R.string.trip_menu_delete_file).icon =
+                        menu.add(0, 3, 3, R.string.trip_menu_delete_file).icon =
                             context.getDrawable(ThemeManager.getId(ThemeIconEnum.TripsDelete))
                     }
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
-                            0 -> showMap(tripModel)
-                            1 -> uploadToEc(tripModel)
-                            2 -> showTrackEc(trackIdInEc)
-                            3 -> share(tripModel)
-                            4 -> deleteFile(tripModel, adapter)
+                            0 -> share(tripModel)
+                            1 -> deleteFile(tripModel, adapter)
                         }
                         return@setOnMenuItemClickListener false
                     }

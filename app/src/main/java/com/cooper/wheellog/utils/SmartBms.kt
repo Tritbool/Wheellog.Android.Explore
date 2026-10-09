@@ -9,6 +9,7 @@ class SmartBms {
     var chargeCount: Int = 0
     lateinit var mfgDateStr: String
     var status: Int = 0
+    var isCharging: Boolean = false
     var remCap: Int = 0
     var remPerc: Int = 0
     var current: Double = 0.0

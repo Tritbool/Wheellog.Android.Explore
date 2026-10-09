@@ -1,8 +1,6 @@
 package com.cooper.wheellog.data
 
 import android.content.Context
-import com.cooper.wheellog.ElectroClub
-import com.cooper.wheellog.WheelLog
 import com.google.common.collect.Range
 import com.google.common.truth.Truth.*
 import io.mockk.*
@@ -56,7 +54,6 @@ class TripParserTest {
         // Assert.
         assertThat(trip.duration).isEqualTo(880)
         assertThat(trip.distance).isEqualTo(19_493)
-        assertThat(trip.maxSpeedGps).isIn(Range.closed(66f, 66.2f))
         assertThat(trip.maxCurrent).isIn(Range.closed(86.8f, 86.9f))
         assertThat(trip.maxPwm).isIn(Range.closed(86.7f, 86.8f))
         assertThat(trip.maxPower).isIn(Range.closed(7825f, 7826f))

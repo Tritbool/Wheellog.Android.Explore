@@ -1,6 +1,8 @@
 package com.cooper.wheellog.compose
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -8,50 +10,56 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cooper.wheellog.utils.MathsUtil
 import com.cooper.wheellog.AppConfig
+import com.cooper.wheellog.ble.BleSessionViewModel
 import org.koin.compose.koinInject
 import java.util.Locale
 
 @Composable
-fun ParamsListScreen() {
-    val data = remember { WheelDataComposeBridge.data }
+fun ParamsListScreen(viewModel: BleSessionViewModel = koinInject()) {
     val appConfig: AppConfig = koinInject()
-
     val useMph = appConfig.useMph
+    val usePsi = appConfig.usePsi
+    val state by viewModel.sessionState.collectAsState()
+    val sessionDistance = state.sessionDistance ?: state.wheelDistance ?: 0.0
 
-    val items = remember(data) {
-        listOf(
-            "Speed" to formatSpeed(data.speedDouble, useMph),
-            "Top Speed" to formatSpeed(data.topSpeedDouble, useMph),
-            "Average Speed" to formatSpeed(data.averageSpeedDouble, useMph),
-            "Average Riding Speed" to formatSpeed(data.averageRidingSpeedDouble, useMph),
-            "Distance" to formatDistance(data.distanceDouble, useMph),
-            "Wheel Distance" to formatDistance(data.wheelDistanceDouble, useMph),
-            "User Distance" to formatDistance(data.userDistanceDouble, useMph),
-            "Total Distance" to formatDistance(data.totalDistanceDouble, useMph),
-            "Voltage" to String.format(Locale.US, "%.2f V", data.voltageDouble),
-            "Voltage Sag" to String.format(Locale.US, "%.2f V", data.voltageSagDouble),
-            "Current" to String.format(Locale.US, "%.2f A", data.currentDouble),
-            "Power" to String.format(Locale.US, "%.2f W", data.powerDouble),
-            "Motor Power" to String.format(Locale.US, "%.2f W", data.motorPower),
-            "Battery" to "${data.batteryLevel}%",
-            "Temperature" to "${data.temperature}°C",
-            "Temperature 2" to "${data.temperature2}°C",
-            "CPU Temp" to "${data.cpuTemp}°C",
-            "IMU Temp" to "${data.imuTemp}°C",
-            "Angle" to String.format(Locale.US, "%.2f°", data.angle),
-            "Roll" to String.format(Locale.US, "%.2f°", data.roll),
-            "Ride Time" to data.rideTimeString,
-            "Riding Time" to data.ridingTimeString,
-            "Mode" to data.modeStr,
-            "Model" to data.model,
-            "Version" to data.version,
-            "Serial" to data.serial
-        )
-    }
+    val items = listOf(
+        "Speed" to formatSpeed(state.currentSpeed, useMph),
+        "Tire pressure" to formatPressure(state.currentPressure, usePsi),
+        "Top Speed" to formatSpeed(state.sessionTopSpeed ?: viewModel.topSpeedDouble, useMph),
+        "Average Speed" to formatSpeed(viewModel.averageSpeedDouble, useMph),
+        "Average Riding Speed" to formatSpeed(viewModel.averageRidingSpeedDouble, useMph),
+        "Distance" to formatDistance(sessionDistance, useMph),
+        "Wheel Distance" to formatDistance(viewModel.wheelDistanceDouble, useMph),
+        "User Distance" to formatDistance(viewModel.userDistanceDouble, useMph),
+        "Total Distance" to formatDistance(state.totalDistance ?: 0.0, useMph),
+        "Voltage" to String.format(Locale.US, "%.2f V", state.currentVoltage),
+        "Voltage Sag" to String.format(Locale.US, "%.2f V", viewModel.voltageSagDouble),
+        "Current" to String.format(Locale.US, "%.2f A", state.currentCurrent),
+        "Power" to String.format(Locale.US, "%.2f W", state.currentPower),
+        "Motor Power" to String.format(Locale.US, "%.2f W", viewModel.motorPower),
+        "Battery" to "${state.batteryLevel}%",
+        "Board Temperature" to "${state.currentTemperature.toInt()}°C",
+        "Motor Temperature" to "${viewModel.motorTemperatureDouble.toInt()}°C",
+        "CPU Temp" to "${viewModel.cpuTemp}°C",
+        "IMU Temp" to "${viewModel.imuTemp}°C",
+        "Output" to "${viewModel.output}%",
+        "Angle" to String.format(Locale.US, "%.2f°", state.angle ?: 0.0),
+        "Roll" to String.format(Locale.US, "%.2f°", state.lastData?.roll ?: 0.0),
+        "Ride Time" to viewModel.rideTimeString,
+        "Riding Time" to viewModel.ridingTimeString,
+        "Sleep Timer" to viewModel.sleepTimerString,
+        "Mode" to (state.lastData?.mode ?: ""),
+        "Manufacturer" to state.deviceManufacturer,
+        "Model" to state.deviceModel,
+        "Version" to (state.firmwareVersion ?: "Unknown"),
+        "Serial" to (state.serialNumber ?: "Unknown"),
+        "Charging" to (String.format(Locale.US, "%b", state.isCharging))
+    )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -66,6 +74,11 @@ fun ParamsListScreen() {
         }
     }
 }
+
+private fun formatPressure(kPa: Double, usePsi: Boolean): String =
+    if (usePsi) String.format(Locale.US, "%.1f PSI", MathsUtil.kPaToPSI(kPa))
+    else String.format(Locale.US, "%.1f kPa", MathsUtil.kPaToBar(kPa))
+
 
 private fun formatSpeed(kmh: Double, useMph: Boolean): String =
     if (useMph) String.format(Locale.US, "%.1f mph", MathsUtil.kmToMiles(kmh))

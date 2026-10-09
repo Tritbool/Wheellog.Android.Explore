@@ -3,12 +3,6 @@ package com.cooper.wheellog.utils
 enum class LogHeaderEnum {
     DATE,
     TIME,
-    LATITUDE,
-    LONGITUDE,
-    GPS_SPEED,
-    GPS_ALT,
-    GPS_HEADING,
-    GPS_DISTANCE,
     SPEED,
     VOLTAGE,
     PHASE_CURRENT,

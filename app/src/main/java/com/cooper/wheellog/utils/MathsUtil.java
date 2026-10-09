@@ -8,11 +8,20 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.ByteBuffer;
 
 public class MathsUtil {
-    public static double kmToMilesMultiplier =  0.62137119223733;
+    public static double kmToMilesMultiplier = 0.62137119223733;
 
     public static double kmToMiles(double km) {
         return km * kmToMilesMultiplier;
     }
+
+    public static double kPaToPSI(double kPa) {
+        return kPa / 6.89476;
+    }
+
+    public static double kPaToBar(double kPa) {
+        return kPa / 100.0;
+    }
+
 
     public static float kmToMiles(float km) {
         return (float) kmToMiles((double) km);
@@ -93,7 +102,7 @@ public class MathsUtil {
 
     public static long intFromBytesRevLE(byte[] bytes, int starting) {
         if (bytes.length >= starting + 4) {
-            return (((bytes[starting + 1] & 0xFF) << 24) | ((bytes[starting] & 0xFF) << 16) | ((bytes[starting + 3] & 0xFF) << 8) | (bytes[starting+2] & 0xFF));
+            return (((bytes[starting + 1] & 0xFF) << 24) | ((bytes[starting] & 0xFF) << 16) | ((bytes[starting + 3] & 0xFF) << 8) | (bytes[starting + 2] & 0xFF));
         }
         return 0;
     }
@@ -107,7 +116,7 @@ public class MathsUtil {
 
     public static int intFromBytesRevBE(byte[] bytes, int starting) {
         if (bytes.length >= starting + 4) {
-            return (((bytes[starting+2] & 0xFF) << 24) | ((bytes[starting+3] & 0xFF) << 16) | ((bytes[starting] & 0xFF) << 8) | (bytes[starting+1] & 0xFF));
+            return (((bytes[starting + 2] & 0xFF) << 24) | ((bytes[starting + 3] & 0xFF) << 16) | ((bytes[starting] & 0xFF) << 8) | (bytes[starting + 1] & 0xFF));
         }
         return 0;
     }
@@ -121,21 +130,21 @@ public class MathsUtil {
 
     public static int shortFromBytesLE(byte[] bytes, int starting) {
         if (bytes.length >= starting + 2) {
-            return ((bytes[starting+1] & 0xFF) << 8) | (bytes[starting] & 0xFF);
+            return ((bytes[starting + 1] & 0xFF) << 8) | (bytes[starting] & 0xFF);
         }
         return 0;
     }
 
     public static int shortFromBytesBE(byte[] bytes, int starting) {
         if (bytes.length >= starting + 2) {
-            return ((bytes[starting] & 0xFF) << 8) | (bytes[starting+1] & 0xFF);
+            return ((bytes[starting] & 0xFF) << 8) | (bytes[starting + 1] & 0xFF);
         }
         return 0;
     }
 
     public static int signedShortFromBytesBE(byte[] bytes, int starting) {
         if (bytes.length >= starting + 2) {
-            return (bytes[starting] << 8) | (bytes[starting+1] & 0xFF);
+            return (bytes[starting] << 8) | (bytes[starting + 1] & 0xFF);
         }
         return 0;
     }
@@ -143,7 +152,7 @@ public class MathsUtil {
 
     public static int signedShortFromBytesLE(byte[] bytes, int starting) {
         if (bytes.length >= starting + 2) {
-            return ((bytes[starting+1] << 8) | (bytes[starting] & 0xFF));
+            return ((bytes[starting + 1] << 8) | (bytes[starting] & 0xFF));
         }
         return 0;
     }

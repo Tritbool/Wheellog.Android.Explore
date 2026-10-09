@@ -56,10 +56,6 @@ object ThemeManager: KoinComponent {
         // menu
         original[ThemeIconEnum.MenuWatchOn] = R.drawable.ic_action_watch_orange
         original[ThemeIconEnum.MenuWatchOff] = R.drawable.ic_action_watch_white
-        original[ThemeIconEnum.MenuMiBandAlarm] = R.drawable.ic_mi_alarm
-        original[ThemeIconEnum.MenuMiBandMin] = R.drawable.ic_mi_min
-        original[ThemeIconEnum.MenuMiBandMed] = R.drawable.ic_mi_med
-        original[ThemeIconEnum.MenuMiBandMax] = R.drawable.ic_mi_max
         original[ThemeIconEnum.MenuLogOn] = R.drawable.ic_action_logging_orange
         original[ThemeIconEnum.MenuLogOff] = R.drawable.ic_action_logging_white
         original[ThemeIconEnum.MenuWheelOn] = R.drawable.ic_action_wheel_orange
@@ -69,10 +65,6 @@ object ThemeManager: KoinComponent {
         original[ThemeIconEnum.MenuBluetooth] = R.drawable.ic_action_bluetooth_searching_white
         ajdm[ThemeIconEnum.MenuWatchOn] = R.drawable.ajdm_watch_g
         ajdm[ThemeIconEnum.MenuWatchOff] = R.drawable.ajdm_watch_new
-        ajdm[ThemeIconEnum.MenuMiBandAlarm] = R.drawable.ajdm_ic_mi_alarm
-        ajdm[ThemeIconEnum.MenuMiBandMin] = R.drawable.ajdm_ic_mi_min
-        ajdm[ThemeIconEnum.MenuMiBandMed] = R.drawable.ajdm_ic_mi_med
-        ajdm[ThemeIconEnum.MenuMiBandMax] = R.drawable.ajdm_ic_mi_max
         ajdm[ThemeIconEnum.MenuLogOn] = R.drawable.ajdm_log_new_g
         ajdm[ThemeIconEnum.MenuLogOff] = R.drawable.ajdm_log_new
         ajdm[ThemeIconEnum.MenuWheelOn] = R.drawable.ajdm_wheel_new_g
@@ -94,7 +86,6 @@ object ThemeManager: KoinComponent {
         original[ThemeIconEnum.SettingsCalibration] = R.drawable.ic_baseline_calibration_24
         original[ThemeIconEnum.SettingsLanguage] = R.drawable.ic_baseline_translate_24
         original[ThemeIconEnum.SettingsAutoLog] = R.drawable.ic_baseline_magic_log_24
-        original[ThemeIconEnum.SettingsLocation] = R.drawable.ic_baseline_location_on_24
         original[ThemeIconEnum.SettingsBlocks] = R.drawable.ic_baseline_dashboard_customize_24
         original[ThemeIconEnum.SettingsNotification] = R.drawable.ic_notification
         original[ThemeIconEnum.SettingsPageEvents] = R.drawable.ic_baseline_event_note_24
@@ -111,7 +102,6 @@ object ThemeManager: KoinComponent {
         ajdm[ThemeIconEnum.SettingsTrips] = R.drawable.ajdm_trip
         // trip page
         original[ThemeIconEnum.TripsPopupButton] = R.drawable.ic_baseline_settings_24
-        original[ThemeIconEnum.TripsMap] = R.drawable.ic_baseline_map_24
         original[ThemeIconEnum.TripsUpload] = R.drawable.ic_baseline_cloud_upload_24
         original[ThemeIconEnum.TripsShare] = R.drawable.ic_baseline_share_24
         original[ThemeIconEnum.TripsDelete] = R.drawable.ic_baseline_delete_24

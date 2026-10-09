@@ -8,7 +8,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.PermissionChecker
 
 object PermissionsUtil {
     private val permissionsLocation = arrayOf(
@@ -44,10 +43,11 @@ object PermissionsUtil {
      * returns - all ble permissions is granted
      */
     fun checkBlePermissions(activity: Activity, requestCode: Int = 1): Boolean {
-        val requestedPermission = permissionsLocation.toMutableList()
+        val requestedPermission = mutableListOf<String>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             requestedPermission.addAll(permissionsBle31)
         } else {
+            requestedPermission.addAll(permissionsLocation)
             requestedPermission.addAll(permissionsBleLegacy)
         }
         return !reqPermissions(activity, requestedPermission, requestCode)
@@ -78,15 +78,6 @@ object PermissionsUtil {
         val read = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)
         val write = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         return read == PackageManager.PERMISSION_GRANTED && write == PackageManager.PERMISSION_GRANTED
-    }
-
-    @JvmStatic
-    fun checkLocationPermission(context: Context): Boolean {
-        var result = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        if (result && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            result = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PermissionChecker.PERMISSION_GRANTED
-        }
-        return result
     }
 
     /**

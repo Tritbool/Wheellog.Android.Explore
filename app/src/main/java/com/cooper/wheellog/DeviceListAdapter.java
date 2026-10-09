@@ -1,7 +1,5 @@
 package com.cooper.wheellog;
 
-import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothDevice;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,16 +8,17 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.koin.core.component.KoinComponent;
-import org.koin.java.KoinJavaComponent;
-
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import io.github.tritbool.euc.ble.models.EUCDevice;
 
 // Adapter for holding devices found through scanning.
 public class DeviceListAdapter extends BaseAdapter {
-    private final AppConfig appConfig = KoinJavaComponent.get(AppConfig.class);
-    private final ArrayList<BluetoothDevice> mLeDevices;
-    private final ArrayList<String> mLeAdvDatas;
+    private final ArrayList<EUCDevice> mLeDevices;
+    // Advertising payload kept per device address, so it survives list rebuilds.
+    private final HashMap<String, String> mLeAdvDatas;
     private final LayoutInflater mInflator;
 
     static class ViewHolder {
@@ -30,34 +29,41 @@ public class DeviceListAdapter extends BaseAdapter {
     public DeviceListAdapter(AppCompatActivity appCompatActivity) {
         super();
         mLeDevices = new ArrayList<>();
-        mLeAdvDatas = new ArrayList<>();
+        mLeAdvDatas = new HashMap<>();
         mInflator = appCompatActivity.getLayoutInflater();
     }
 
-    public void addDevice(BluetoothDevice device, String advData) {
-        if (!appConfig.getShowUnknownDevices()) {
-            @SuppressLint("MissingPermission")
-            String deviceName = device.getName();
-            if (deviceName == null || deviceName.length() == 0)
-                return;
-        }
-
-        if(!mLeDevices.contains(device)) {
+    public void addDevice(EUCDevice device, String advData) {
+        if (!mLeDevices.contains(device)) {
             mLeDevices.add(device);
-            mLeAdvDatas.add(advData);
+            if (advData != null) {
+                mLeAdvDatas.put(device.getAddress(), advData);
+            }
         }
     }
 
-    public BluetoothDevice getDevice(int position) {
+    /**
+     * Replaces the displayed devices, keeping the order given by the caller (discovery order).
+     * Returns true when the contents actually changed, so the caller can skip a needless
+     * notifyDataSetChanged() (which would reset scroll position and pressed state).
+     */
+    public boolean setDevices(List<EUCDevice> devices) {
+        if (mLeDevices.equals(devices)) {
+            return false;
+        }
+        mLeDevices.clear();
+        mLeDevices.addAll(devices);
+        return true;
+    }
+
+    public EUCDevice getDevice(int position) {
         return mLeDevices.get(position);
     }
 
     public String getAdvData(int position) {
-        return mLeAdvDatas.get(position);
+        String advData = mLeAdvDatas.get(mLeDevices.get(position).getAddress());
+        return advData == null ? "" : advData;
     }
-//    public void clear() {
-//        mLeDevices.clear();
-//    }
 
     @Override
     public int getCount() {
@@ -88,8 +94,7 @@ public class DeviceListAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) view.getTag();
         }
 
-        BluetoothDevice device = mLeDevices.get(i);
-        @SuppressLint("MissingPermission")
+        EUCDevice device = mLeDevices.get(i);
         final String deviceName = device.getName();
         if (deviceName != null && deviceName.length() > 0)
             viewHolder.deviceName.setText(deviceName);

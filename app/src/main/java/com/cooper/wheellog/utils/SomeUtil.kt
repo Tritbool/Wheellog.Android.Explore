@@ -1,5 +1,6 @@
 package com.cooper.wheellog.utils
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.*
 import android.content.pm.PackageManager
@@ -13,11 +14,12 @@ import android.view.View
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
+import androidx.annotation.RequiresPermission
 import androidx.fragment.app.Fragment
 import com.cooper.wheellog.AppConfig
 import com.cooper.wheellog.MainActivity
 import com.cooper.wheellog.R
-import com.cooper.wheellog.WheelData
+import com.cooper.wheellog.ble.BleSessionViewModel
 import com.cooper.wheellog.WheelLog
 import kotlinx.coroutines.*
 import org.koin.core.component.KoinComponent
@@ -28,6 +30,7 @@ import java.io.Serializable
 
 object SomeUtil: KoinComponent {
     private val appConfig: AppConfig by inject()
+    private val viewModel: BleSessionViewModel by inject()
     
     @ColorInt
     fun View.getColorEx(@ColorRes id: Int): Int {
@@ -68,15 +71,16 @@ object SomeUtil: KoinComponent {
     private val mediaPlayer by lazy { MediaPlayer() }
     private var beepTimer: CountDownTimer? = null
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     @Suppress("DEPRECATION")
     @JvmStatic
     fun playBeep(onlyByWheel: Boolean, onlyDefault: Boolean) {
-        if (WheelData.getInstance() == null) {
+        if (viewModel == null) {
             return
         }
 
         if (appConfig.beepByWheel || onlyByWheel) {
-            WheelData.getInstance().wheelBeep()
+            viewModel.wheelBeep()
             return
         }
 
@@ -127,7 +131,7 @@ object SomeUtil: KoinComponent {
             }
         } else {
             // default beep
-            playSound(context, R.raw.beep)
+            playSound(context, R.raw.connected)
         }
     }
 

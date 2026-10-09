@@ -31,7 +31,6 @@ data class TripDataDbEntry(
     var ecTransportId: Int = 0,
 
     var maxSpeed: Float = 0f,
-    var maxSpeedGps: Float = 0f,
     var avgSpeed: Float = 0f,
     var maxPwm: Float = 0f,
     var maxCurrent: Float = 0f,

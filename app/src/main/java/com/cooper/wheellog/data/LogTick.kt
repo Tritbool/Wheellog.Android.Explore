@@ -10,9 +10,6 @@ data class LogTick(
      * Time in 1/10 second + day of week
      */
     val timePlusDayOfWeek: Float,
-    val latitude: Double,
-    val longitude: Double,
-    val altitude: Double,
     val batteryLevel: Int,
     /**
      * Battery voltage in Volts
@@ -30,10 +27,6 @@ data class LogTick(
      * Speed in km/h
      */
     val speed: Double,
-    /**
-     * Speed in km/h by GPS
-     */
-    val speedGps: Double,
     /**
      * Temperature in Celsius
      */

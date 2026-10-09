@@ -1098,7 +1098,7 @@ private fun switchPreview2(appConfig: AppConfig = koinInject()) {
 private fun sliderPreview(appConfig: AppConfig = koinInject()) {
     sliderPref(
         name = stringResource(R.string.alarm_1_battery_title),
-        themeIcon = ThemeIconEnum.MenuMiBandAlarm,
+        themeIcon = ThemeIconEnum.MenuAlarm,
         desc = stringResource(R.string.alarm_1_battery_description),
     ) { }
 }

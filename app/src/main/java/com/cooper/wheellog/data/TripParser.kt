@@ -66,13 +66,6 @@ object TripParser: KoinComponent {
             } catch (ignored: IllegalArgumentException) {
             }
         }
-        if (!header.containsKey(LogHeaderEnum.LATITUDE) || !header.containsKey(LogHeaderEnum.LONGITUDE)) {
-            inputStream.close()
-            lastErrorValue = context.getString(R.string.error_this_file_without_gps, fileName)
-            Timber.wtf(lastErrorValue)
-            return Pair(emptyList(), null)
-        }
-
         val sdfTime = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
         val sdfFullDate = SimpleDateFormat("dd HH:mm:ss.SSS", Locale.getDefault())
         val resultList = ArrayList<LogTick>()
@@ -91,16 +84,12 @@ object TripParser: KoinComponent {
                             ParsePosition(8)
                         )!!.time / 100f,
                         time = sdfTime.parse(timeString)!!.time / 100f,
-                        latitude = row[header[LogHeaderEnum.LATITUDE]!!].toDoubleOrNull() ?: 0.0,
-                        longitude = row[header[LogHeaderEnum.LONGITUDE]!!].toDoubleOrNull() ?: 0.0,
-                        altitude = row[header[LogHeaderEnum.GPS_ALT]!!].toDoubleOrNull() ?: 0.0,
                         batteryLevel = row[header[LogHeaderEnum.BATTERY_LEVEL]!!].toIntOrNull()
                             ?: 0,
                         voltage = row[header[LogHeaderEnum.VOLTAGE]!!].toDoubleOrNull() ?: 0.0,
                         current = row[header[LogHeaderEnum.CURRENT]!!].toDoubleOrNull() ?: 0.0,
                         power = row[header[LogHeaderEnum.POWER]!!].toDoubleOrNull() ?: 0.0,
                         speed = row[header[LogHeaderEnum.SPEED]!!].toDoubleOrNull() ?: 0.0,
-                        speedGps = row[header[LogHeaderEnum.GPS_SPEED]!!].toDoubleOrNull() ?: 0.0,
                         temperature = row[header[LogHeaderEnum.SYSTEM_TEMP]!!].toIntOrNull() ?: 0,
                         pwm = row[header[LogHeaderEnum.PWM]!!].toDoubleOrNull() ?: 0.0,
                         distance = row[header[LogHeaderEnum.DISTANCE]!!].toIntOrNull() ?: 0,
@@ -148,7 +137,6 @@ object TripParser: KoinComponent {
                     if (firstTotalDistance == 0 && it.totalDistance > 0) {
                         firstTotalDistance = it.totalDistance
                     }
-                    maxSpeedGps = maxSpeedGps.coerceAtLeast(it.speedGps.toFloat())
                     maxCurrent = maxCurrent.coerceAtLeast(it.current.toFloat())
                     maxPwm = maxPwm.coerceAtLeast(it.pwm.toFloat())
                 }

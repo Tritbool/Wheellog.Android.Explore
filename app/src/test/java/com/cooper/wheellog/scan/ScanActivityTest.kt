@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter
 import android.os.Bundle
 import android.os.Looper
 import android.view.View
+import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.compose.runtime.State
 import androidx.compose.ui.platform.ComposeView
@@ -209,6 +210,43 @@ class ScanActivityTest {
         assertThat(activity.isFinishing).isTrue()
         assertThat(shadowOf(activity).resultCode).isEqualTo(ScanActivity.RESULT_CANCELED)
         verify(exactly = 1) { session.startScan() }
+    }
+
+    @Test fun `dialog Back gesture closes scan and cancels pending timeout`() {
+        val activity = launch()
+        dialog(activity).onBackPressedDispatcher.onBackPressed()
+        assertThat(activity.isFinishing).isTrue()
+        assertThat(dialog(activity).isShowing).isFalse()
+        assertThat(state(activity).scanning).isFalse()
+        assertThat(shadowOf(activity).resultCode).isEqualTo(ScanActivity.RESULT_CANCELED)
+        verify(exactly = 1) { session.stopScan() }
+        clearMocks(session, answers = false, recordedCalls = true)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(11))
+        verify(exactly = 0) { session.stopScan() }
+        verify(exactly = 0) { session.startScan() }
+    }
+
+    @Test fun `dialog hardware Back closes even after scan completes`() {
+        val activity = launch()
+        completeScan()
+        val scanDialog = dialog(activity)
+        scanDialog.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK))
+        scanDialog.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK))
+        idle()
+        assertThat(activity.isFinishing).isTrue()
+        assertThat(scanDialog.isShowing).isFalse()
+        assertThat(shadowOf(activity).resultCode).isEqualTo(ScanActivity.RESULT_CANCELED)
+    }
+
+    @Test fun `canceling scan dialog stops radio without selecting a wheel`() {
+        val activity = launch()
+        dialog(activity).cancel()
+        idle()
+        assertThat(activity.isFinishing).isTrue()
+        assertThat(shadowOf(activity).resultCode).isEqualTo(ScanActivity.RESULT_CANCELED)
+        assertThat(config.lastMac).isEqualTo("AA:BB:CC:DD:EE:FF")
+        verify(exactly = 1) { session.stopScan() }
+        verify(exactly = 0) { session.connect(any()) }
     }
 
     @Test fun `only nonempty matching permission grants may start a scan`() {

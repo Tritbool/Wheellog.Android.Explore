@@ -3,14 +3,12 @@ package com.cooper.wheellog
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
-import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresPermission
@@ -70,17 +68,10 @@ class ScanActivity : AppCompatActivity() {
         updateUi(uiState)
         alertDialog = AlertDialog.Builder(this, R.style.OriginalTheme_Dialog_Alert)
             .setView(binding.root)
-            .setCancelable(false)
-            .setOnKeyListener { dialogInterface: DialogInterface, keycode: Int, keyEvent: KeyEvent ->
-                if (keycode == KeyEvent.KEYCODE_BACK && keyEvent.action == KeyEvent.ACTION_UP &&
-                    !keyEvent.isCanceled
-                ) {
-                    dialogInterface.cancel()
-                    close()
-                }
-                false
-            }
+            .setCancelable(true)
+            .setOnCancelListener { close() }
             .create()
+        alertDialog.setCanceledOnTouchOutside(false)
         alertDialog.show()
         // Position the dialog at the top of the screen without dimming, so MainActivity remains
         // visible behind the transparent ScanActivity window.
@@ -107,8 +98,13 @@ class ScanActivity : AppCompatActivity() {
             }
         }
 
-        // Safety-net: handle back via the Activity dispatcher in case the dialog key listener
-        // is not reached (e.g. hardware back on some launchers).
+        // Dialogs own their Back dispatcher, including system Back gestures.
+        alertDialog.onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
+            override fun handleOnBackPressed() {
+                close()
+            }
+        })
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
             override fun handleOnBackPressed() {

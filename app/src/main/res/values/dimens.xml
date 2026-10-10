@@ -1,6 +1,7 @@
 <resources>
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="default_gap">8dp</dimen>
 
     <dimen name="notification_content_margin_top">37.5dp</dimen>
 

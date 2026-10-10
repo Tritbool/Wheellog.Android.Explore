@@ -73,7 +73,6 @@
 
     <style name="Stats" parent="@android:style/TextAppearance.Medium">
         <item name="android:gravity">left</item>
-        <item name="layout_columnWeight">1</item>
         <item name="android:textColor">#AAFFFFFF</item>
     </style>
 
@@ -87,7 +86,6 @@
 
     <style name="StatsBMS" parent="@android:style/TextAppearance.Medium">
         <item name="android:gravity">left</item>
-        <item name="layout_columnWeight">1</item>
         <item name="android:textColor">#AAFFFFFF</item>
         <item name="android:textSize">10sp</item>
     </style>
